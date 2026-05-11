@@ -1,24 +1,10 @@
+import Header from '@/components/Header'
+
 export default function Home() {
   return (
     <main className="min-h-screen bg-[#9794C4] text-black font-sans">
-      {/* Header */}
-      <header className="flex items-center justify-between px-8 py-6">
-        <a href="/">
-          <img src="/logo.png" alt="TLACUILO" className="h-10 w-auto" />
-        </a>
-        <nav className="hidden md:flex gap-8 text-sm uppercase tracking-wide">
-          <a href="/biblioteca" className="hover:underline">Biblioteca</a>
-          <a href="#" className="hover:underline">Artoteca</a>
-          <a href="#" className="hover:underline">Fonoteca</a>
-          <a href="#" className="hover:underline">Editorial Tlacuilo</a>
-        </nav>
-        <div className="hidden md:flex gap-6 text-sm uppercase tracking-wide">
-          <a href="#" className="hover:underline">Iniciar sesión</a>
-          <a href="#" className="hover:underline">Crear cuenta</a>
-        </div>
-      </header>
+      <Header />
 
-      {/* Hero - Newsletter */}
       <section className="grid grid-cols-1 md:grid-cols-2 gap-12 px-8 py-16 max-w-7xl mx-auto items-center">
         <div className="bg-black/20 aspect-[4/3] rounded-sm flex items-center justify-center text-black/40 text-sm">
           [foto del espacio]
@@ -38,5 +24,5 @@ export default function Home() {
         </div>
       </section>
     </main>
-  );
+  )
 }

@@ -1,4 +1,6 @@
 import { supabase } from '@/lib/supabase'
+import Header from '@/components/Header'
+import Cover from '@/components/Cover'
 
 export const dynamic = 'force-dynamic'
 
@@ -7,53 +9,47 @@ const PAGE_SIZE = 54
 export default async function BibliotecaPage({
   searchParams,
 }: {
-  searchParams: Promise<{ page?: string }>
+  searchParams: Promise<{ page?: string; categoria?: string }>
 }) {
   const params = await searchParams
   const page = Math.max(1, parseInt(params.page ?? '1', 10) || 1)
+  const categoria = params.categoria
   const from = (page - 1) * PAGE_SIZE
   const to = from + PAGE_SIZE - 1
 
-  const { data: libros, count, error } = await supabase
+  let query = supabase
     .from('libros')
-    .select('id, titulo, autor, anio, portada_url, disponible', { count: 'exact' })
+    .select('id, titulo, autor, anio, portada_url, disponible, isbn', { count: 'exact' })
     .order('autor', { ascending: true, nullsFirst: false })
     .range(from, to)
+
+  if (categoria) {
+    query = query.contains('categorias', [categoria])
+  }
+
+  const { data: libros, count, error } = await query
 
   const total = count ?? 0
   const totalPages = Math.max(1, Math.ceil(total / PAGE_SIZE))
   const hasPrev = page > 1
   const hasNext = page < totalPages
 
+  const buildUrl = (p: number) => {
+    const sp = new URLSearchParams()
+    sp.set('page', String(p))
+    if (categoria) sp.set('categoria', categoria)
+    return '/biblioteca?' + sp.toString()
+  }
+
   return (
     <main className="min-h-screen bg-[#9794C4] text-black font-sans">
-      {/* Header */}
-      <header className="flex items-center justify-between px-8 py-6">
-        <a href="/">
-          <img
-            src="/logo.png"
-            alt="TLACUILO"
-            className="h-[clamp(28px,3vw,48px)] w-auto"
-          />
-        </a>
-        <nav className="hidden md:flex gap-8 uppercase tracking-wide text-[clamp(11px,0.9vw,15px)]">
-          <a href="/biblioteca" className="font-bold">Biblioteca</a>
-          <a href="#" className="hover:underline">Artoteca</a>
-          <a href="#" className="hover:underline">Fonoteca</a>
-          <a href="#" className="hover:underline">Editorial Tlacuilo</a>
-        </nav>
-        <div className="hidden md:flex gap-6 uppercase tracking-wide text-[clamp(11px,0.9vw,15px)]">
-          <a href="#" className="hover:underline">Iniciar sesión</a>
-          <a href="#" className="hover:underline">Crear cuenta</a>
-        </div>
-      </header>
+      <Header />
 
-      {/* Counter */}
       <section className="px-8 pt-2 pb-6 max-w-7xl mx-auto uppercase tracking-wide opacity-70 text-[clamp(10px,0.8vw,13px)]">
-        Página {page} de {totalPages} · {total.toLocaleString('es-MX')} libros en total
+        {categoria ? categoria + ' · ' : ''}
+        Página {page} de {totalPages} · {total.toLocaleString('es-MX')} libros
       </section>
 
-      {/* Grid */}
       <section className="px-8 pb-12 max-w-7xl mx-auto">
         {error ? (
           <pre className="bg-black/10 p-4 text-xs">{JSON.stringify(error, null, 2)}</pre>
@@ -63,17 +59,7 @@ export default async function BibliotecaPage({
               <article key={libro.id} className="flex gap-5 items-start">
                 <div className="w-[clamp(96px,14vw,200px)] flex-shrink-0">
                   <div className="aspect-[2/3] bg-black/15 flex items-center justify-center text-black/40 p-2 text-center overflow-hidden text-[clamp(9px,0.85vw,13px)]">
-                    {libro.portada_url ? (
-                      <img
-                        src={libro.portada_url}
-                        alt={libro.titulo}
-                        className="w-full h-full object-cover"
-                      />
-                    ) : (
-                      <span className="font-serif italic leading-tight">
-                        {libro.titulo}
-                      </span>
-                    )}
+                    <Cover titulo={libro.titulo} portada_url={libro.portada_url} isbn={libro.isbn} />
                   </div>
                 </div>
                 <div className="flex flex-col flex-1 min-w-0 text-[clamp(11px,0.95vw,15px)]">
@@ -95,10 +81,9 @@ export default async function BibliotecaPage({
         )}
       </section>
 
-      {/* Pagination */}
       <section className="px-8 pb-16 max-w-7xl mx-auto flex justify-between items-center uppercase tracking-wide text-[clamp(11px,0.95vw,15px)]">
         {hasPrev ? (
-          <a href={`/biblioteca?page=${page - 1}`} className="hover:underline">
+          <a href={buildUrl(page - 1)} className="hover:underline">
             ← Página anterior
           </a>
         ) : (
@@ -110,7 +95,7 @@ export default async function BibliotecaPage({
         </span>
 
         {hasNext ? (
-          <a href={`/biblioteca?page=${page + 1}`} className="hover:underline">
+          <a href={buildUrl(page + 1)} className="hover:underline">
             Página siguiente →
           </a>
         ) : (
