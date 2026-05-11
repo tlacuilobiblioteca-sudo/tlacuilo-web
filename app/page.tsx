@@ -3,9 +3,11 @@ export default function Home() {
     <main className="min-h-screen bg-[#9794C4] text-black font-sans">
       {/* Header */}
       <header className="flex items-center justify-between px-8 py-6">
-        <h1 className="text-3xl font-black tracking-tight">TLACUILO</h1>
+        <a href="/">
+          <img src="/logo.png" alt="TLACUILO" className="h-10 w-auto" />
+        </a>
         <nav className="hidden md:flex gap-8 text-sm uppercase tracking-wide">
-          <a href="#" className="hover:underline">Biblioteca</a>
+          <a href="/biblioteca" className="hover:underline">Biblioteca</a>
           <a href="#" className="hover:underline">Artoteca</a>
           <a href="#" className="hover:underline">Fonoteca</a>
           <a href="#" className="hover:underline">Editorial Tlacuilo</a>
