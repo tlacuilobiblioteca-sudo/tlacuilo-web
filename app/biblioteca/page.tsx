@@ -1,6 +1,7 @@
 import { supabase } from '@/lib/supabase'
 import Header from '@/components/Header'
 import Cover from '@/components/Cover'
+import PageSelector from '@/components/PageSelector'
 
 export const dynamic = 'force-dynamic'
 
@@ -56,10 +57,19 @@ export default async function BibliotecaPage({
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-x-8 gap-y-10">
             {libros?.map((libro) => (
-              <article key={libro.id} className="flex gap-5 items-start">
+              <a
+                key={libro.id}
+                href={'/biblioteca/' + libro.id}
+                className="flex gap-5 items-start opacity-95 hover:opacity-100 transition"
+              >
                 <div className="w-[clamp(96px,14vw,200px)] flex-shrink-0">
                   <div className="aspect-[2/3] bg-black/15 flex items-center justify-center text-black/40 p-2 text-center overflow-hidden text-[clamp(9px,0.85vw,13px)]">
-                    <Cover titulo={libro.titulo} portada_url={libro.portada_url} isbn={libro.isbn} />
+                    <Cover
+                      titulo={libro.titulo}
+                      portada_url={libro.portada_url}
+                      isbn={libro.isbn}
+                      autor={libro.autor}
+                    />
                   </div>
                 </div>
                 <div className="flex flex-col flex-1 min-w-0 text-[clamp(11px,0.95vw,15px)]">
@@ -75,7 +85,7 @@ export default async function BibliotecaPage({
                     title={libro.disponible ? 'Disponible' : 'En préstamo'}
                   />
                 </div>
-              </article>
+              </a>
             ))}
           </div>
         )}
@@ -90,9 +100,7 @@ export default async function BibliotecaPage({
           <span className="opacity-30">← Página anterior</span>
         )}
 
-        <span className="opacity-70">
-          {page} / {totalPages}
-        </span>
+        <PageSelector currentPage={page} totalPages={totalPages} categoria={categoria} />
 
         {hasNext ? (
           <a href={buildUrl(page + 1)} className="hover:underline">

@@ -64,9 +64,26 @@ export default function Header() {
         <a href="#" className="hover:underline">Editorial Tlacuilo</a>
       </nav>
 
-      <div className="hidden md:flex gap-6 uppercase tracking-wide text-[clamp(11px,0.9vw,15px)]">
+      <div className="hidden md:flex items-center gap-6 uppercase tracking-wide text-[clamp(11px,0.9vw,15px)]">
         <a href="#" className="hover:underline">Iniciar sesión</a>
         <a href="#" className="hover:underline">Crear cuenta</a>
+        <a href="#" className="flex items-center gap-1.5 hover:underline">
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            fill="none"
+            viewBox="0 0 24 24"
+            strokeWidth="2"
+            stroke="currentColor"
+            className="w-[clamp(14px,1.1vw,18px)] h-[clamp(14px,1.1vw,18px)]"
+          >
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              d="m21 21-5.197-5.197m0 0A7.5 7.5 0 1 0 5.196 5.196a7.5 7.5 0 0 0 10.607 10.607Z"
+            />
+          </svg>
+          Buscar
+        </a>
       </div>
     </header>
   )
