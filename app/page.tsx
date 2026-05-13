@@ -10,13 +10,14 @@ import Header from '@/components/Header'
 type HeroLema = { head: string; pop: string; tail: string }
 
 const HERO_POOL: HeroLema[] = [
-  { head: 'UNA BIBLIOTECA NO ES UN EDIFICIO. ES UNA', pop: 'CULTURA DE ACCESO', tail: '.' },
-  { head: 'UNA BIBLIOTECA QUE NO PRESTA ES', pop: 'UNA CÁRCEL DE LIBROS', tail: '.' },
-  { head: '', pop: 'MI COSA ES TU COSA', tail: '.' },
-  { head: 'TLACUILO ES UNA', pop: 'ACCIÓN DIRECTA', tail: ' SOBRE LAS COSAS.' },
-  { head: 'TLACUILO ES PARA', pop: 'HABLAR CON LOS MUERTOS', tail: '.' },
-  { head: 'UN LIBRO QUE NUNCA ES LEÍDO', pop: 'ES UN LIBRO MUERTO', tail: '.' },
-  { head: 'UN LIBRO DEBE', pop: 'ACOMPAÑARTE', tail: ' A TODAS PARTES.' },
+  { head: 'UNA BIBLIOTECA NO ES UN EDIFICIO. ES UNA', pop: 'CULTURA DE ACCESO', tail: '' },
+  { head: 'UNA BIBLIOTECA QUE NO PRESTA ES', pop: 'UNA CÁRCEL DE LIBROS', tail: '' },
+  { head: '', pop: 'MI COSA ES TU COSA', tail: '' },
+  { head: 'TLACUILO ES UNA', pop: 'ACCIÓN DIRECTA', tail: ' SOBRE LAS COSAS' },
+  { head: 'TLACUILO ES PARA', pop: 'HABLAR CON LOS MUERTOS', tail: '' },
+  { head: 'UN LIBRO QUE NUNCA ES LEÍDO', pop: 'ES UN LIBRO MUERTO', tail: '' },
+  { head: 'UN LIBRO DEBE', pop: 'ACOMPAÑARTE', tail: ' A TODAS PARTES' },
+  { head: 'TODOS SOMOS', pop: 'TLACUILOS', tail: '' },
 ]
 
 type Letania = { label: string; items: string[] }
@@ -76,10 +77,10 @@ function pickRandom<T>(arr: T[]): T {
    ============================================================ */
 
 const STEPS = [
-  { n: '01', t: 'Consulta el catálogo', d: <>por código QR o explorando las tecas en línea.</> },
-  { n: '02', t: 'Manda un DM', d: <>a <b className="font-bold">@tlacuilobiblioteca</b> con tus libros o pidiendo recomendaciones.</> },
-  { n: '03', t: 'Acordamos visita', d: <>te enviamos dirección, día y horario. recoges en persona.</> },
-  { n: '04', t: '2 meses máximo', d: <>para devolverlos. después regresan a circular.</> },
+  { n: '01', t: 'Encuentra', d: <>explora el catálogo. busca por título, autor o categoría.</> },
+  { n: '02', t: 'Aparta', d: <>guarda los libros que te interesan en tu morral.</> },
+  { n: '03', t: 'Visita', d: <>agenda lun a vie, 10am-7pm, en Coyoacán.</> },
+  { n: '04', t: 'Devuelve', d: <>2 meses máximo. después regresan a circular.</> },
 ]
 
 const VISITS = [5, 10, 15, 20, 25, 30, 35, 40, 45]
