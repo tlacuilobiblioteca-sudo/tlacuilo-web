@@ -2,48 +2,65 @@
 
 import { useState, useEffect } from 'react'
 import { supabase } from '@/lib/supabase'
+import type { User } from '@supabase/supabase-js'
 
 type Categoria = { categoria: string; libros_count: number }
 
 export default function Header() {
   const [bibliotecaOpen, setBibliotecaOpen] = useState(false)
   const [categorias, setCategorias] = useState<Categoria[]>([])
+  const [user, setUser] = useState<User | null>(null)
 
   useEffect(() => {
-    supabase.rpc('distinct_categorias').then(({ data, error }) => {
+    supabase.rpc('distinct_categorias').then(({ data }) => {
       if (data) setCategorias(data as Categoria[])
-      if (error) console.error('Error al cargar categorias:', error)
     })
+
+    supabase.auth.getUser().then(({ data: { user } }) => {
+      setUser(user)
+    })
+
+    const { data: sub } = supabase.auth.onAuthStateChange((_event, session) => {
+      setUser(session?.user ?? null)
+    })
+
+    return () => {
+      sub.subscription.unsubscribe()
+    }
   }, [])
 
   return (
-    <header className="relative flex items-center justify-between px-8 py-6 z-40">
-      <a href="/">
+    <header className="relative grid grid-cols-3 items-end px-10 pt-6 pb-4 z-40">
+      {/* LOGO — izquierda */}
+      <a href="/" className="block justify-self-start">
         <img
-          src="/logo.png"
+          src="/logolight.svg"
           alt="TLACUILO"
-          className="h-[clamp(28px,3vw,48px)] w-auto"
+          className="h-[clamp(70px,9vw,140px)] w-auto"
         />
       </a>
 
-      <nav className="hidden md:flex gap-8 uppercase tracking-wide text-[clamp(11px,0.9vw,15px)]">
+      {/* TECAS — centro */}
+      <nav className="justify-self-center hidden md:flex items-end font-sonoran uppercase tracking-wider text-[#9091c4] text-[clamp(14px,1.3vw,22px)] gap-7 mb-[clamp(18px,2.4vw,38px)]">
         <div
           className="relative"
           onMouseEnter={() => setBibliotecaOpen(true)}
           onMouseLeave={() => setBibliotecaOpen(false)}
         >
-          <a href="/biblioteca" className="hover:underline">Biblioteca</a>
+          <a href="/biblioteca" className="hover:opacity-100 opacity-90 transition">
+            Biblioteca
+          </a>
 
           {bibliotecaOpen && (
             <div className="absolute top-full left-0 pt-3 z-50">
-              <div className="bg-neutral-100 text-black p-6 shadow-xl min-w-[600px]">
+              <div className="bg-neutral-100 text-black p-6 shadow-xl min-w-[600px] font-futura normal-case tracking-normal">
                 <a
                   href="/biblioteca"
                   className="block font-bold mb-4 hover:underline uppercase tracking-wide text-[clamp(11px,0.9vw,15px)]"
                 >
                   Biblioteca (todo)
                 </a>
-                <div className="grid grid-cols-3 gap-x-8 gap-y-1.5 normal-case tracking-normal text-[clamp(10px,0.85vw,13px)]">
+                <div className="grid grid-cols-3 gap-x-8 gap-y-1.5 text-[clamp(10px,0.85vw,13px)]">
                   {categorias.map((c) => (
                     <a
                       key={c.categoria}
@@ -59,31 +76,22 @@ export default function Header() {
           )}
         </div>
 
-        <a href="#" className="hover:underline">Artoteca</a>
-        <a href="#" className="hover:underline">Fonoteca</a>
-        <a href="#" className="hover:underline">Editorial Tlacuilo</a>
+        <a href="#" className="opacity-90 hover:opacity-100 transition">Artoteca</a>
+        <a href="#" className="opacity-90 hover:opacity-100 transition">Fonoteca</a>
+        <a href="#" className="opacity-90 hover:opacity-100 transition">Editorial</a>
       </nav>
 
-      <div className="hidden md:flex items-center gap-6 uppercase tracking-wide text-[clamp(11px,0.9vw,15px)]">
-        <a href="#" className="hover:underline">Iniciar sesión</a>
-        <a href="#" className="hover:underline">Crear cuenta</a>
-        <a href="#" className="flex items-center gap-1.5 hover:underline">
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            fill="none"
-            viewBox="0 0 24 24"
-            strokeWidth="2"
-            stroke="currentColor"
-            className="w-[clamp(14px,1.1vw,18px)] h-[clamp(14px,1.1vw,18px)]"
-          >
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              d="m21 21-5.197-5.197m0 0A7.5 7.5 0 1 0 5.196 5.196a7.5 7.5 0 0 0 10.607 10.607Z"
-            />
-          </svg>
-          Buscar
-        </a>
+      {/* AUTH — derecha */}
+      <div className="justify-self-end hidden md:flex items-end font-sonoran uppercase tracking-wider text-[#9091c4] text-[clamp(14px,1.3vw,22px)] mb-[clamp(18px,2.4vw,38px)]">
+        {user ? (
+          <a href="/mi-tlacuilo" className="opacity-90 hover:opacity-100 transition">
+            Mi Tlacuilo
+          </a>
+        ) : (
+          <a href="/login" className="opacity-90 hover:opacity-100 transition">
+            Entrar
+          </a>
+        )}
       </div>
     </header>
   )
