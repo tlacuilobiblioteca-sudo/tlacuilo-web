@@ -1,5 +1,5 @@
 import { supabase } from '@/lib/supabase'
-import Header from '@/components/Header'
+import TecaLayout from '@/components/TecaLayout'
 import { notFound } from 'next/navigation'
 
 export const dynamic = 'force-dynamic'
@@ -38,10 +38,8 @@ export default async function PerfilPublicoPage({
   })
 
   return (
-    <main className="min-h-screen bg-[#15151d] text-[#9091c4] font-futura">
-      <Header />
-
-      <section className="px-6 md:px-10 pt-4 pb-4 max-w-3xl mx-auto">
+    <TecaLayout>
+      <section className="px-6 md:px-10 pt-6 pb-4 max-w-3xl mx-auto">
         <a
           href="/"
           className="uppercase tracking-wide opacity-70 hover:opacity-100 hover:underline text-[clamp(10px,0.8vw,13px)] font-mono-tl"
@@ -82,10 +80,10 @@ export default async function PerfilPublicoPage({
           )}
         </div>
 
-        <p className="mt-12 font-mono-tl text-[clamp(10px,0.8vw,13px)] uppercase tracking-[0.15em] opacity-50">
+        <p className="mt-12 font-mono text-[clamp(10px,0.8vw,13px)] uppercase tracking-[0.15em] opacity-50">
           biblioteca tlacuilo · coyoacán · 2026
         </p>
       </section>
-    </main>
+    </TecaLayout>
   )
 }

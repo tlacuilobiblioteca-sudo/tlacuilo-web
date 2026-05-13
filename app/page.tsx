@@ -10,8 +10,8 @@ import Header from '@/components/Header'
 type HeroLema = { head: string; pop: string; tail: string }
 
 const HERO_POOL: HeroLema[] = [
-  { head: 'TLACUILO NO ES UN EDIFICIO.', pop: 'CULTURA DE ACCESO', tail: ' ES UNA CULTURA DE ACCESO.' },
-  { head: 'UNA BIBLIOTECA QUE NO PRESTA', pop: 'UNA CÁRCEL DE LIBROS', tail: ' ES UNA CÁRCEL DE LIBROS.' },
+  { head: 'UNA BIBLIOTECA NO ES UN EDIFICIO. ES UNA', pop: 'CULTURA DE ACCESO', tail: '.' },
+  { head: 'UNA BIBLIOTECA QUE NO PRESTA ES', pop: 'UNA CÁRCEL DE LIBROS', tail: '.' },
   { head: '', pop: 'MI COSA ES TU COSA', tail: '.' },
   { head: 'TLACUILO ES UNA', pop: 'ACCIÓN DIRECTA', tail: ' SOBRE LAS COSAS.' },
   { head: 'TLACUILO ES PARA', pop: 'HABLAR CON LOS MUERTOS', tail: '.' },
@@ -79,7 +79,7 @@ const STEPS = [
   { n: '01', t: 'Consulta el catálogo', d: <>por código QR o explorando las tecas en línea.</> },
   { n: '02', t: 'Manda un DM', d: <>a <b className="font-bold">@tlacuilobiblioteca</b> con tus libros o pidiendo recomendaciones.</> },
   { n: '03', t: 'Acordamos visita', d: <>te enviamos dirección, día y horario. recoges en persona.</> },
-  { n: '04', t: '2 meses máximo', d: <>para devolverlos. después regresan al acervo común.</> },
+  { n: '04', t: '2 meses máximo', d: <>para devolverlos. después regresan a circular.</> },
 ]
 
 const VISITS = [5, 10, 15, 20, 25, 30, 35, 40, 45]
@@ -90,31 +90,14 @@ const CTA_PRIMARY = 'font-mono text-[13px] lowercase tracking-[0.06em] px-[26px]
 const CTA_GHOST = 'font-mono text-[13px] lowercase tracking-[0.06em] px-[26px] py-3.5 bg-transparent text-text border border-rule-strong no-underline inline-block transition-all duration-200 hover:text-text-bright hover:border-text-bright hover:-translate-y-px cursor-pointer'
 
 export default function Home() {
-  const [heroLemas, setHeroLemas] = useState<HeroLema[]>([HERO_POOL[0]])
-  const [heroIdx, setHeroIdx] = useState(0)
-  const [heroFading, setHeroFading] = useState(false)
+  // Hero fijo: 1 lema random elegido al cargar. Cambia solo al recargar.
+  const [heroLema, setHeroLema] = useState<HeroLema>(HERO_POOL[0])
   const [letania, setLetania] = useState<Letania>(BANNER_POOL[0])
   const escalaRef = useRef<HTMLDivElement>(null)
 
-  // Hero: 3 lemas elegidos por semilla diaria
   useEffect(() => {
-    const chosen = seededShuffle(HERO_POOL, dayHash()).slice(0, 3)
-    setHeroLemas(chosen)
-    setHeroIdx(0)
+    setHeroLema(pickRandom(HERO_POOL))
   }, [])
-
-  // Hero: rotación cada 9s
-  useEffect(() => {
-    if (heroLemas.length < 2) return
-    const interval = setInterval(() => {
-      setHeroFading(true)
-      setTimeout(() => {
-        setHeroIdx((i) => (i + 1) % heroLemas.length)
-        setHeroFading(false)
-      }, 500)
-    }, 9000)
-    return () => clearInterval(interval)
-  }, [heroLemas])
 
   // Banner: 1 letanía aleatoria por visita
   useEffect(() => {
@@ -146,7 +129,6 @@ export default function Home() {
     return () => observer.disconnect()
   }, [])
 
-  const heroLema = heroLemas[heroIdx] ?? HERO_POOL[0]
   const trackItems = letania.items
 
   return (
@@ -161,7 +143,7 @@ export default function Home() {
           cdmx
         </div>
 
-        <h1 className={`hero-h1 font-sonoran font-black uppercase text-text text-[clamp(38px,5.6vw,84px)] leading-[1.02] tracking-[0.04em] max-w-[1080px] min-h-[1.1em] ${heroFading ? 'fading' : ''}`}>
+        <h1 className="font-sonoran font-black uppercase text-text text-[clamp(38px,5.6vw,84px)] leading-[1.02] tracking-[0.04em] max-w-[1080px]">
           {heroLema.head && heroLema.head + ' '}
           <span className="pop">{heroLema.pop}</span>
           {heroLema.tail}
@@ -173,7 +155,7 @@ export default function Home() {
         </p>
 
         <div className="flex gap-3.5 flex-wrap justify-center mt-1.5">
-          <a className={CTA_PRIMARY} href="/biblioteca">explorar el acervo</a>
+          <a className={CTA_PRIMARY} href="/biblioteca">explorar la biblioteca</a>
           <a className={CTA_GHOST} href="https://instagram.com/tlacuilobiblioteca" target="_blank" rel="noreferrer">
             dm @tlacuilobiblioteca
           </a>
@@ -203,8 +185,8 @@ export default function Home() {
           la confianza<br />crece con cada visita.
         </h2>
         <p className="font-sans text-[15px] text-text-dim leading-[1.6] max-w-[620px] mb-12">
-          tlacuilo es un sistema de préstamo de objetos físicos. el acervo se
-          mueve por confianza, y la confianza se gana usándolo.
+          tlacuilo es un sistema de préstamo de objetos físicos. la biblioteca
+          se mueve por confianza, y la confianza se gana usándola.
         </p>
 
         <div className="grid grid-cols-4 gap-3.5 mb-[60px] max-[860px]:grid-cols-2">

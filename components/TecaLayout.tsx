@@ -1,0 +1,198 @@
+'use client'
+
+import { useEffect, useState } from 'react'
+import { usePathname } from 'next/navigation'
+import { supabase } from '@/lib/supabase'
+import AuthLink from './AuthLink'
+
+type Categoria = { categoria: string; libros_count: number }
+
+const TECAS = [
+  { slug: 'biblioteca', label: 'Biblioteca', href: '/biblioteca', enabled: true },
+  { slug: 'artoteca', label: 'Artoteca', href: '#', enabled: false },
+  { slug: 'fonoteca', label: 'Fonoteca', href: '#', enabled: false },
+  { slug: 'editorial', label: 'Editorial', href: '#', enabled: false },
+] as const
+
+/**
+ * Layout para páginas interiores (todas las que no son el landing).
+ * - Slim header arriba (logo + lupita + Mi Tlacuilo)
+ * - Sidebar izquierdo (todas las tecas + categorías de Biblioteca expandidas)
+ * - Children en el área principal
+ *
+ * Mobile (<880px): sidebar se vuelve menú hamburguesa.
+ */
+export default function TecaLayout({ children }: { children: React.ReactNode }) {
+  const pathname = usePathname()
+  const [categorias, setCategorias] = useState<Categoria[]>([])
+  const [mobileNavOpen, setMobileNavOpen] = useState(false)
+
+  // Cargar categorías una vez
+  useEffect(() => {
+    supabase.rpc('distinct_categorias').then(({ data }) => {
+      if (data) setCategorias(data as Categoria[])
+    })
+  }, [])
+
+  // ¿Qué teca está activa?
+  const activeTeca = TECAS.find((t) => pathname?.startsWith(t.href) && t.enabled)?.slug ?? null
+  const activeCategoria = typeof window !== 'undefined'
+    ? new URLSearchParams(window.location.search).get('categoria')
+    : null
+
+  return (
+    <div className="min-h-screen bg-bg text-text">
+      {/* ============ SLIM HEADER ============ */}
+      <header className="relative z-50 flex items-center justify-between gap-4 px-6 md:px-10 pt-5 pb-3 border-b border-rule">
+        <a href="/" className="block">
+          <img
+            src="/logodark.svg"
+            alt="tlacuilo"
+            className="h-[clamp(40px,5vw,72px)] w-auto"
+          />
+        </a>
+
+        <div className="flex items-center gap-5 md:gap-8 font-sonoran font-black uppercase text-text text-[clamp(11px,1.1vw,15px)] tracking-[0.16em]">
+          <a
+            href="/buscar"
+            aria-label="Buscar"
+            className="hover:text-text-bright transition-colors inline-flex items-center"
+          >
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth="2" stroke="currentColor" className="w-[clamp(18px,1.6vw,24px)] h-[clamp(18px,1.6vw,24px)]">
+              <path strokeLinecap="round" strokeLinejoin="round" d="m21 21-5.197-5.197m0 0A7.5 7.5 0 1 0 5.196 5.196a7.5 7.5 0 0 0 10.607 10.607Z" />
+            </svg>
+          </a>
+          <AuthLink className="hover:text-text-bright transition-colors" />
+          {/* Hamburger solo mobile */}
+          <button
+            onClick={() => setMobileNavOpen(true)}
+            aria-label="Abrir menú"
+            className="md:hidden text-text hover:text-text-bright p-1"
+          >
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth="2.5" stroke="currentColor" className="w-7 h-7">
+              <path strokeLinecap="round" strokeLinejoin="round" d="M3.75 6.75h16.5M3.75 12h16.5M3.75 17.25h16.5" />
+            </svg>
+          </button>
+        </div>
+      </header>
+
+      {/* ============ LAYOUT GRID: sidebar + main ============ */}
+      <div className="flex">
+        {/* SIDEBAR DESKTOP */}
+        <aside className="hidden md:block w-[240px] lg:w-[280px] shrink-0 border-r border-rule p-6 sticky top-0 self-start max-h-screen overflow-y-auto">
+          <SidebarContent
+            categorias={categorias}
+            activeTeca={activeTeca}
+            activeCategoria={activeCategoria}
+          />
+        </aside>
+
+        {/* MAIN CONTENT */}
+        <main className="flex-1 min-w-0">{children}</main>
+      </div>
+
+      {/* SIDEBAR MOBILE OVERLAY */}
+      {mobileNavOpen && (
+        <div className="fixed inset-0 bg-bg z-[100] md:hidden flex flex-col overflow-y-auto">
+          <div className="flex justify-end p-5 border-b border-rule">
+            <button
+              onClick={() => setMobileNavOpen(false)}
+              aria-label="Cerrar menú"
+              className="text-text p-2"
+            >
+              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth="2.5" stroke="currentColor" className="w-7 h-7">
+                <path strokeLinecap="round" strokeLinejoin="round" d="M6 18 18 6M6 6l12 12" />
+              </svg>
+            </button>
+          </div>
+          <div className="flex-1 p-6">
+            <SidebarContent
+              categorias={categorias}
+              activeTeca={activeTeca}
+              activeCategoria={activeCategoria}
+              onLinkClick={() => setMobileNavOpen(false)}
+            />
+          </div>
+        </div>
+      )}
+    </div>
+  )
+}
+
+/* ============================================================
+   SIDEBAR CONTENT (reusado en desktop y mobile)
+   ============================================================ */
+
+function SidebarContent({
+  categorias,
+  activeTeca,
+  activeCategoria,
+  onLinkClick,
+}: {
+  categorias: Categoria[]
+  activeTeca: string | null
+  activeCategoria: string | null
+  onLinkClick?: () => void
+}) {
+  return (
+    <nav className="flex flex-col gap-8">
+      {TECAS.map((teca) => {
+        const isActive = teca.slug === activeTeca
+        return (
+          <div key={teca.slug}>
+            {teca.enabled ? (
+              <a
+                href={teca.href}
+                onClick={onLinkClick}
+                className={`font-sonoran font-black uppercase tracking-[0.16em] text-[clamp(14px,1.2vw,18px)] block transition-colors ${
+                  isActive ? 'text-text-bright' : 'text-text hover:text-text-bright'
+                }`}
+              >
+                {teca.label}
+              </a>
+            ) : (
+              <span className="font-sonoran font-black uppercase tracking-[0.16em] text-[clamp(14px,1.2vw,18px)] block text-text-faint cursor-not-allowed">
+                {teca.label} <span className="text-[10px] tracking-normal ml-1">próx.</span>
+              </span>
+            )}
+
+            {/* Sub-categorías solo de Biblioteca */}
+            {teca.slug === 'biblioteca' && categorias.length > 0 && (
+              <ul className="mt-3 flex flex-col gap-1.5 font-sans text-[13px] pl-1">
+                <li>
+                  <a
+                    href="/biblioteca"
+                    onClick={onLinkClick}
+                    className={`hover:text-text-bright transition-colors ${
+                      !activeCategoria && activeTeca === 'biblioteca'
+                        ? 'text-text-bright'
+                        : 'text-text-dim'
+                    }`}
+                  >
+                    todo el catálogo
+                  </a>
+                </li>
+                {categorias.map((c) => (
+                  <li key={c.categoria}>
+                    <a
+                      href={`/biblioteca?categoria=${encodeURIComponent(c.categoria)}`}
+                      onClick={onLinkClick}
+                      className={`hover:text-text-bright transition-colors ${
+                        activeCategoria === c.categoria
+                          ? 'text-text-bright'
+                          : 'text-text-dim'
+                      }`}
+                    >
+                      {c.categoria}{' '}
+                      <span className="opacity-50 text-[11px]">({c.libros_count})</span>
+                    </a>
+                  </li>
+                ))}
+              </ul>
+            )}
+          </div>
+        )
+      })}
+    </nav>
+  )
+}

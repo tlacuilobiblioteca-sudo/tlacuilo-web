@@ -1,5 +1,5 @@
 import { supabase } from '@/lib/supabase'
-import Header from '@/components/Header'
+import TecaLayout from '@/components/TecaLayout'
 import Cover from '@/components/Cover'
 import PageSelector from '@/components/PageSelector'
 
@@ -43,17 +43,15 @@ export default async function BibliotecaPage({
   }
 
   return (
-    <main className="min-h-screen bg-[#15151d] text-[#9091c4] font-futura">
-      <Header />
-
-      <section className="px-8 pt-2 pb-6 max-w-7xl mx-auto uppercase tracking-wide opacity-70 text-[clamp(10px,0.8vw,13px)]">
+    <TecaLayout>
+      <section className="px-8 pt-6 pb-6 max-w-7xl mx-auto uppercase tracking-wide opacity-70 text-[clamp(10px,0.8vw,13px)] font-mono">
         {categoria ? categoria + ' · ' : ''}
         Página {page} de {totalPages} · {total.toLocaleString('es-MX')} libros
       </section>
 
       <section className="px-8 pb-12 max-w-7xl mx-auto">
         {error ? (
-          <pre className="bg-[#9091c4]/10 p-4 text-xs">{JSON.stringify(error, null, 2)}</pre>
+          <pre className="bg-bg-soft p-4 text-xs">{JSON.stringify(error, null, 2)}</pre>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-x-8 gap-y-10">
             {libros?.map((libro) => (
@@ -63,7 +61,7 @@ export default async function BibliotecaPage({
                 className="flex gap-5 items-start opacity-95 hover:opacity-100 transition"
               >
                 <div className="w-[clamp(96px,14vw,200px)] flex-shrink-0">
-                  <div className="aspect-[2/3] bg-[#9091c4]/10 flex items-center justify-center text-[#9091c4]/50 p-2 text-center overflow-hidden text-[clamp(9px,0.85vw,13px)]">
+                  <div className="aspect-[2/3] bg-bg-soft flex items-center justify-center text-text-dim p-2 text-center overflow-hidden text-[clamp(9px,0.85vw,13px)]">
                     <Cover
                       titulo={libro.titulo}
                       portada_url={libro.portada_url}
@@ -80,7 +78,7 @@ export default async function BibliotecaPage({
                   <p className="opacity-60">{libro.anio ?? ''}</p>
                   <span
                     className={`mt-2 rounded-full w-[clamp(8px,0.7vw,14px)] h-[clamp(8px,0.7vw,14px)] ${
-                      libro.disponible ? 'bg-green-500' : 'bg-orange-400'
+                      libro.disponible ? 'bg-available' : 'bg-loan'
                     }`}
                     title={libro.disponible ? 'Disponible' : 'En préstamo'}
                   />
@@ -91,7 +89,7 @@ export default async function BibliotecaPage({
         )}
       </section>
 
-      <section className="px-8 pb-16 max-w-7xl mx-auto flex justify-between items-center uppercase tracking-wide text-[clamp(11px,0.95vw,15px)]">
+      <section className="px-8 pb-16 max-w-7xl mx-auto flex justify-between items-center uppercase tracking-wide text-[clamp(11px,0.95vw,15px)] gap-4 flex-wrap">
         {hasPrev ? (
           <a href={buildUrl(page - 1)} className="hover:underline">
             ← Página anterior
@@ -110,6 +108,6 @@ export default async function BibliotecaPage({
           <span className="opacity-30">Página siguiente →</span>
         )}
       </section>
-    </main>
+    </TecaLayout>
   )
 }

@@ -1,8 +1,10 @@
-import { supabase } from '@/lib/supabase'
-import Header from '@/components/Header'
-import Cover from '@/components/Cover'
+'use client'
 
-export const dynamic = 'force-dynamic'
+import { useEffect, useState } from 'react'
+import { useRouter, useSearchParams } from 'next/navigation'
+import { supabase } from '@/lib/supabase'
+import TecaLayout from '@/components/TecaLayout'
+import Cover from '@/components/Cover'
 
 type Libro = {
   id: string
@@ -14,68 +16,135 @@ type Libro = {
   isbn: string | null
 }
 
-export default async function BuscarPage({
-  searchParams,
-}: {
-  searchParams: Promise<{ q?: string }>
-}) {
-  const params = await searchParams
-  const query = (params.q ?? '').trim()
+export default function BuscarPage() {
+  const router = useRouter()
+  const sp = useSearchParams()
+  const initialQuery = sp.get('q') ?? ''
 
-  let libros: Libro[] = []
-  let errorMsg: string | null = null
+  const [query, setQuery] = useState(initialQuery)
+  const [results, setResults] = useState<Libro[] | null>(null)
+  const [loading, setLoading] = useState(false)
+  const [error, setError] = useState<string | null>(null)
 
-  if (query) {
-    const { data, error } = await supabase.rpc('search_libros', { q: query })
-    if (error) {
-      errorMsg = error.message
-    } else {
-      libros = (data as Libro[]) ?? []
+  // Placeholder rotando títulos reales del catálogo
+  const [placeholders, setPlaceholders] = useState<string[]>([
+    'buscar por título, autor, categoría...',
+  ])
+  const [phIdx, setPhIdx] = useState(0)
+
+  // Cargar 30 títulos aleatorios para el placeholder
+  useEffect(() => {
+    const loadRandom = async () => {
+      const { count } = await supabase
+        .from('libros')
+        .select('id', { count: 'exact', head: true })
+      if (!count) return
+
+      const titles: string[] = []
+      // Trae 30 títulos en posiciones aleatorias del catálogo
+      for (let i = 0; i < 30; i++) {
+        const offset = Math.floor(Math.random() * count)
+        const { data } = await supabase
+          .from('libros')
+          .select('titulo')
+          .not('titulo', 'is', null)
+          .range(offset, offset)
+          .limit(1)
+        if (data && data[0]?.titulo) titles.push(data[0].titulo)
+      }
+      if (titles.length > 0) setPlaceholders(titles)
     }
+    loadRandom()
+  }, [])
+
+  // Rotar placeholder cada 2.5s
+  useEffect(() => {
+    if (placeholders.length < 2) return
+    const interval = setInterval(() => {
+      setPhIdx((i) => (i + 1) % placeholders.length)
+    }, 2500)
+    return () => clearInterval(interval)
+  }, [placeholders])
+
+  // Si llega ?q= en la URL, ejecuta búsqueda
+  useEffect(() => {
+    const q = sp.get('q')?.trim()
+    if (!q) {
+      setResults(null)
+      return
+    }
+    setQuery(q)
+    runSearch(q)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [sp])
+
+  const runSearch = async (q: string) => {
+    setLoading(true)
+    setError(null)
+    const { data, error: rpcError } = await supabase.rpc('search_libros', { q })
+    if (rpcError) {
+      setError(rpcError.message)
+      setResults([])
+    } else {
+      setResults((data as Libro[]) ?? [])
+    }
+    setLoading(false)
   }
 
-  return (
-    <main className="min-h-screen bg-[#15151d] text-[#9091c4] font-futura">
-      <Header />
+  const onSubmit = (e: React.FormEvent) => {
+    e.preventDefault()
+    const q = query.trim()
+    if (!q) return
+    router.push(`/buscar?q=${encodeURIComponent(q)}`)
+  }
 
-      <section className="px-8 pt-2 pb-6 max-w-7xl mx-auto">
-        <form action="/buscar" method="GET" className="flex gap-3 items-center">
+  const currentPlaceholder = placeholders[phIdx]
+
+  return (
+    <TecaLayout>
+      <section className="px-8 pt-8 pb-6 max-w-7xl mx-auto">
+        <p className="font-mono uppercase tracking-[0.2em] text-xs opacity-60 mb-3">
+          &gt; buscar en la biblioteca
+        </p>
+        <form onSubmit={onSubmit} className="flex gap-3 items-center">
           <input
             type="text"
-            name="q"
-            defaultValue={query}
-            placeholder="busca por título, autor, categoría o etiqueta..."
-            className="flex-1 bg-[#9091c4]/10 px-5 py-3 outline-none focus:bg-[#9091c4]/15 text-[clamp(13px,1.1vw,17px)] placeholder:opacity-50 text-[#9091c4] font-mono"
+            value={query}
+            onChange={(e) => setQuery(e.target.value)}
+            placeholder={currentPlaceholder}
+            className="flex-1 bg-bg-soft px-5 py-3 outline-none focus:bg-bg-card text-[clamp(13px,1.1vw,17px)] placeholder:opacity-50 text-text-bright font-mono border border-rule focus:border-rule-strong transition-colors"
             autoFocus
           />
           <button
             type="submit"
-            className="bg-[#9091c4] text-[#15151d] px-6 py-3 uppercase tracking-wide hover:bg-[#9091c4]/90 transition text-[clamp(11px,0.9vw,14px)] font-sonoran"
+            className="bg-invert-bg text-invert-fg px-6 py-3 uppercase tracking-wide hover:bg-text-bright transition-colors text-[clamp(11px,0.9vw,14px)] font-sonoran font-black"
           >
             Buscar
           </button>
         </form>
 
-        {query && (
+        {results !== null && (
           <p className="mt-4 uppercase tracking-wide opacity-70 text-[clamp(10px,0.8vw,13px)] font-mono">
-            {errorMsg
-              ? '> error: ' + errorMsg
-              : '> ' + libros.length + ' resultado' + (libros.length === 1 ? '' : 's') + ' para "' + query + '"'}
+            {loading
+              ? '> buscando...'
+              : error
+              ? '> error: ' + error
+              : '> ' + results.length + ' resultado' + (results.length === 1 ? '' : 's') + ' para "' + query + '"'}
           </p>
         )}
       </section>
 
-      {query && !errorMsg && libros.length > 0 && (
+      {results !== null && !error && results.length > 0 && (
         <section className="px-8 pb-12 max-w-7xl mx-auto">
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-x-8 gap-y-10">
-            {libros.map((libro) => (
+            {results.map((libro) => (
               <a
                 key={libro.id}
                 href={'/biblioteca/' + libro.id}
                 className="flex gap-5 items-start opacity-95 hover:opacity-100 transition"
               >
                 <div className="w-[clamp(96px,14vw,200px)] flex-shrink-0">
-                  <div className="aspect-[2/3] bg-[#9091c4]/10 flex items-center justify-center text-[#9091c4]/40 p-2 text-center overflow-hidden text-[clamp(9px,0.85vw,13px)]">
+                  <div className="aspect-[2/3] bg-bg-soft flex items-center justify-center text-text-dim p-2 text-center overflow-hidden text-[clamp(9px,0.85vw,13px)]">
                     <Cover
                       titulo={libro.titulo}
                       portada_url={libro.portada_url}
@@ -92,7 +161,7 @@ export default async function BuscarPage({
                   <p className="opacity-60">{libro.anio ?? ''}</p>
                   <span
                     className={`mt-2 rounded-full w-[clamp(8px,0.7vw,14px)] h-[clamp(8px,0.7vw,14px)] ${
-                      libro.disponible ? 'bg-green-500' : 'bg-orange-400'
+                      libro.disponible ? 'bg-available' : 'bg-loan'
                     }`}
                     title={libro.disponible ? 'Disponible' : 'En préstamo'}
                   />
@@ -103,21 +172,13 @@ export default async function BuscarPage({
         </section>
       )}
 
-      {query && !errorMsg && libros.length === 0 && (
+      {results !== null && !error && results.length === 0 && !loading && (
         <section className="px-8 pb-12 max-w-7xl mx-auto">
           <p className="text-[clamp(13px,1.1vw,17px)] opacity-70 font-mono">
             &gt; sin resultados para &ldquo;{query}&rdquo;. prueba con otra palabra.
           </p>
         </section>
       )}
-
-      {!query && (
-        <section className="px-8 pb-12 max-w-7xl mx-auto">
-          <p className="text-[clamp(13px,1.1vw,17px)] opacity-70 font-mono">
-            &gt; busca por título, autor, categoría o etiqueta.
-          </p>
-        </section>
-      )}
-    </main>
+    </TecaLayout>
   )
 }
