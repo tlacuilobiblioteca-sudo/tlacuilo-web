@@ -1,30 +1,9 @@
 @import "tailwindcss";
-@import url('https://fonts.googleapis.com/css2?family=Jost:wght@400;500;700&display=swap');
 
-:root {
-  --background: #ffffff;
-  --foreground: #171717;
-}
+/* ============================================================
+   TLACUILO · Tailwind v4 + tokens + globals
+   ============================================================ */
 
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
-}
-
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
-}
-
-body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
-}
 @font-face {
   font-family: 'Sonoran';
   src: url('/SONORAN.otf') format('opentype');
@@ -33,6 +12,166 @@ body {
   font-display: swap;
 }
 
-.font-sonoran {
-  font-family: 'Sonoran', sans-serif;
+/* ---------- Tokens ----------
+   Tailwind v4: cada --color-X expone bg-X / text-X / border-X.
+   Cada --font-X expone font-X. Cada --animate-X expone animate-X.
+*/
+@theme {
+  /* Colores */
+  --color-bg: #15151d;
+  --color-bg-card: #1a1a25;
+  --color-bg-soft: rgba(144, 145, 196, 0.06);
+  --color-text: #9091c4;
+  --color-text-bright: #c5c4f5;
+  --color-text-dim: rgba(144, 145, 196, 0.55);
+  --color-text-faint: rgba(144, 145, 196, 0.28);
+  --color-rule: rgba(144, 145, 196, 0.18);
+  --color-rule-strong: rgba(144, 145, 196, 0.32);
+  --color-invert-bg: #9091c4;
+  --color-invert-fg: #15151d;
+  --color-available: #22c55e;
+  --color-loan: #fb923c;
+
+  /* Fuentes */
+  --font-sans: 'Jost', 'Futura PT', 'Futura', ui-sans-serif, system-ui, sans-serif;
+  --font-mono: ui-monospace, 'SF Mono', 'JetBrains Mono', 'Menlo', monospace;
+  --font-sonoran: 'Sonoran', 'Orbitron', ui-sans-serif, system-ui, sans-serif;
+
+  /* Animaciones (apuntan a @keyframes definidos abajo) */
+  --animate-jitter-main: jitterMain 0.32s steps(4) 1;
+  --animate-jitter-g1: jitterG1 0.32s steps(4) 1;
+  --animate-jitter-g2: jitterG2 0.32s steps(4) 1;
+  --animate-slide-l: slideL 60s linear infinite;
+  --animate-pulse-dot: pulseDot 2.2s ease-in-out infinite;
+}
+
+/* ============ KEYFRAMES ============ */
+@keyframes jitterMain {
+  0%   { transform: translate(0, 0); }
+  25%  { transform: translate(-2px, 1px); }
+  50%  { transform: translate(2px, -1px); }
+  75%  { transform: translate(-1px, 0); }
+  100% { transform: translate(0, 0); }
+}
+@keyframes jitterG1 {
+  0%   { opacity: 0;    transform: translate(0, 0); }
+  25%  { opacity: 0.5;  transform: translate(-3px, 1px); }
+  50%  { opacity: 0.35; transform: translate(2px, -2px); }
+  75%  { opacity: 0.25; transform: translate(-1px, 1px); }
+  100% { opacity: 0;    transform: translate(0, 0); }
+}
+@keyframes jitterG2 {
+  0%   { opacity: 0;   transform: translate(0, 0); }
+  25%  { opacity: 0.4; transform: translate(3px, -1px); }
+  50%  { opacity: 0.3; transform: translate(-2px, 2px); }
+  75%  { opacity: 0.2; transform: translate(1px, 0); }
+  100% { opacity: 0;   transform: translate(0, 0); }
+}
+@keyframes slideL {
+  from { transform: translateX(0); }
+  to   { transform: translateX(-50%); }
+}
+@keyframes pulseDot {
+  50% { opacity: 0.3; }
+}
+
+/* ============ GLOBAL ============ */
+html, body {
+  background: var(--color-bg);
+  color: var(--color-text);
+  min-height: 100vh;
+  overflow-x: hidden;
+}
+body {
+  font-family: var(--font-sans);
+}
+
+/* Scanlines + vignette globales (sutiles) */
+body::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 9999;
+  background: repeating-linear-gradient(0deg, rgba(0, 0, 0, 0.05) 0 1px, transparent 1px 3px);
+  mix-blend-mode: multiply;
+}
+body::after {
+  content: "";
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 9998;
+  background: radial-gradient(ellipse at center, transparent 70%, rgba(0, 0, 0, 0.4) 100%);
+}
+
+/* ============ CLASES UTILITARIAS MÍNIMAS ============
+   Solo lo que Tailwind no hace bien: glitch del logo,
+   highlight del hero (.pop), underline animado de nav,
+   transición del hero h1, barras de la escala.
+*/
+
+/* Logo glitch — imágenes stacked con filtros y animaciones por clase */
+.logobox {
+  position: relative;
+  display: block;
+}
+.logobox img {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  display: block;
+}
+.logobox img.main { opacity: 1; }
+.logobox img.ghost { opacity: 0; mix-blend-mode: screen; }
+.logobox img.g1 { filter: hue-rotate(-12deg) brightness(1.45) saturate(1.2); }
+.logobox img.g2 { filter: hue-rotate(14deg) brightness(0.6) saturate(0.8); }
+.logobox.glitching img.main { animation: var(--animate-jitter-main); }
+.logobox.glitching img.g1   { animation: var(--animate-jitter-g1); }
+.logobox.glitching img.g2   { animation: var(--animate-jitter-g2); }
+
+/* Highlight del hero — bloque lavanda con texto oscuro */
+.pop {
+  background: var(--color-invert-bg);
+  color: var(--color-invert-fg);
+  padding: 2px 18px 0;
+  display: inline-block;
+}
+.pop-sm {
+  padding: 2px 12px 0;
+}
+
+/* Hero h1 fading transition */
+.hero-h1 { transition: opacity 0.5s ease; }
+.hero-h1.fading { opacity: 0; }
+
+/* Underline animado en nav links */
+.nav-link {
+  position: relative;
+  display: inline-block;
+  text-decoration: none;
+}
+.nav-link::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 100%;
+  bottom: -6px;
+  height: 2px;
+  background: var(--color-text);
+  transition: right 0.25s ease;
+}
+.nav-link:hover::after { right: 0; }
+
+/* Escala bars — altura animada via --h custom prop */
+.escala-bar-col {
+  width: 100%;
+  background: var(--color-invert-bg);
+  height: 0;
+  transition: height 1.2s cubic-bezier(0.2, 0.7, 0.2, 1);
+}
+.escala-bar.in .escala-bar-col {
+  height: var(--h);
 }
