@@ -45,23 +45,25 @@ export default function MiTlacuiloPage() {
 
   if (loading) {
     return (
-      <main className="min-h-screen bg-[#9794C4] text-black font-sans">
+      <main className="min-h-screen bg-[#15151d] text-[#9091c4] font-futura">
         <Header />
-        <section className="px-8 py-20 max-w-7xl mx-auto">
-          <p className="opacity-70 text-[clamp(13px,1vw,16px)]">Cargando tu Tlacuilo...</p>
+        <section className="px-10 py-20 max-w-7xl mx-auto">
+          <p className="opacity-70 font-mono text-[clamp(13px,1vw,16px)]">
+            &gt; cargando tu tlacuilo<span className="animate-pulse">_</span>
+          </p>
         </section>
       </main>
     )
   }
 
-  const primerNombre = perfil?.nombre_completo?.split(' ')[0] ?? 'Lectora'
+  const primerNombre = perfil?.nombre_completo?.split(' ')[0] ?? 'lectora'
 
   return (
-    <main className="min-h-screen bg-[#9794C4] text-black font-sans">
+    <main className="min-h-screen bg-[#15151d] text-[#9091c4] font-futura">
       <Header />
 
-      <section className="px-8 pt-8 pb-12 max-w-7xl mx-auto">
-        <h1 className="font-bold leading-tight mb-2 text-[clamp(28px,3vw,48px)]">
+      <section className="px-10 pt-8 pb-12 max-w-7xl mx-auto">
+        <h1 className="font-sonoran leading-tight mb-2 text-[clamp(28px,3vw,48px)] uppercase tracking-wide">
           Hola, {primerNombre}
         </h1>
         <p className="opacity-70 mb-12 text-[clamp(13px,1vw,17px)]">
@@ -69,7 +71,7 @@ export default function MiTlacuiloPage() {
         </p>
 
         <div className="grid md:grid-cols-2 gap-6 mb-10">
-          <div className="bg-black/10 p-6">
+          <div className="bg-[#9091c4]/8 p-6 border border-[#9091c4]/15">
             <h2 className="font-bold uppercase tracking-wide mb-3 text-[clamp(11px,0.9vw,14px)]">
               Tus préstamos activos
             </h2>
@@ -84,7 +86,7 @@ export default function MiTlacuiloPage() {
             </a>
           </div>
 
-          <div className="bg-black/10 p-6">
+          <div className="bg-[#9091c4]/8 p-6 border border-[#9091c4]/15">
             <h2 className="font-bold uppercase tracking-wide mb-3 text-[clamp(11px,0.9vw,14px)]">
               Tu wishlist
             </h2>
@@ -94,26 +96,26 @@ export default function MiTlacuiloPage() {
           </div>
         </div>
 
-        <div className="border-t border-black/20 pt-8 mt-8">
-          <h2 className="font-bold uppercase tracking-wide mb-4 text-[clamp(11px,0.9vw,14px)]">
-            Información de tu cuenta
+        <div className="border-t border-[#9091c4]/20 pt-8 mt-8 font-mono">
+          <h2 className="uppercase tracking-wide mb-4 opacity-70 text-[clamp(11px,0.9vw,14px)]">
+            // tu identidad (solo tú lo ves)
           </h2>
-          <dl className="grid grid-cols-1 sm:grid-cols-2 gap-y-2 gap-x-8 text-[clamp(12px,0.95vw,15px)] mb-6">
+          <dl className="grid grid-cols-1 sm:grid-cols-2 gap-y-2 gap-x-8 text-[clamp(12px,0.95vw,15px)] mb-8">
             <div>
-              <dt className="opacity-60 uppercase tracking-wide text-[clamp(10px,0.8vw,12px)]">Nombre</dt>
+              <dt className="opacity-50 uppercase tracking-wide text-[clamp(10px,0.8vw,12px)]">nombre .....:</dt>
               <dd>{perfil?.nombre_completo ?? '—'}</dd>
             </div>
             <div>
-              <dt className="opacity-60 uppercase tracking-wide text-[clamp(10px,0.8vw,12px)]">Correo</dt>
+              <dt className="opacity-50 uppercase tracking-wide text-[clamp(10px,0.8vw,12px)]">correo .....:</dt>
               <dd>{correo ?? '—'}</dd>
             </div>
             <div>
-              <dt className="opacity-60 uppercase tracking-wide text-[clamp(10px,0.8vw,12px)]">Teléfono</dt>
+              <dt className="opacity-50 uppercase tracking-wide text-[clamp(10px,0.8vw,12px)]">teléfono ...:</dt>
               <dd>{perfil?.telefono ?? '—'}</dd>
             </div>
             <div>
-              <dt className="opacity-60 uppercase tracking-wide text-[clamp(10px,0.8vw,12px)]">Tipo de cuenta</dt>
-              <dd className="capitalize">{perfil?.rol ?? 'miembro'}</dd>
+              <dt className="opacity-50 uppercase tracking-wide text-[clamp(10px,0.8vw,12px)]">rol ........:</dt>
+              <dd>{perfil?.rol ?? 'miembro'}</dd>
             </div>
           </dl>
 
@@ -121,7 +123,7 @@ export default function MiTlacuiloPage() {
             onClick={handleLogout}
             className="uppercase tracking-wide hover:underline text-[clamp(11px,0.9vw,14px)]"
           >
-            Cerrar sesión
+            &gt; salir
           </button>
         </div>
       </section>

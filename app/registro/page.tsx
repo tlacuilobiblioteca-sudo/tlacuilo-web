@@ -17,7 +17,7 @@ export default function RegistroPage() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     if (!terminos) {
-      setError('Acepta los términos para continuar.')
+      setError('acepta los términos para continuar.')
       return
     }
     setLoading(true)
@@ -45,18 +45,25 @@ export default function RegistroPage() {
 
   if (success) {
     return (
-      <main className="min-h-screen bg-[#9794C4] text-black font-sans">
+      <main className="min-h-screen bg-[#15151d] text-[#9091c4] font-futura">
         <Header />
-        <section className="px-8 py-20 max-w-md mx-auto text-center">
-          <h1 className="font-bold uppercase tracking-wide mb-6 text-[clamp(14px,1.2vw,18px)]">
-            Ya eres parte de Tlacuilo
-          </h1>
-          <p className="leading-relaxed text-[clamp(13px,1vw,16px)]">
-            Te enviamos un correo de confirmación a <strong>{correo}</strong>.
-            Dale clic al link para activar tu cuenta.
+        <section className="max-w-md mx-auto px-8 py-24 font-mono">
+          <div className="uppercase tracking-widest opacity-60 mb-3 text-[clamp(10px,0.75vw,12px)]">
+            // tlacuilo.org · acceso pendiente
+          </div>
+          <div className="border-b border-[#9091c4]/30 mb-14" />
+
+          <p className="mb-6 text-[clamp(13px,1vw,16px)]">
+            &gt; solicitud enviada.
           </p>
-          <p className="mt-6 opacity-70 text-[clamp(11px,0.9vw,14px)]">
-            Si no aparece en tu bandeja, revisa la carpeta de spam.
+          <p className="leading-relaxed text-[clamp(12px,0.95vw,15px)] opacity-90">
+            te enviamos un enlace de confirmación a{' '}
+            <strong className="text-[#9091c4]">{correo}</strong>.
+            <br />
+            dale clic para activar tu acceso.
+          </p>
+          <p className="mt-8 opacity-60 text-[clamp(11px,0.85vw,13px)]">
+            (si no aparece, revisa spam.)
           </p>
         </section>
       </main>
@@ -64,79 +71,108 @@ export default function RegistroPage() {
   }
 
   return (
-    <main className="min-h-screen bg-[#9794C4] text-black font-sans">
+    <main className="min-h-screen bg-[#15151d] text-[#9091c4] font-futura">
       <Header />
 
-      <section className="px-8 py-16 max-w-md mx-auto">
-        <h1 className="text-center font-bold uppercase tracking-wide mb-10 text-[clamp(14px,1.2vw,18px)]">
-          Regístrate
-        </h1>
+      <section className="max-w-md mx-auto px-8 py-24 font-mono">
+        <div className="uppercase tracking-widest opacity-60 mb-3 text-[clamp(10px,0.75vw,12px)]">
+          // tlacuilo.org · solicitar acceso
+        </div>
+        <div className="border-b border-[#9091c4]/30 mb-14" />
 
-        <form onSubmit={handleSubmit} className="flex flex-col gap-4">
-          <input
-            type="text"
-            placeholder="Nombre completo"
-            value={nombre}
-            onChange={(e) => setNombre(e.target.value)}
-            required
-            className="bg-transparent border border-black/40 rounded-full px-6 py-3 placeholder:text-black/50 focus:outline-none focus:border-black text-[clamp(13px,1vw,16px)]"
-          />
-          <input
-            type="email"
-            placeholder="Correo electrónico"
-            value={correo}
-            onChange={(e) => setCorreo(e.target.value)}
-            required
-            className="bg-transparent border border-black/40 rounded-full px-6 py-3 placeholder:text-black/50 focus:outline-none focus:border-black text-[clamp(13px,1vw,16px)]"
-          />
-          <input
-            type="tel"
-            placeholder="Teléfono"
-            value={telefono}
-            onChange={(e) => setTelefono(e.target.value)}
-            className="bg-transparent border border-black/40 rounded-full px-6 py-3 placeholder:text-black/50 focus:outline-none focus:border-black text-[clamp(13px,1vw,16px)]"
-          />
-          <input
-            type="password"
-            placeholder="Contraseña"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            required
-            minLength={6}
-            className="bg-transparent border border-black/40 rounded-full px-6 py-3 placeholder:text-black/50 focus:outline-none focus:border-black text-[clamp(13px,1vw,16px)]"
-          />
+        <p className="mb-10 text-[clamp(13px,1vw,16px)]">
+          &gt; describe quién eres.
+        </p>
 
-          <label className="flex items-start gap-2 mt-2 text-[clamp(11px,0.9vw,14px)]">
+        <form onSubmit={handleSubmit} className="space-y-7 text-[clamp(13px,1vw,16px)]">
+          <div>
+            <label className="block mb-1 opacity-60 text-[clamp(11px,0.85vw,13px)]">
+              nombre completo .....:
+            </label>
+            <input
+              type="text"
+              value={nombre}
+              onChange={(e) => setNombre(e.target.value)}
+              required
+              autoFocus
+              className="w-full bg-transparent border-b border-[#9091c4]/40 focus:border-[#9091c4] focus:outline-none py-1 font-mono text-[#9091c4]"
+            />
+          </div>
+
+          <div>
+            <label className="block mb-1 opacity-60 text-[clamp(11px,0.85vw,13px)]">
+              correo electrónico ..:
+            </label>
+            <input
+              type="email"
+              value={correo}
+              onChange={(e) => setCorreo(e.target.value)}
+              required
+              className="w-full bg-transparent border-b border-[#9091c4]/40 focus:border-[#9091c4] focus:outline-none py-1 font-mono text-[#9091c4]"
+            />
+          </div>
+
+          <div>
+            <label className="block mb-1 opacity-60 text-[clamp(11px,0.85vw,13px)]">
+              teléfono ............:
+            </label>
+            <input
+              type="tel"
+              value={telefono}
+              onChange={(e) => setTelefono(e.target.value)}
+              className="w-full bg-transparent border-b border-[#9091c4]/40 focus:border-[#9091c4] focus:outline-none py-1 font-mono text-[#9091c4]"
+            />
+          </div>
+
+          <div>
+            <label className="block mb-1 opacity-60 text-[clamp(11px,0.85vw,13px)]">
+              contraseña ..........:
+            </label>
+            <input
+              type="password"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              required
+              minLength={6}
+              className="w-full bg-transparent border-b border-[#9091c4]/40 focus:border-[#9091c4] focus:outline-none py-1 font-mono text-[#9091c4]"
+            />
+          </div>
+
+          <label className="flex items-start gap-2 mt-6 text-[clamp(11px,0.85vw,13px)] opacity-80">
             <input
               type="checkbox"
               checked={terminos}
               onChange={(e) => setTerminos(e.target.checked)}
-              className="mt-1"
+              className="mt-1 accent-[#9091c4]"
             />
-            <span>Acepto los términos y condiciones de Tlacuilo.</span>
+            <span>acepto las condiciones de paso.</span>
           </label>
 
           {error && (
-            <p className="text-red-900 bg-red-100 px-4 py-2 rounded text-[clamp(11px,0.9vw,14px)]">
-              {error}
+            <p className="text-red-300 text-[clamp(11px,0.85vw,13px)]">
+              &gt; error: {error.toLowerCase()}
             </p>
           )}
 
           <button
             type="submit"
             disabled={loading}
-            className="self-center uppercase tracking-wide font-bold mt-6 hover:underline disabled:opacity-50 text-[clamp(13px,1vw,16px)]"
+            className="mt-8 hover:underline disabled:opacity-50 text-[clamp(13px,1vw,16px)]"
           >
-            {loading ? 'Creando cuenta...' : 'IR'}
+            {loading ? (
+              <>&gt; enviando<span className="animate-pulse">_</span></>
+            ) : (
+              <>&gt; enviar solicitud<span className="ml-1 animate-pulse">▮</span></>
+            )}
           </button>
-
-          <p className="text-center mt-6 opacity-70 text-[clamp(11px,0.9vw,14px)]">
-            ¿Ya tienes cuenta?{' '}
-            <a href="/login" className="underline opacity-100">
-              Inicia sesión
-            </a>
-          </p>
         </form>
+
+        <div className="mt-16 pt-6 border-t border-[#9091c4]/20 opacity-70 text-[clamp(11px,0.85vw,13px)]">
+          &gt; ya tienes acceso?{' '}
+          <a href="/login" className="underline hover:no-underline">
+            entrar
+          </a>
+        </div>
       </section>
     </main>
   )

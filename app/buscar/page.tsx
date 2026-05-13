@@ -35,7 +35,7 @@ export default async function BuscarPage({
   }
 
   return (
-    <main className="min-h-screen bg-[#9794C4] text-black font-sans">
+    <main className="min-h-screen bg-[#15151d] text-[#9091c4] font-futura">
       <Header />
 
       <section className="px-8 pt-2 pb-6 max-w-7xl mx-auto">
@@ -44,23 +44,23 @@ export default async function BuscarPage({
             type="text"
             name="q"
             defaultValue={query}
-            placeholder="Busca por título, autor, categoría o etiqueta..."
-            className="flex-1 bg-black/10 px-5 py-3 outline-none focus:bg-black/15 text-[clamp(13px,1.1vw,17px)] placeholder:opacity-50"
+            placeholder="busca por título, autor, categoría o etiqueta..."
+            className="flex-1 bg-[#9091c4]/10 px-5 py-3 outline-none focus:bg-[#9091c4]/15 text-[clamp(13px,1.1vw,17px)] placeholder:opacity-50 text-[#9091c4] font-mono"
             autoFocus
           />
           <button
             type="submit"
-            className="bg-black text-white px-6 py-3 uppercase tracking-wide hover:bg-black/80 transition text-[clamp(11px,0.9vw,14px)]"
+            className="bg-[#9091c4] text-[#15151d] px-6 py-3 uppercase tracking-wide hover:bg-[#9091c4]/90 transition text-[clamp(11px,0.9vw,14px)] font-sonoran"
           >
             Buscar
           </button>
         </form>
 
         {query && (
-          <p className="mt-4 uppercase tracking-wide opacity-70 text-[clamp(10px,0.8vw,13px)]">
+          <p className="mt-4 uppercase tracking-wide opacity-70 text-[clamp(10px,0.8vw,13px)] font-mono">
             {errorMsg
-              ? 'Error: ' + errorMsg
-              : libros.length + ' resultado' + (libros.length === 1 ? '' : 's') + ' para "' + query + '"'}
+              ? '> error: ' + errorMsg
+              : '> ' + libros.length + ' resultado' + (libros.length === 1 ? '' : 's') + ' para "' + query + '"'}
           </p>
         )}
       </section>
@@ -75,7 +75,7 @@ export default async function BuscarPage({
                 className="flex gap-5 items-start opacity-95 hover:opacity-100 transition"
               >
                 <div className="w-[clamp(96px,14vw,200px)] flex-shrink-0">
-                  <div className="aspect-[2/3] bg-black/15 flex items-center justify-center text-black/40 p-2 text-center overflow-hidden text-[clamp(9px,0.85vw,13px)]">
+                  <div className="aspect-[2/3] bg-[#9091c4]/10 flex items-center justify-center text-[#9091c4]/40 p-2 text-center overflow-hidden text-[clamp(9px,0.85vw,13px)]">
                     <Cover
                       titulo={libro.titulo}
                       portada_url={libro.portada_url}
@@ -92,7 +92,7 @@ export default async function BuscarPage({
                   <p className="opacity-60">{libro.anio ?? ''}</p>
                   <span
                     className={`mt-2 rounded-full w-[clamp(8px,0.7vw,14px)] h-[clamp(8px,0.7vw,14px)] ${
-                      libro.disponible ? 'bg-green-700' : 'bg-orange-500'
+                      libro.disponible ? 'bg-green-500' : 'bg-orange-400'
                     }`}
                     title={libro.disponible ? 'Disponible' : 'En préstamo'}
                   />
@@ -105,16 +105,16 @@ export default async function BuscarPage({
 
       {query && !errorMsg && libros.length === 0 && (
         <section className="px-8 pb-12 max-w-7xl mx-auto">
-          <p className="text-[clamp(13px,1.1vw,17px)] opacity-70">
-            No encontramos libros que coincidan con &ldquo;{query}&rdquo;. Prueba con otra palabra o nombre.
+          <p className="text-[clamp(13px,1.1vw,17px)] opacity-70 font-mono">
+            &gt; sin resultados para &ldquo;{query}&rdquo;. prueba con otra palabra.
           </p>
         </section>
       )}
 
       {!query && (
         <section className="px-8 pb-12 max-w-7xl mx-auto">
-          <p className="text-[clamp(13px,1.1vw,17px)] opacity-70">
-            Busca libros por título, autor, categoría o etiqueta.
+          <p className="text-[clamp(13px,1.1vw,17px)] opacity-70 font-mono">
+            &gt; busca por título, autor, categoría o etiqueta.
           </p>
         </section>
       )}
