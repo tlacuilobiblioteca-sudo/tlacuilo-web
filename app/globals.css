@@ -42,7 +42,9 @@
   --animate-jitter-g1: jitterG1 0.32s steps(4) 1;
   --animate-jitter-g2: jitterG2 0.32s steps(4) 1;
   --animate-slide-l: slideL 60s linear infinite;
+  --animate-slide-r: slideR 60s linear infinite;
   --animate-pulse-dot: pulseDot 2.2s ease-in-out infinite;
+  --animate-blink: blink 1s steps(1) infinite;
 }
 
 /* ============ KEYFRAMES ============ */
@@ -71,8 +73,15 @@
   from { transform: translateX(0); }
   to   { transform: translateX(-50%); }
 }
+@keyframes slideR {
+  from { transform: translateX(-50%); }
+  to   { transform: translateX(0); }
+}
 @keyframes pulseDot {
   50% { opacity: 0.3; }
+}
+@keyframes blink {
+  50% { opacity: 0; }
 }
 
 /* ============ GLOBAL ============ */
@@ -164,6 +173,39 @@ body::after {
   transition: right 0.25s ease;
 }
 .nav-link:hover::after { right: 0; }
+
+/* ============ FAILSAFES + ANIMATION PAUSE ============ */
+
+/* Pausa global cuando la tab no está visible (toggled por home-page.tsx
+   con document.body.classList.add('anim-paused')). Ahorra batería/datos. */
+body.anim-paused *,
+body.anim-paused *::before,
+body.anim-paused *::after {
+  animation-play-state: paused !important;
+}
+
+/* Respeta la preferencia del usuario de menos animación. Conservamos
+   transiciones cortas y desactivamos infinitos. */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+/* Terminal Boot — caret parpadeante */
+.caret {
+  display: inline-block;
+  width: 0.55em;
+  height: 1em;
+  background: var(--color-text);
+  vertical-align: -2px;
+  animation: var(--animate-blink);
+}
 
 /* Escala bars — altura animada via --h custom prop */
 .escala-bar-col {

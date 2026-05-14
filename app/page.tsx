@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState } from 'react'
 import Header from '@/components/Header'
+import Biblioticker from '@/components/Biblioticker'
 
 /* ============================================================
    POOLS DE COPY — del booklet impreso de Tlacuilo
@@ -20,53 +21,9 @@ const HERO_POOL: HeroLema[] = [
   { head: 'TODOS SOMOS', pop: 'TLACUILOS', tail: '' },
 ]
 
-type Letania = { label: string; items: string[] }
-
-const BANNER_POOL: Letania[] = [
-  {
-    label: 'libertad a los...',
-    items: ['objetos', 'pinturas', 'discos', 'grabados', 'cassettes', '16mm', 'revistas', 'vhs', 'carteles', 'fotografías', 'dvd', 'libros']
-      .map((x) => 'LIBERTAD A LOS ' + x.toUpperCase()),
-  },
-  {
-    label: 'un tlacuilo es un...',
-    items: ['escritor', 'pintor', 'escriba', 'cronista', 'lector', 'bibliófilo', 'estudiante', 'archivista', 'divulgador', 'prosodio', 'maestro', 'bibliotecario']
-      .map((x) => 'UN TLACUILO ES UN ' + x.toUpperCase()),
-  },
-  {
-    label: 'no nos incumben...',
-    items: ['pdfs', 'torrents', 'wavs', 'descargas', 'jpgs', 'nft', 'memes', 'i.a.']
-      .map((x) => 'NO NOS INCUMBEN LOS ' + x.toUpperCase()),
-  },
-  {
-    label: 'un libro se lee en...',
-    items: ['la cama', 'la hamaca', 'la fila', 'la recepción', 'el metro', 'el camión', 'el avión', 'el café', 'el baño', 'el sofá']
-      .map((x) => 'UN LIBRO SE LEE EN ' + x.toUpperCase()),
-  },
-]
-
 /* ============================================================
    UTILS
    ============================================================ */
-
-function dayHash(): number {
-  const d = new Date()
-  return d.getFullYear() * 10000 + (d.getMonth() + 1) * 100 + d.getDate()
-}
-
-function seededShuffle<T>(arr: T[], seed: number): T[] {
-  const a = arr.slice()
-  let s = seed
-  const rand = () => {
-    s = (s * 9301 + 49297) % 233280
-    return s / 233280
-  }
-  for (let i = a.length - 1; i > 0; i--) {
-    const j = Math.floor(rand() * (i + 1))
-    ;[a[i], a[j]] = [a[j], a[i]]
-  }
-  return a
-}
 
 function pickRandom<T>(arr: T[]): T {
   return arr[Math.floor(Math.random() * arr.length)]
@@ -93,16 +50,27 @@ const CTA_GHOST = 'font-mono text-[13px] lowercase tracking-[0.06em] px-[26px] p
 export default function Home() {
   // Hero fijo: 1 lema random elegido al cargar. Cambia solo al recargar.
   const [heroLema, setHeroLema] = useState<HeroLema>(HERO_POOL[0])
-  const [letania, setLetania] = useState<Letania>(BANNER_POOL[0])
   const escalaRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
     setHeroLema(pickRandom(HERO_POOL))
   }, [])
 
-  // Banner: 1 letanía aleatoria por visita
+  // Visibility pause: cuando la tab no está visible, pausamos animaciones
+  // para no quemar batería ni datos del usuario.
   useEffect(() => {
-    setLetania(pickRandom(BANNER_POOL))
+    const onVisibilityChange = () => {
+      if (document.hidden) {
+        document.body.classList.add('anim-paused')
+      } else {
+        document.body.classList.remove('anim-paused')
+      }
+    }
+    document.addEventListener('visibilitychange', onVisibilityChange)
+    return () => {
+      document.removeEventListener('visibilitychange', onVisibilityChange)
+      document.body.classList.remove('anim-paused')
+    }
   }, [])
 
   // Escala: animar barras al entrar al viewport
@@ -129,8 +97,6 @@ export default function Home() {
     observer.observe(escalaRef.current)
     return () => observer.disconnect()
   }, [])
-
-  const trackItems = letania.items
 
   return (
     <>
@@ -161,24 +127,24 @@ export default function Home() {
             dm @tlacuilobiblioteca
           </a>
         </div>
+
+        {/* State chips · stamps de manifiesto */}
+        <div className="flex gap-3 flex-wrap justify-center mt-4 max-w-[640px]">
+          {['sin precio', 'sin candado', 'sin algoritmo', 'sin intermediario'].map((label) => (
+            <span
+              key={label}
+              className="inline-flex items-center gap-2 px-3 py-1.5 border border-rule-strong font-mono text-[11px] uppercase tracking-[0.08em] text-text-dim"
+            >
+              <span className="w-2 h-2 rounded-full bg-text-dim animate-pulse-dot" />
+              {label}
+            </span>
+          ))}
+        </div>
+
       </section>
 
-      {/* ============ BANNER MARQUEE ============ */}
-      <section className="relative border-y border-rule bg-bg-soft overflow-hidden">
-        <div className="absolute top-3.5 left-6 z-[3] font-mono text-[11px] text-text-dim tracking-[0.18em] lowercase bg-bg px-2.5 py-1 border border-rule">
-          &gt; {letania.label}
-        </div>
-        <div className="flex items-center h-[108px] overflow-hidden">
-          <div className="flex gap-12 whitespace-nowrap font-sonoran font-black uppercase text-text leading-none tracking-[0.05em] text-[clamp(32px,3.8vw,56px)] will-change-transform animate-slide-l">
-            {[...trackItems, ...trackItems].map((item, i) => (
-              <span key={i} className="inline-flex gap-12 items-center">
-                <span>{item}</span>
-                <span className="text-text-dim font-black">/</span>
-              </span>
-            ))}
-          </div>
-        </div>
-      </section>
+      {/* ============ BIBLIOTICKER (3 hileras de letanías) ============ */}
+      <Biblioticker />
 
       {/* ============ CÓMO FUNCIONA ============ */}
       <section className="px-14 pt-[90px] pb-[100px] border-t border-rule max-md:px-5">
@@ -233,6 +199,30 @@ export default function Home() {
           <a className={CTA_GHOST} href="#">
             ver el manifiesto completo
           </a>
+        </div>
+      </section>
+
+      {/* ============ TODOS SOMOS TLACUILOS (federación v0) ============ */}
+      <section className="px-14 pt-[90px] pb-[100px] border-t border-rule max-md:px-5">
+        <p className="font-mono uppercase tracking-[0.2em] text-xs text-text-dim mb-3">
+          &gt; federación
+        </p>
+        <h2 className="font-sonoran font-black uppercase text-text leading-none tracking-[0.04em] mb-[18px] text-[clamp(28px,3.8vw,56px)]">
+          no somos una.<br />somos muchas.
+        </h2>
+        <p className="font-sans text-[15px] text-text-dim leading-[1.6] max-w-[620px] mb-10">
+          tlacuilo es solo el comienzo. cualquiera podrá subir su biblioteca
+          personal y compartirla. cada casa una sucursal, cada lectora bibliotecaria.
+          una red distribuida, sin precio, sin intermediario.
+        </p>
+        <div className="flex gap-3.5 flex-wrap items-center">
+          <span className="inline-flex items-center gap-2 px-4 py-3 border border-rule bg-bg-soft font-mono text-[12px] uppercase tracking-[0.06em] text-text-dim">
+            <span className="w-2 h-2 rounded-full bg-loan animate-pulse-dot" />
+            próximamente · federación v0
+          </span>
+          <span className="font-mono text-[11px] text-text-faint lowercase tracking-wider">
+            (avísanos si quieres ser nodo)
+          </span>
         </div>
       </section>
 
