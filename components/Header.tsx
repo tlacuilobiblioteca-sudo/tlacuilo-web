@@ -3,6 +3,7 @@
 import { useState, useEffect, useRef } from 'react'
 import { supabase } from '@/lib/supabase'
 import type { User } from '@supabase/supabase-js'
+import ThemeToggle from './ThemeToggle'
 
 export default function Header() {
   const [user, setUser] = useState<User | null>(null)
@@ -112,6 +113,9 @@ export default function Header() {
             />
           </svg>
         </a>
+
+        {/* Sol/Luna → toggle light/dark */}
+        <ThemeToggle />
 
         <a href={miTlacuiloHref} className={linkClass}>Mi Tlacuilo</a>
       </div>

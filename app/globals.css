@@ -90,9 +90,35 @@ html, body {
   color: var(--color-text);
   min-height: 100vh;
   overflow-x: hidden;
+  transition: background 0.25s ease, color 0.25s ease;
 }
 body {
   font-family: var(--font-sans);
+}
+
+/* ============ LIGHT MODE ============
+   Override tokens cuando body tiene .light-mode.
+   El logo (lavanda) y el .pop highlight (lavanda + dark text)
+   se quedan igual porque funcionan en ambos. */
+body.light-mode {
+  --color-bg: #f0ede4;          /* cream cálido tipo café */
+  --color-bg-card: #fafaf3;     /* casi blanco */
+  --color-bg-soft: rgba(40, 40, 55, 0.05);
+  --color-text: #2a2a3a;        /* gris oscuro azulado */
+  --color-text-bright: #0f0f1c; /* casi negro para títulos */
+  --color-text-dim: rgba(42, 42, 58, 0.65);
+  --color-text-faint: rgba(42, 42, 58, 0.40);
+  --color-rule: rgba(42, 42, 58, 0.18);
+  --color-rule-strong: rgba(42, 42, 58, 0.35);
+  /* invert-bg (lavanda) y invert-fg (oscuro) se quedan: funcionan en ambos */
+}
+
+/* Scanlines y vignette más sutiles en light mode (no oscurece) */
+body.light-mode::before {
+  background: repeating-linear-gradient(0deg, rgba(40, 40, 55, 0.03) 0 1px, transparent 1px 4px);
+}
+body.light-mode::after {
+  background: radial-gradient(ellipse at center, transparent 70%, rgba(40, 40, 55, 0.08) 100%);
 }
 
 /* Scanlines + vignette globales (sutiles) */
