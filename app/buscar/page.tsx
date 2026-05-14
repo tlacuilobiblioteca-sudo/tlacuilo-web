@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { Suspense, useEffect, useState } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { supabase } from '@/lib/supabase'
 import TecaLayout from '@/components/TecaLayout'
@@ -16,7 +16,31 @@ type Libro = {
   isbn: string | null
 }
 
+/**
+ * useSearchParams() requiere Suspense boundary en Next.js App Router.
+ * Por eso separamos: la página wrap-ea en Suspense, el contenido usa el hook.
+ */
 export default function BuscarPage() {
+  return (
+    <TecaLayout>
+      <Suspense fallback={<BuscarLoading />}>
+        <BuscarContent />
+      </Suspense>
+    </TecaLayout>
+  )
+}
+
+function BuscarLoading() {
+  return (
+    <section className="px-8 pt-8 pb-6 max-w-7xl mx-auto">
+      <p className="font-mono text-sm opacity-70">
+        &gt; cargando<span className="animate-pulse">_</span>
+      </p>
+    </section>
+  )
+}
+
+function BuscarContent() {
   const router = useRouter()
   const sp = useSearchParams()
   const initialQuery = sp.get('q') ?? ''
@@ -26,7 +50,6 @@ export default function BuscarPage() {
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
-  // Placeholder rotando títulos reales del catálogo
   const [placeholders, setPlaceholders] = useState<string[]>([
     'buscar por título, autor, categoría...',
   ])
@@ -41,7 +64,6 @@ export default function BuscarPage() {
       if (!count) return
 
       const titles: string[] = []
-      // Trae 30 títulos en posiciones aleatorias del catálogo
       for (let i = 0; i < 30; i++) {
         const offset = Math.floor(Math.random() * count)
         const { data } = await supabase
@@ -57,7 +79,6 @@ export default function BuscarPage() {
     loadRandom()
   }, [])
 
-  // Rotar placeholder cada 2.5s
   useEffect(() => {
     if (placeholders.length < 2) return
     const interval = setInterval(() => {
@@ -66,7 +87,6 @@ export default function BuscarPage() {
     return () => clearInterval(interval)
   }, [placeholders])
 
-  // Si llega ?q= en la URL, ejecuta búsqueda
   useEffect(() => {
     const q = sp.get('q')?.trim()
     if (!q) {
@@ -101,7 +121,7 @@ export default function BuscarPage() {
   const currentPlaceholder = placeholders[phIdx]
 
   return (
-    <TecaLayout>
+    <>
       <section className="px-8 pt-8 pb-6 max-w-7xl mx-auto">
         <p className="font-mono uppercase tracking-[0.2em] text-xs opacity-60 mb-3">
           &gt; buscar en la biblioteca
@@ -179,6 +199,6 @@ export default function BuscarPage() {
           </p>
         </section>
       )}
-    </TecaLayout>
+    </>
   )
 }
