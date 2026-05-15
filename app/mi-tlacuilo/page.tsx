@@ -154,21 +154,27 @@ export default function MiTlacuiloPage() {
         </p>
 
         {perfil?.rol === 'editor' && (
-          <div className="mb-12 border border-rule p-4 bg-bg-soft font-mono flex items-center justify-between flex-wrap gap-3">
-            <div>
-              <p className="text-[10px] uppercase tracking-wider opacity-60 mb-1">
-                &gt; zona editora
-              </p>
-              <p className="text-sm">
-                Subir portadas, agregar libros, marcar joyas.
-              </p>
+          <div className="mb-12 border border-rule p-4 bg-bg-soft font-mono">
+            <p className="text-[10px] uppercase tracking-wider opacity-60 mb-3">
+              &gt; zona editora
+            </p>
+            <div className="flex flex-wrap items-center gap-3">
+              <a
+                href="/admin/prestamos"
+                className="text-xs lowercase tracking-wider bg-invert-bg text-invert-fg px-4 py-2 hover:opacity-90"
+              >
+                préstamos activos →
+              </a>
+              <a
+                href="/admin/libros"
+                className="text-xs lowercase tracking-wider border border-rule hover:border-rule-strong px-4 py-2"
+              >
+                catálogo →
+              </a>
+              <span className="opacity-50 text-[10px] uppercase tracking-wider">
+                portadas · agregar libros · marcar recogido/devuelto · joyas
+              </span>
             </div>
-            <a
-              href="/admin/libros"
-              className="text-xs lowercase tracking-wider bg-invert-bg text-invert-fg px-4 py-2 hover:opacity-90"
-            >
-              entrar al catálogo →
-            </a>
           </div>
         )}
 
