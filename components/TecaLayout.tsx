@@ -45,11 +45,17 @@ export default function TecaLayout({ children }: { children: React.ReactNode }) 
     <div className="min-h-screen bg-bg text-text">
       {/* ============ SLIM HEADER ============ */}
       <header className="relative z-50 flex items-center justify-between gap-4 px-6 md:px-10 pt-5 pb-3 border-b border-rule">
-        <a href="/" className="block">
+        <a href="/" className="block relative h-[clamp(40px,5vw,72px)] w-[clamp(35px,4.5vw,64px)]">
           <img
             src="/logodark.svg"
             alt="tlacuilo"
-            className="h-[clamp(40px,5vw,72px)] w-auto"
+            className="logo-dark absolute inset-0 h-full w-full object-contain"
+          />
+          <img
+            src="/logolight.svg"
+            alt="tlacuilo"
+            className="logo-light absolute inset-0 h-full w-full object-contain"
+            aria-hidden="true"
           />
         </a>
 

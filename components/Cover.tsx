@@ -145,6 +145,8 @@ export default function Cover({ titulo, portada_url, isbn, autor }: Props) {
       src={src}
       alt={titulo}
       className="w-full h-full object-cover"
+      loading="lazy"
+      decoding="async"
       onError={handleError}
     />
   )

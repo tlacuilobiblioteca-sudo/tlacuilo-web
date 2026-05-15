@@ -16,9 +16,13 @@ type Libro = {
   categorias: string[] | null
   descripcion: string | null
   edicion_especial: boolean
+  disponible: boolean
+  motivo: string | null
 }
 
-const PAGE_SIZE = 24
+const PAGE_SIZE = 25
+
+const MOTIVOS_PRESET = ['reparación', 'estudio', 'archivado']
 
 export default function AdminLibrosPage() {
   const router = useRouter()
@@ -28,6 +32,8 @@ export default function AdminLibrosPage() {
   const [search, setSearch] = useState('')
   const [filtroSinPortada, setFiltroSinPortada] = useState(false)
   const [filtroJoyas, setFiltroJoyas] = useState(false)
+  const [filtroNoDisponibles, setFiltroNoDisponibles] = useState(false)
+  const [estadoMenuOpen, setEstadoMenuOpen] = useState<string | null>(null)
   const [page, setPage] = useState(0)
   const [total, setTotal] = useState(0)
   const [refreshKey, setRefreshKey] = useState(0)
@@ -77,8 +83,8 @@ export default function AdminLibrosPage() {
     let q = supabase
       .from('libros')
       .select(
-        'id, titulo, autor, anio, isbn, portada_url, categorias, descripcion, edicion_especial',
-        { count: 'exact' }
+        'id, titulo, autor, anio, isbn, portada_url, categorias, descripcion, edicion_especial, disponible, motivo',
+        { count: 'estimated' }
       )
     if (search.trim()) {
       const s = search.trim().replace(/[%_]/g, '')
@@ -86,11 +92,12 @@ export default function AdminLibrosPage() {
     }
     if (filtroSinPortada) q = q.is('portada_url', null)
     if (filtroJoyas) q = q.eq('edicion_especial', true)
+    if (filtroNoDisponibles) q = q.eq('disponible', false)
     q = q.order('titulo').range(page * PAGE_SIZE, (page + 1) * PAGE_SIZE - 1)
     const { data, count } = await q
     setLibros((data ?? []) as Libro[])
     setTotal(count ?? 0)
-  }, [isEditor, search, filtroSinPortada, filtroJoyas, page, refreshKey])
+  }, [isEditor, search, filtroSinPortada, filtroJoyas, filtroNoDisponibles, page, refreshKey])
 
   useEffect(() => {
     loadLibros()
@@ -98,7 +105,7 @@ export default function AdminLibrosPage() {
 
   useEffect(() => {
     setPage(0)
-  }, [search, filtroSinPortada, filtroJoyas])
+  }, [search, filtroSinPortada, filtroJoyas, filtroNoDisponibles])
 
   async function buscarEnApi() {
     if (!newTitulo.trim()) {
@@ -215,6 +222,26 @@ export default function AdminLibrosPage() {
     setRefreshKey((k) => k + 1)
   }
 
+  async function setEstadoLibro(libro: Libro, motivo: string | null) {
+    // motivo === null → vuelve a disponible
+    // motivo presente → disponible=false con esa razón
+    const payload = motivo
+      ? { disponible: false, motivo }
+      : { disponible: true, motivo: null }
+    const { error } = await supabase
+      .from('libros')
+      .update(payload)
+      .eq('id', libro.id)
+    if (error) {
+      alert('error: ' + error.message)
+      return
+    }
+    setLibros((ls) =>
+      ls.map((l) => (l.id === libro.id ? { ...l, ...payload } : l))
+    )
+    setEstadoMenuOpen(null)
+  }
+
   async function toggleEspecial(libro: Libro) {
     const { error } = await supabase
       .from('libros')
@@ -255,7 +282,7 @@ export default function AdminLibrosPage() {
           Catálogo
         </h1>
         <p className="opacity-70 mb-8 text-[clamp(13px,1vw,17px)]">
-          Subir portadas, agregar libros, marcar joyas. {total} libros en total.
+          Subir portadas, agregar libros, marcar joyas, controlar disponibilidad. {total} libros aprox.
         </p>
 
         <div className="border-y border-rule py-4 mb-6 flex flex-wrap items-center gap-3 font-mono text-sm">
@@ -282,6 +309,13 @@ export default function AdminLibrosPage() {
           </button>
 
           <button
+            onClick={() => setFiltroNoDisponibles(!filtroNoDisponibles)}
+            className={`px-3 py-2 border text-xs uppercase tracking-wider transition-colors ${filtroNoDisponibles ? 'border-invert-bg bg-invert-bg text-invert-fg' : 'border-rule hover:border-rule-strong'}`}
+          >
+            no disponibles
+          </button>
+
+          <button
             onClick={() => setShowAdd(true)}
             className="px-4 py-2 bg-invert-bg text-invert-fg text-xs uppercase tracking-wider hover:opacity-90"
           >
@@ -294,47 +328,94 @@ export default function AdminLibrosPage() {
             <p className="font-mono opacity-70">&gt; no se encontraron libros con esos filtros</p>
           </div>
         ) : (
-          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-4">
-            {libros.map((l) => (
-              <div key={l.id} className="flex flex-col gap-1 group relative">
-                {l.edicion_especial && (
-                  <span
-                    title="Edición especial"
-                    className="absolute top-1 right-1 z-10 bg-invert-bg text-invert-fg font-mono text-[10px] px-1.5 py-0.5"
-                  >
-                    ★
-                  </span>
-                )}
-                <div className="aspect-[2/3] bg-bg-soft flex items-center justify-center text-text-dim p-2 text-center overflow-hidden text-[10px] mb-1">
-                  <Cover
-                    titulo={l.titulo}
-                    portada_url={l.portada_url}
-                    isbn={l.isbn}
-                    autor={l.autor}
-                  />
+          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
+            {libros.map((l) => {
+              const noDisponible = !l.disponible
+              return (
+                <div key={l.id} className="flex flex-col gap-1 group relative">
+                  {l.edicion_especial && (
+                    <span
+                      title="Edición especial"
+                      className="absolute top-1 right-1 z-10 bg-invert-bg text-invert-fg font-mono text-[10px] px-1.5 py-0.5"
+                    >
+                      ★
+                    </span>
+                  )}
+                  {noDisponible && (
+                    <span
+                      title={l.motivo ?? 'no disponible'}
+                      className="absolute top-1 left-1 z-10 bg-loan text-bg font-mono text-[9px] uppercase tracking-wider px-1.5 py-0.5"
+                    >
+                      {l.motivo ?? 'no disp.'}
+                    </span>
+                  )}
+                  <div className={`aspect-[2/3] bg-bg-soft flex items-center justify-center text-text-dim p-2 text-center overflow-hidden text-[10px] mb-1 ${noDisponible ? 'opacity-50' : ''}`}>
+                    <Cover
+                      titulo={l.titulo}
+                      portada_url={l.portada_url}
+                      isbn={l.isbn}
+                      autor={l.autor}
+                    />
+                  </div>
+                  <p className="font-medium leading-tight text-[11px] line-clamp-2">{l.titulo}</p>
+                  <p className="opacity-60 text-[10px] line-clamp-1">{l.autor ?? '—'}</p>
+                  <div className="flex gap-2 mt-1 font-mono text-[10px] uppercase tracking-wider flex-wrap">
+                    <button
+                      onClick={() => {
+                        setEditingLibro(l)
+                        setUploadTab('file')
+                        setUploadUrl('')
+                      }}
+                      className="opacity-70 hover:opacity-100 hover:text-text-bright underline"
+                    >
+                      portada
+                    </button>
+                    <button
+                      onClick={() => toggleEspecial(l)}
+                      className={`opacity-70 hover:opacity-100 hover:text-text-bright underline ${l.edicion_especial ? 'text-text-bright' : ''}`}
+                    >
+                      {l.edicion_especial ? '× joya' : '★ joya'}
+                    </button>
+                    <div className="relative">
+                      <button
+                        onClick={() => setEstadoMenuOpen(estadoMenuOpen === l.id ? null : l.id)}
+                        className={`opacity-70 hover:opacity-100 hover:text-text-bright underline ${noDisponible ? 'text-loan' : ''}`}
+                      >
+                        estado ▾
+                      </button>
+                      {estadoMenuOpen === l.id && (
+                        <div className="absolute left-0 top-full mt-1 z-20 bg-bg-card border border-rule-strong min-w-[140px] py-1 shadow-lg">
+                          <button
+                            onClick={() => setEstadoLibro(l, null)}
+                            className={`block w-full text-left px-3 py-1.5 text-[10px] hover:bg-bg-soft ${l.disponible && !l.motivo ? 'text-text-bright' : ''}`}
+                          >
+                            · disponible
+                          </button>
+                          {MOTIVOS_PRESET.map((m) => (
+                            <button
+                              key={m}
+                              onClick={() => setEstadoLibro(l, m)}
+                              className={`block w-full text-left px-3 py-1.5 text-[10px] hover:bg-bg-soft ${l.motivo === m ? 'text-text-bright' : ''}`}
+                            >
+                              · {m}
+                            </button>
+                          ))}
+                          <button
+                            onClick={() => {
+                              const custom = window.prompt('Motivo personalizado:')
+                              if (custom?.trim()) setEstadoLibro(l, custom.trim())
+                            }}
+                            className="block w-full text-left px-3 py-1.5 text-[10px] hover:bg-bg-soft opacity-70"
+                          >
+                            · otro...
+                          </button>
+                        </div>
+                      )}
+                    </div>
+                  </div>
                 </div>
-                <p className="font-medium leading-tight text-[11px] line-clamp-2">{l.titulo}</p>
-                <p className="opacity-60 text-[10px] line-clamp-1">{l.autor ?? '—'}</p>
-                <div className="flex gap-2 mt-1 font-mono text-[10px] uppercase tracking-wider">
-                  <button
-                    onClick={() => {
-                      setEditingLibro(l)
-                      setUploadTab('file')
-                      setUploadUrl('')
-                    }}
-                    className="opacity-70 hover:opacity-100 hover:text-text-bright underline"
-                  >
-                    portada
-                  </button>
-                  <button
-                    onClick={() => toggleEspecial(l)}
-                    className={`opacity-70 hover:opacity-100 hover:text-text-bright underline ${l.edicion_especial ? 'text-text-bright' : ''}`}
-                  >
-                    {l.edicion_especial ? '× joya' : '★ joya'}
-                  </button>
-                </div>
-              </div>
-            ))}
+              )
+            })}
           </div>
         )}
 

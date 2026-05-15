@@ -14,6 +14,7 @@ type Libro = {
   descripcion: string | null
   portada_url: string | null
   disponible: boolean
+  motivo: string | null
   categorias: string[] | null
   etiquetas: string[] | null
   isbn: string | null
@@ -28,7 +29,7 @@ export default async function LibroPage({
 
   const { data: libro, error } = await supabase
     .from('libros')
-    .select('id, titulo, autor, anio, descripcion, portada_url, disponible, categorias, etiquetas, isbn')
+    .select('id, titulo, autor, anio, descripcion, portada_url, disponible, motivo, categorias, etiquetas, isbn')
     .eq('id', id)
     .single<Libro>()
 
@@ -40,7 +41,7 @@ export default async function LibroPage({
   if (libro.categorias && libro.categorias.length > 0) {
     const { data } = await supabase
       .from('libros')
-      .select('id, titulo, autor, anio, descripcion, portada_url, disponible, categorias, etiquetas, isbn')
+      .select('id, titulo, autor, anio, descripcion, portada_url, disponible, motivo, categorias, etiquetas, isbn')
       .contains('categorias', [libro.categorias[0]])
       .neq('id', id)
       .limit(6)
@@ -88,7 +89,13 @@ export default async function LibroPage({
                 libro.disponible ? 'bg-available' : 'bg-loan'
               }`}
             />
-            <span>{libro.disponible ? 'Disponible para préstamo' : 'En préstamo'}</span>
+            <span>
+              {libro.disponible
+                ? 'Disponible para préstamo'
+                : libro.motivo
+                  ? `No disponible · ${libro.motivo}`
+                  : 'En préstamo'}
+            </span>
           </div>
 
           {/* Morral: el componente cliente maneja auth y estado */}
@@ -96,7 +103,9 @@ export default async function LibroPage({
             <MorralButton libroId={libro.id} />
           ) : (
             <div className="self-start font-mono text-sm text-text-dim uppercase tracking-wider px-6 py-3 border border-rule inline-block mb-6">
-              en préstamo · vuelve pronto
+              {libro.motivo
+                ? `no disponible · ${libro.motivo} · vuelve pronto`
+                : 'en préstamo · vuelve pronto'}
             </div>
           )}
 

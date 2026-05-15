@@ -256,8 +256,9 @@ export default function Home() {
 
       {/* ============ FOOTER ============ */}
       <footer className="grid grid-cols-[auto_1fr_auto] gap-8 items-center px-14 py-9 border-t border-rule font-mono text-xs text-text-dim tracking-[0.04em] lowercase max-[700px]:grid-cols-1 max-[700px]:gap-4 max-[700px]:text-center max-[700px]:justify-items-center">
-        <div className="w-[34px] h-10">
-          <img src="/logodark.svg" alt="tlacuilo" className="w-full h-full object-contain opacity-70" />
+        <div className="w-[34px] h-10 relative">
+          <img src="/logodark.svg" alt="tlacuilo" className="logo-dark absolute inset-0 w-full h-full object-contain opacity-70" />
+          <img src="/logolight.svg" alt="tlacuilo" className="logo-light absolute inset-0 w-full h-full object-contain opacity-70" aria-hidden="true" />
         </div>
         <div className="flex flex-wrap gap-[22px]">
           <a href="https://instagram.com/tlacuilobiblioteca" target="_blank" rel="noreferrer" className="text-text no-underline hover:text-text-bright transition-colors">@tlacuilobiblioteca</a>

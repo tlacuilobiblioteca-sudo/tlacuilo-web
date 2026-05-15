@@ -18,9 +18,9 @@
 */
 @theme {
   /* Colores */
-  --color-bg: #15151d;
-  --color-bg-card: #1a1a25;
-  --color-bg-soft: rgba(144, 145, 196, 0.06);
+  --color-bg: #120824;
+  --color-bg-card: #1c1132;
+  --color-bg-soft: rgba(144, 145, 196, 0.08);
   --color-text: #9091c4;
   --color-text-bright: #c5c4f5;
   --color-text-dim: rgba(144, 145, 196, 0.55);
@@ -28,7 +28,7 @@
   --color-rule: rgba(144, 145, 196, 0.18);
   --color-rule-strong: rgba(144, 145, 196, 0.32);
   --color-invert-bg: #9091c4;
-  --color-invert-fg: #15151d;
+  --color-invert-fg: #120824;
   --color-available: #22c55e;
   --color-loan: #fb923c;
 
@@ -103,23 +103,21 @@ body {
 body.light-mode {
   --color-bg: #9091c4;          /* lila como fondo principal */
   --color-bg-card: #a3a4d3;     /* lila ligeramente más clara para cards */
-  --color-bg-soft: rgba(21, 21, 29, 0.08);
-  --color-text: #15151d;        /* dark como texto principal */
-  --color-text-bright: #0a0a14; /* casi negro para títulos */
-  --color-text-dim: rgba(21, 21, 29, 0.65);
-  --color-text-faint: rgba(21, 21, 29, 0.40);
-  --color-rule: rgba(21, 21, 29, 0.20);
-  --color-rule-strong: rgba(21, 21, 29, 0.42);
-  --color-invert-bg: #15151d;   /* highlight dark sobre lila */
+  --color-bg-soft: rgba(42, 31, 71, 0.10);
+  --color-text: #2a1f47;        /* deep purple como texto principal */
+  --color-text-bright: #1a1235; /* deep purple oscuro para títulos / énfasis */
+  --color-text-dim: rgba(42, 31, 71, 0.65);
+  --color-text-faint: rgba(42, 31, 71, 0.40);
+  --color-rule: rgba(42, 31, 71, 0.22);
+  --color-rule-strong: rgba(42, 31, 71, 0.45);
+  --color-invert-bg: #2a1f47;   /* highlight deep purple sobre lila */
   --color-invert-fg: #9091c4;
 }
 
-/* Logo: silueta dark sobre lila en light mode
-   (excluye ghosts del glitch para no romper sus hue-rotate filters) */
-body.light-mode img[src*="logodark"]:not(.ghost),
-body.light-mode img[src*="logolight"]:not(.ghost) {
-  filter: brightness(0);
-}
+/* Logo swap: dark version oculta en light mode, light version oculta en dark mode.
+   Se renderizan ambas en el HTML y CSS controla cuál está visible. */
+body:not(.light-mode) .logo-light { display: none; }
+body.light-mode .logo-dark { display: none; }
 
 /* Scanlines y vignette en light mode (sutil sobre lila) */
 body.light-mode::before {

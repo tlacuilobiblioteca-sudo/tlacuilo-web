@@ -77,9 +77,12 @@ export default function Header() {
             height: 'clamp(122px, 12vw, 188px)',
           }}
         >
-          <img className="ghost g1" src="/logodark.svg" alt="" aria-hidden="true" />
-          <img className="ghost g2" src="/logodark.svg" alt="" aria-hidden="true" />
-          <img className="main" src="/logodark.svg" alt="tlacuilo" />
+          <img className="ghost g1 logo-dark" src="/logodark.svg" alt="" aria-hidden="true" />
+          <img className="ghost g2 logo-dark" src="/logodark.svg" alt="" aria-hidden="true" />
+          <img className="main logo-dark" src="/logodark.svg" alt="tlacuilo" />
+          <img className="ghost g1 logo-light" src="/logolight.svg" alt="" aria-hidden="true" />
+          <img className="ghost g2 logo-light" src="/logolight.svg" alt="" aria-hidden="true" />
+          <img className="main logo-light" src="/logolight.svg" alt="tlacuilo" />
         </span>
       </a>
 
