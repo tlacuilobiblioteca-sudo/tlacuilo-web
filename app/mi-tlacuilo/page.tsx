@@ -31,29 +31,32 @@ type Prestamo = {
   libros: Libro
 }
 
+function formatVisita(iso: string): string {
+  const d = new Date(iso)
+  const dia = d.toLocaleDateString('es-MX', { weekday: 'short', day: 'numeric', month: 'short' })
+  const bloque = d.getHours() < 14 ? 'mañana' : 'tarde'
+  return `${dia} · ${bloque}`
+}
+
 export default function MiTlacuiloPage() {
   const router = useRouter()
   const [perfil, setPerfil] = useState<Perfil | null>(null)
   const [correo, setCorreo] = useState<string | null>(null)
   const [loading, setLoading] = useState(true)
 
-  // Morral + visitas
   const [morral, setMorral] = useState<Prestamo[]>([])
   const [visitas, setVisitas] = useState<Prestamo[]>([])
 
-  // Bio editor
   const [bioDraft, setBioDraft] = useState('')
   const [savingBio, setSavingBio] = useState(false)
   const [bioMsg, setBioMsg] = useState<string | null>(null)
 
-  // Fetch perfil + prestamos
   useEffect(() => {
     let mounted = true
 
     const load = async () => {
       const { data: { user } } = await supabase.auth.getUser()
       if (!mounted) return
-
       if (!user) {
         router.push('/login')
         return
@@ -103,12 +106,7 @@ export default function MiTlacuiloPage() {
     if (!perfil) return
     setSavingBio(true)
     setBioMsg(null)
-
-    const { error } = await supabase
-      .from('perfiles')
-      .update({ bio: bioDraft.trim() || null })
-      .eq('id', perfil.id)
-
+    const { error } = await supabase.from('perfiles').update({ bio: bioDraft.trim() || null }).eq('id', perfil.id)
     setSavingBio(false)
     if (error) {
       setBioMsg('> error al guardar')
@@ -120,13 +118,8 @@ export default function MiTlacuiloPage() {
   }
 
   const handleRemoveFromMorral = async (prestamoId: string) => {
-    const { error } = await supabase
-      .from('prestamos')
-      .delete()
-      .eq('id', prestamoId)
-    if (!error) {
-      setMorral((m) => m.filter((p) => p.id !== prestamoId))
-    }
+    const { error } = await supabase.from('prestamos').delete().eq('id', prestamoId)
+    if (!error) setMorral((m) => m.filter((p) => p.id !== prestamoId))
   }
 
   if (loading) {
@@ -153,14 +146,32 @@ export default function MiTlacuiloPage() {
         <h1 className="font-sonoran leading-tight mb-2 text-[clamp(28px,3.5vw,52px)] uppercase tracking-wide text-text-bright">
           Hola, {alias}
         </h1>
-        <p className="opacity-70 mb-12 text-[clamp(13px,1vw,17px)]">
+        <p className="opacity-70 mb-6 text-[clamp(13px,1vw,17px)]">
           tu perfil público está en{' '}
           <a href={`/u/${alias}`} className="underline hover:text-text-bright">
             tlacuilo.org/u/{alias}
           </a>
         </p>
 
-        {/* ============ MI MORRAL ============ */}
+        {perfil?.rol === 'editor' && (
+          <div className="mb-12 border border-rule p-4 bg-bg-soft font-mono flex items-center justify-between flex-wrap gap-3">
+            <div>
+              <p className="text-[10px] uppercase tracking-wider opacity-60 mb-1">
+                &gt; zona editora
+              </p>
+              <p className="text-sm">
+                Subir portadas, agregar libros, marcar joyas.
+              </p>
+            </div>
+            <a
+              href="/admin/libros"
+              className="text-xs lowercase tracking-wider bg-invert-bg text-invert-fg px-4 py-2 hover:opacity-90"
+            >
+              entrar al catálogo →
+            </a>
+          </div>
+        )}
+
         <div className="mb-14">
           <div className="flex items-baseline justify-between mb-4">
             <h2 className="font-sonoran uppercase tracking-wide text-[clamp(16px,1.6vw,22px)] text-text-bright">
@@ -176,10 +187,7 @@ export default function MiTlacuiloPage() {
               <p className="font-mono text-sm opacity-70 mb-3">
                 &gt; tu morral está vacío.
               </p>
-              <a
-                href="/biblioteca"
-                className="font-mono text-xs uppercase tracking-wider underline hover:text-text-bright"
-              >
+              <a href="/biblioteca" className="font-mono text-xs uppercase tracking-wider underline hover:text-text-bright">
                 explorar la biblioteca →
               </a>
             </div>
@@ -190,19 +198,10 @@ export default function MiTlacuiloPage() {
                   <div key={p.id} className="flex flex-col gap-2">
                     <a href={`/biblioteca/${p.libros.id}`} className="block group">
                       <div className="aspect-[2/3] bg-bg-soft flex items-center justify-center text-text-dim p-2 text-center overflow-hidden text-[10px] mb-2 group-hover:opacity-90 transition-opacity">
-                        <Cover
-                          titulo={p.libros.titulo}
-                          portada_url={p.libros.portada_url}
-                          isbn={p.libros.isbn}
-                          autor={p.libros.autor}
-                        />
+                        <Cover titulo={p.libros.titulo} portada_url={p.libros.portada_url} isbn={p.libros.isbn} autor={p.libros.autor} />
                       </div>
-                      <p className="font-medium leading-tight text-[clamp(11px,0.9vw,14px)] line-clamp-2">
-                        {p.libros.titulo}
-                      </p>
-                      <p className="opacity-70 text-[10px] line-clamp-1">
-                        {p.libros.autor ?? '—'}
-                      </p>
+                      <p className="font-medium leading-tight text-[clamp(11px,0.9vw,14px)] line-clamp-2">{p.libros.titulo}</p>
+                      <p className="opacity-70 text-[10px] line-clamp-1">{p.libros.autor ?? '—'}</p>
                     </a>
                     <button
                       onClick={() => handleRemoveFromMorral(p.id)}
@@ -214,24 +213,21 @@ export default function MiTlacuiloPage() {
                 ))}
               </div>
 
-              {/* CTA a checkout (próximamente — stage 2) */}
               <div className="mt-8 flex items-center gap-4">
-                <button
-                  disabled
-                  className="font-mono text-sm lowercase tracking-wider bg-invert-bg/40 text-invert-fg/60 px-6 py-3 cursor-not-allowed"
-                  title="checkout próximamente"
+                <a
+                  href="/checkout"
+                  className="font-mono text-sm lowercase tracking-wider bg-invert-bg text-invert-fg px-6 py-3 hover:opacity-90 transition-opacity inline-block"
                 >
                   agendar visita →
-                </button>
+                </a>
                 <span className="font-mono text-xs opacity-50 uppercase tracking-wider">
-                  (checkout próximamente: lun-vie, 10am-7pm)
+                  lun-vie · mín. 1 día de anticipación
                 </span>
               </div>
             </>
           )}
         </div>
 
-        {/* ============ MIS VISITAS (apartados + recogidos) ============ */}
         <div className="mb-14">
           <div className="flex items-baseline justify-between mb-4">
             <h2 className="font-sonoran uppercase tracking-wide text-[clamp(16px,1.6vw,22px)] text-text-bright">
@@ -253,21 +249,15 @@ export default function MiTlacuiloPage() {
               {visitas.map((p) => (
                 <a key={p.id} href={`/biblioteca/${p.libros.id}`} className="block opacity-95 hover:opacity-100">
                   <div className="aspect-[2/3] bg-bg-soft flex items-center justify-center text-text-dim p-2 text-center overflow-hidden text-[10px] mb-2">
-                    <Cover
-                      titulo={p.libros.titulo}
-                      portada_url={p.libros.portada_url}
-                      isbn={p.libros.isbn}
-                      autor={p.libros.autor}
-                    />
+                    <Cover titulo={p.libros.titulo} portada_url={p.libros.portada_url} isbn={p.libros.isbn} autor={p.libros.autor} />
                   </div>
-                  <p className="font-medium leading-tight text-[clamp(11px,0.9vw,14px)] line-clamp-2">
-                    {p.libros.titulo}
-                  </p>
-                  <p className="opacity-70 text-[10px] line-clamp-1">
-                    {p.libros.autor ?? '—'}
-                  </p>
+                  <p className="font-medium leading-tight text-[clamp(11px,0.9vw,14px)] line-clamp-2">{p.libros.titulo}</p>
+                  <p className="opacity-70 text-[10px] line-clamp-1">{p.libros.autor ?? '—'}</p>
                   <p className="font-mono text-[10px] uppercase tracking-wider mt-1 opacity-70">
-                    {p.status === 'apartado' ? '· apartado' : '· recogido'}
+                    {p.visit_at ? <>· {formatVisita(p.visit_at)}</> : null}
+                  </p>
+                  <p className="font-mono text-[10px] uppercase tracking-wider opacity-50">
+                    · {p.status === 'apartado' ? 'apartado' : 'recogido'}
                   </p>
                 </a>
               ))}
@@ -275,7 +265,6 @@ export default function MiTlacuiloPage() {
           )}
         </div>
 
-        {/* ============ BIO EDITABLE ============ */}
         <div className="border-t border-rule pt-8 mt-4 font-mono">
           <h2 className="uppercase tracking-wide mb-2 opacity-70 text-[clamp(11px,0.9vw,14px)]">
             // tu bio (la ven los demás)
@@ -283,7 +272,6 @@ export default function MiTlacuiloPage() {
           <p className="opacity-50 text-[10px] mb-3">
             &gt; máx. 280 caracteres · una línea, una frase, lo que quieras decir.
           </p>
-
           <textarea
             value={bioDraft}
             onChange={(e) => setBioDraft(e.target.value.slice(0, 280))}
@@ -297,28 +285,17 @@ export default function MiTlacuiloPage() {
               disabled={savingBio || !bioChanged}
               className="uppercase tracking-wide hover:underline disabled:opacity-40 disabled:cursor-not-allowed text-[clamp(11px,0.9vw,14px)]"
             >
-              {savingBio ? (
-                <>&gt; guardando<span className="animate-pulse">_</span></>
-              ) : (
-                <>&gt; guardar bio</>
-              )}
+              {savingBio ? <>&gt; guardando<span className="animate-pulse">_</span></> : <>&gt; guardar bio</>}
             </button>
-            <span className="opacity-50 text-[10px]">
-              {bioDraft.length}/280
-            </span>
+            <span className="opacity-50 text-[10px]">{bioDraft.length}/280</span>
             {bioMsg && (
-              <span
-                className={`text-[10px] uppercase tracking-wider ${
-                  bioMsg.includes('✓') ? 'text-available' : 'text-loan'
-                }`}
-              >
+              <span className={`text-[10px] uppercase tracking-wider ${bioMsg.includes('✓') ? 'text-available' : 'text-loan'}`}>
                 {bioMsg}
               </span>
             )}
           </div>
         </div>
 
-        {/* ============ IDENTIDAD ============ */}
         <div className="border-t border-rule pt-8 mt-12 font-mono">
           <h2 className="uppercase tracking-wide mb-4 opacity-70 text-[clamp(11px,0.9vw,14px)]">
             // tu identidad (solo tú lo ves)
@@ -340,19 +317,12 @@ export default function MiTlacuiloPage() {
               <dt className="opacity-50 uppercase tracking-wide text-[10px]">desde ......:</dt>
               <dd>
                 {perfil?.created_at
-                  ? new Date(perfil.created_at).toLocaleDateString('es-MX', {
-                      year: 'numeric',
-                      month: 'long',
-                    })
+                  ? new Date(perfil.created_at).toLocaleDateString('es-MX', { year: 'numeric', month: 'long' })
                   : '—'}
               </dd>
             </div>
           </dl>
-
-          <button
-            onClick={handleLogout}
-            className="uppercase tracking-wide hover:underline text-[clamp(11px,0.9vw,14px)]"
-          >
+          <button onClick={handleLogout} className="uppercase tracking-wide hover:underline text-[clamp(11px,0.9vw,14px)]">
             &gt; salir
           </button>
         </div>
