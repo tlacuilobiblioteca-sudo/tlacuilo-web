@@ -97,28 +97,36 @@ body {
 }
 
 /* ============ LIGHT MODE ============
-   Override tokens cuando body tiene .light-mode.
-   El logo (lavanda) y el .pop highlight (lavanda + dark text)
-   se quedan igual porque funcionan en ambos. */
+   Inversión total: lila se vuelve fondo, dark se vuelve texto.
+   El logo cambia a silueta dark (filter: brightness(0)).
+   Los invert tokens también se invierten (highlights dark sobre lila). */
 body.light-mode {
-  --color-bg: #f0ede4;          /* cream cálido tipo café */
-  --color-bg-card: #fafaf3;     /* casi blanco */
-  --color-bg-soft: rgba(40, 40, 55, 0.05);
-  --color-text: #2a2a3a;        /* gris oscuro azulado */
-  --color-text-bright: #0f0f1c; /* casi negro para títulos */
-  --color-text-dim: rgba(42, 42, 58, 0.65);
-  --color-text-faint: rgba(42, 42, 58, 0.40);
-  --color-rule: rgba(42, 42, 58, 0.18);
-  --color-rule-strong: rgba(42, 42, 58, 0.35);
-  /* invert-bg (lavanda) y invert-fg (oscuro) se quedan: funcionan en ambos */
+  --color-bg: #9091c4;          /* lila como fondo principal */
+  --color-bg-card: #a3a4d3;     /* lila ligeramente más clara para cards */
+  --color-bg-soft: rgba(21, 21, 29, 0.08);
+  --color-text: #15151d;        /* dark como texto principal */
+  --color-text-bright: #0a0a14; /* casi negro para títulos */
+  --color-text-dim: rgba(21, 21, 29, 0.65);
+  --color-text-faint: rgba(21, 21, 29, 0.40);
+  --color-rule: rgba(21, 21, 29, 0.20);
+  --color-rule-strong: rgba(21, 21, 29, 0.42);
+  --color-invert-bg: #15151d;   /* highlight dark sobre lila */
+  --color-invert-fg: #9091c4;
 }
 
-/* Scanlines y vignette más sutiles en light mode (no oscurece) */
+/* Logo: silueta dark sobre lila en light mode
+   (excluye ghosts del glitch para no romper sus hue-rotate filters) */
+body.light-mode img[src*="logodark"]:not(.ghost),
+body.light-mode img[src*="logolight"]:not(.ghost) {
+  filter: brightness(0);
+}
+
+/* Scanlines y vignette en light mode (sutil sobre lila) */
 body.light-mode::before {
-  background: repeating-linear-gradient(0deg, rgba(40, 40, 55, 0.03) 0 1px, transparent 1px 4px);
+  background: repeating-linear-gradient(0deg, rgba(21, 21, 29, 0.04) 0 1px, transparent 1px 4px);
 }
 body.light-mode::after {
-  background: radial-gradient(ellipse at center, transparent 70%, rgba(40, 40, 55, 0.08) 100%);
+  background: radial-gradient(ellipse at center, transparent 70%, rgba(21, 21, 29, 0.18) 100%);
 }
 
 /* Scanlines + vignette globales (sutiles) */
