@@ -2,10 +2,11 @@ import { supabase } from '@/lib/supabase'
 import TecaLayout from '@/components/TecaLayout'
 import Cover from '@/components/Cover'
 import PageSelector from '@/components/PageSelector'
+import QuickMorralButton from '@/components/QuickMorralButton'
 
 export const dynamic = 'force-dynamic'
 
-const PAGE_SIZE = 54
+const PAGE_SIZE = 27
 
 export default async function BibliotecaPage({
   searchParams,
@@ -82,6 +83,7 @@ export default async function BibliotecaPage({
                     }`}
                     title={libro.disponible ? 'Disponible' : 'En préstamo'}
                   />
+                  {libro.disponible && <QuickMorralButton libroId={libro.id} />}
                 </div>
               </a>
             ))}
