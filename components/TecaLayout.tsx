@@ -26,7 +26,7 @@ const TECAS = [
 export default function TecaLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname()
   const [categorias, setCategorias] = useState<Categoria[]>([])
-  const [mobileNavOpen, setMobileNavOpen] = useState(false)
+  const [navOpen, setNavOpen] = useState(false)
 
   // Cargar categorías una vez
   useEffect(() => {
@@ -60,6 +60,16 @@ export default function TecaLayout({ children }: { children: React.ReactNode }) 
         </a>
 
         <div className="flex items-center gap-5 md:gap-8 font-sonoran font-black uppercase text-text text-[clamp(11px,1.1vw,15px)] tracking-[0.16em]">
+          {/* Hamburger: abre la nav lateral en todos los tamaños */}
+          <button
+            onClick={() => setNavOpen(true)}
+            aria-label="Abrir menú"
+            className="text-text hover:text-text-bright transition-colors p-1"
+          >
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth="2" stroke="currentColor" className="w-[clamp(20px,1.7vw,26px)] h-[clamp(20px,1.7vw,26px)]">
+              <path strokeLinecap="round" strokeLinejoin="round" d="M3.75 6.75h16.5M3.75 12h16.5M3.75 17.25h16.5" />
+            </svg>
+          </button>
           <a
             href="/buscar"
             aria-label="Buscar"
@@ -71,57 +81,47 @@ export default function TecaLayout({ children }: { children: React.ReactNode }) 
           </a>
           <ThemeToggle />
           <AuthLink className="hover:text-text-bright transition-colors" />
-          {/* Hamburger solo mobile */}
-          <button
-            onClick={() => setMobileNavOpen(true)}
-            aria-label="Abrir menú"
-            className="md:hidden text-text hover:text-text-bright p-1"
-          >
-            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth="2.5" stroke="currentColor" className="w-7 h-7">
-              <path strokeLinecap="round" strokeLinejoin="round" d="M3.75 6.75h16.5M3.75 12h16.5M3.75 17.25h16.5" />
-            </svg>
-          </button>
         </div>
       </header>
 
-      {/* ============ LAYOUT GRID: sidebar + main ============ */}
-      <div className="flex">
-        {/* SIDEBAR DESKTOP */}
-        <aside className="hidden md:block w-[240px] lg:w-[280px] shrink-0 border-r border-rule p-6 sticky top-0 self-start max-h-screen overflow-y-auto">
-          <SidebarContent
-            categorias={categorias}
-            activeTeca={activeTeca}
-            activeCategoria={activeCategoria}
+      {/* ============ MAIN CONTENT (sidebar es overlay, no en grid) ============ */}
+      <main className="min-w-0">{children}</main>
+
+      {/* ============ SIDEBAR DRAWER (overlay con backdrop) ============ */}
+      {navOpen && (
+        <>
+          {/* Backdrop: click para cerrar */}
+          <div
+            onClick={() => setNavOpen(false)}
+            className="fixed inset-0 bg-black/60 z-[90] transition-opacity"
+            aria-hidden="true"
           />
-        </aside>
-
-        {/* MAIN CONTENT */}
-        <main className="flex-1 min-w-0">{children}</main>
-      </div>
-
-      {/* SIDEBAR MOBILE OVERLAY */}
-      {mobileNavOpen && (
-        <div className="fixed inset-0 bg-bg z-[100] md:hidden flex flex-col overflow-y-auto">
-          <div className="flex justify-end p-5 border-b border-rule">
-            <button
-              onClick={() => setMobileNavOpen(false)}
-              aria-label="Cerrar menú"
-              className="text-text p-2"
-            >
-              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth="2.5" stroke="currentColor" className="w-7 h-7">
-                <path strokeLinecap="round" strokeLinejoin="round" d="M6 18 18 6M6 6l12 12" />
-              </svg>
-            </button>
+          {/* Panel del drawer */}
+          <div className="fixed top-0 left-0 bottom-0 w-full md:w-[320px] lg:w-[360px] bg-bg border-r border-rule-strong z-[100] flex flex-col overflow-y-auto shadow-2xl">
+            <div className="flex items-center justify-between p-5 border-b border-rule">
+              <span className="font-mono text-[11px] uppercase tracking-[0.18em] opacity-60">
+                &gt; menú
+              </span>
+              <button
+                onClick={() => setNavOpen(false)}
+                aria-label="Cerrar menú"
+                className="text-text hover:text-text-bright p-1"
+              >
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth="2.5" stroke="currentColor" className="w-6 h-6">
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M6 18 18 6M6 6l12 12" />
+                </svg>
+              </button>
+            </div>
+            <div className="flex-1 p-6">
+              <SidebarContent
+                categorias={categorias}
+                activeTeca={activeTeca}
+                activeCategoria={activeCategoria}
+                onLinkClick={() => setNavOpen(false)}
+              />
+            </div>
           </div>
-          <div className="flex-1 p-6">
-            <SidebarContent
-              categorias={categorias}
-              activeTeca={activeTeca}
-              activeCategoria={activeCategoria}
-              onLinkClick={() => setMobileNavOpen(false)}
-            />
-          </div>
-        </div>
+        </>
       )}
     </div>
   )

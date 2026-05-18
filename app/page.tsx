@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState } from 'react'
 import Header from '@/components/Header'
 import Biblioticker from '@/components/Biblioticker'
+import { supabase } from '@/lib/supabase'
 
 /* ============================================================
    POOLS DE COPY — del booklet impreso de Tlacuilo
@@ -51,9 +52,17 @@ export default function Home() {
   // Hero fijo: 1 lema random elegido al cargar. Cambia solo al recargar.
   const [heroLema, setHeroLema] = useState<HeroLema>(HERO_POOL[0])
   const escalaRef = useRef<HTMLDivElement>(null)
+  const [visitaHref, setVisitaHref] = useState('/login')
 
   useEffect(() => {
     setHeroLema(pickRandom(HERO_POOL))
+  }, [])
+
+  // CTA "agendar visita" cambia según auth: si hay sesión → /mi-tlacuilo, si no → /login
+  useEffect(() => {
+    supabase.auth.getUser().then(({ data: { user } }) => {
+      setVisitaHref(user ? '/mi-tlacuilo' : '/login')
+    })
   }, [])
 
   // Visibility pause: cuando la tab no está visible, pausamos animaciones
@@ -124,7 +133,7 @@ export default function Home() {
         <div className="flex gap-3.5 flex-wrap justify-center mt-1.5">
           <a className={CTA_PRIMARY} href="/biblioteca">explorar la biblioteca</a>
           <a className={CTA_GHOST} href="https://instagram.com/tlacuilobiblioteca" target="_blank" rel="noreferrer">
-            dm @tlacuilobiblioteca
+            @tlacuilobiblioteca
           </a>
         </div>
 
@@ -193,7 +202,7 @@ export default function Home() {
         </div>
 
         <div className="flex gap-3.5 flex-wrap mt-10">
-          <a className={CTA_PRIMARY} href="https://instagram.com/tlacuilobiblioteca" target="_blank" rel="noreferrer">
+          <a className={CTA_PRIMARY} href={visitaHref}>
             agendar mi primera visita
           </a>
           <a className={CTA_GHOST} href="#">
