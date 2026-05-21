@@ -22,7 +22,7 @@ export default async function BibliotecaPage({
   let query = supabase
     .from('libros')
     .select('id, titulo, autor, anio, portada_url, disponible, isbn', { count: 'exact' })
-    .order('autor', { ascending: true, nullsFirst: false })
+    .order('titulo', { ascending: true, nullsFirst: false })
     .range(from, to)
 
   if (categoria) {

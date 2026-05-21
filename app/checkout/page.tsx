@@ -34,7 +34,7 @@ function getNextWeekdays(count: number): Date[] {
   const today = new Date()
   today.setHours(0, 0, 0, 0)
   const d = new Date(today)
-  d.setDate(d.getDate() + 1)
+  d.setDate(d.getDate() + 1) // mínimo mañana
   while (days.length < count) {
     const dow = d.getDay()
     if (dow >= 1 && dow <= 5) days.push(new Date(d))

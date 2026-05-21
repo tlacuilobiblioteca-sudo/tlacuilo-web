@@ -27,7 +27,6 @@ export default function TecaLayout({ children }: { children: React.ReactNode }) 
   const pathname = usePathname()
   const [categorias, setCategorias] = useState<Categoria[]>([])
   const [navOpen, setNavOpen] = useState(false)
-  const [categoriasOpen, setCategoriasOpen] = useState(false)
 
   // Cargar categorías una vez
   useEffect(() => {
@@ -93,8 +92,6 @@ export default function TecaLayout({ children }: { children: React.ReactNode }) 
             categorias={categorias}
             activeTeca={activeTeca}
             activeCategoria={activeCategoria}
-            categoriasOpen={categoriasOpen}
-            onToggleCategorias={() => setCategoriasOpen(!categoriasOpen)}
           />
         </aside>
 
@@ -130,8 +127,6 @@ export default function TecaLayout({ children }: { children: React.ReactNode }) 
                 categorias={categorias}
                 activeTeca={activeTeca}
                 activeCategoria={activeCategoria}
-                categoriasOpen={categoriasOpen}
-                onToggleCategorias={() => setCategoriasOpen(!categoriasOpen)}
                 onLinkClick={() => setNavOpen(false)}
               />
             </div>
@@ -150,54 +145,37 @@ function SidebarContent({
   categorias,
   activeTeca,
   activeCategoria,
-  categoriasOpen,
-  onToggleCategorias,
   onLinkClick,
 }: {
   categorias: Categoria[]
   activeTeca: string | null
   activeCategoria: string | null
-  categoriasOpen: boolean
-  onToggleCategorias: () => void
   onLinkClick?: () => void
 }) {
   return (
     <nav className="flex flex-col gap-8">
       {TECAS.map((teca) => {
         const isActive = teca.slug === activeTeca
-        const hasSub = teca.slug === 'biblioteca' && categorias.length > 0
-
         return (
           <div key={teca.slug}>
             {teca.enabled ? (
-              <div className="flex items-center justify-between gap-2">
-                <a
-                  href={teca.href}
-                  onClick={onLinkClick}
-                  className={`font-sonoran font-black uppercase tracking-[0.16em] text-[clamp(14px,1.2vw,18px)] block transition-colors flex-1 ${
-                    isActive ? 'text-text-bright' : 'text-text hover:text-text-bright'
-                  }`}
-                >
-                  {teca.label}
-                </a>
-                {hasSub && (
-                  <button
-                    onClick={onToggleCategorias}
-                    aria-label={categoriasOpen ? 'colapsar categorías' : 'expandir categorías'}
-                    className="text-text-dim hover:text-text-bright transition-colors p-1 font-mono text-sm"
-                  >
-                    {categoriasOpen ? '▾' : '▸'}
-                  </button>
-                )}
-              </div>
+              <a
+                href={teca.href}
+                onClick={onLinkClick}
+                className={`font-sonoran font-black uppercase tracking-[0.16em] text-[clamp(14px,1.2vw,18px)] block transition-colors ${
+                  isActive ? 'text-text-bright' : 'text-text hover:text-text-bright'
+                }`}
+              >
+                {teca.label}
+              </a>
             ) : (
               <span className="font-sonoran font-black uppercase tracking-[0.16em] text-[clamp(14px,1.2vw,18px)] block text-text-faint cursor-not-allowed">
                 {teca.label} <span className="text-[10px] tracking-normal ml-1">próx.</span>
               </span>
             )}
 
-            {/* Sub-categorías solo de Biblioteca, colapsables */}
-            {hasSub && categoriasOpen && (
+            {/* Sub-categorías solo de Biblioteca, siempre visibles */}
+            {teca.slug === 'biblioteca' && categorias.length > 0 && (
               <ul className="mt-3 flex flex-col gap-1.5 font-sans text-[13px] pl-1">
                 <li>
                   <a
