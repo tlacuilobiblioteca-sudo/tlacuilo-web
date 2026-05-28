@@ -97,7 +97,7 @@ export default function ManifestoPage() {
 
   return (
     <>
-      <Header glitchLogo />
+      <Header />
 
       {/* ============ HERO ============ */}
       <section className="relative flex flex-col items-center justify-center text-center gap-7 min-h-[62vh] px-14 pt-[60px] pb-[100px] max-md:px-5">
