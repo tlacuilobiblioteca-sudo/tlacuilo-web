@@ -274,50 +274,51 @@ export default function AdminLibrosPage() {
 
   return (
     <TecaLayout>
-      <section className="px-10 pt-8 pb-16 max-w-7xl mx-auto">
-        <p className="font-mono uppercase tracking-[0.2em] text-[clamp(10px,0.8vw,13px)] opacity-60 mb-2">
-          &gt; admin / libros
+      <section className="px-10 pt-10 pb-16 max-w-7xl mx-auto max-md:px-5">
+        <p className="font-micro uppercase tracking-[0.12em] text-[11px] text-dirty mb-3">
+          admin · libros
         </p>
-        <h1 className="font-mono leading-tight mb-2 text-[clamp(28px,3.5vw,52px)] uppercase tracking-wide text-text-bright">
+        <h1 className="font-sans font-light leading-none mb-3 text-[clamp(32px,3.8vw,52px)] tracking-[-0.01em] text-text">
           Catálogo
         </h1>
-        <p className="opacity-70 mb-8 text-[clamp(13px,1vw,17px)]">
-          Subir portadas, agregar libros, marcar joyas, controlar disponibilidad. {total} libros aprox.
+        <p className="text-text-dim mb-8 text-[clamp(13px,1vw,15px)]">
+          subir portadas, agregar libros, marcar joyas, controlar disponibilidad · <span className="font-mono">{total.toLocaleString('es-MX')}</span> libros aprox.
         </p>
 
-        <div className="border-y border-rule py-4 mb-6 flex flex-wrap items-center gap-3 font-mono text-sm">
+        {/* TOOLBAR · search + chip filters + CTA agregar */}
+        <div className="border-t border-rule pt-5 mb-6 flex flex-wrap items-center gap-3">
           <input
             type="text"
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            placeholder="buscar título o autor..."
-            className="flex-1 min-w-[200px] bg-bg-soft border border-rule focus:border-rule-strong focus:outline-none px-3 py-2 text-[clamp(12px,0.95vw,15px)] text-text-bright placeholder:opacity-30"
+            placeholder="Buscar título o autor..."
+            className="flex-1 min-w-[220px] bg-bone text-tinta border border-tinta px-4 py-2 font-micro text-[12px] tracking-[0.02em] placeholder:text-tinta/40 placeholder:italic outline-none focus:border-text-bright"
           />
 
           <button
             onClick={() => setFiltroSinPortada(!filtroSinPortada)}
-            className={`px-3 py-2 border text-xs uppercase tracking-wider transition-colors ${filtroSinPortada ? 'border-invert-bg bg-invert-bg text-invert-fg' : 'border-rule hover:border-rule-strong'}`}
+            className={`inline-flex items-center border border-tinta rounded-sm px-3 py-2 font-micro text-[10px] uppercase tracking-[0.08em] transition-colors ${filtroSinPortada ? 'bg-dirty text-tinta' : 'bg-tinta text-bone hover:bg-dirty hover:text-tinta'}`}
           >
             sin portada
           </button>
 
           <button
             onClick={() => setFiltroJoyas(!filtroJoyas)}
-            className={`px-3 py-2 border text-xs uppercase tracking-wider transition-colors ${filtroJoyas ? 'border-invert-bg bg-invert-bg text-invert-fg' : 'border-rule hover:border-rule-strong'}`}
+            className={`inline-flex items-center border border-tinta rounded-sm px-3 py-2 font-micro text-[10px] uppercase tracking-[0.08em] transition-colors ${filtroJoyas ? 'bg-dirty text-tinta' : 'bg-tinta text-bone hover:bg-dirty hover:text-tinta'}`}
           >
             ★ joyas
           </button>
 
           <button
             onClick={() => setFiltroNoDisponibles(!filtroNoDisponibles)}
-            className={`px-3 py-2 border text-xs uppercase tracking-wider transition-colors ${filtroNoDisponibles ? 'border-invert-bg bg-invert-bg text-invert-fg' : 'border-rule hover:border-rule-strong'}`}
+            className={`inline-flex items-center border border-tinta rounded-sm px-3 py-2 font-micro text-[10px] uppercase tracking-[0.08em] transition-colors ${filtroNoDisponibles ? 'bg-dirty text-tinta' : 'bg-tinta text-bone hover:bg-dirty hover:text-tinta'}`}
           >
             no disponibles
           </button>
 
           <button
             onClick={() => setShowAdd(true)}
-            className="px-4 py-2 bg-invert-bg text-invert-fg text-xs uppercase tracking-wider hover:opacity-90"
+            className="inline-flex items-center bg-dirty text-tinta border border-tinta rounded-sm px-4 py-2 font-micro text-[11px] uppercase tracking-[0.08em] hover:bg-tinta hover:text-dirty transition-colors"
           >
             + agregar libro
           </button>

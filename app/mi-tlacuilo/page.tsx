@@ -140,51 +140,66 @@ export default function MiTlacuiloPage() {
 
   return (
     <TecaLayout>
-      <section className="px-10 pt-8 pb-12 max-w-7xl mx-auto">
-        <p className="font-mono uppercase tracking-[0.2em] text-[clamp(10px,0.8vw,13px)] opacity-60 mb-2">
-          &gt; mi tlacuilo
+      <section className="px-10 pt-10 pb-12 max-w-7xl mx-auto max-md:px-5">
+        <p className="font-micro uppercase tracking-[0.12em] text-[11px] text-text-dim mb-3">
+          mi tlacuilo
         </p>
-        <h1 className="font-mono leading-tight mb-2 text-[clamp(28px,3.5vw,52px)] uppercase tracking-wide text-text-bright">
-          Hola, {alias}
+        <h1 className="font-sans font-light leading-none mb-3 text-[clamp(34px,4vw,56px)] tracking-[-0.01em] text-text">
+          Hola, {alias}.
         </h1>
-        <p className="opacity-70 mb-6 text-[clamp(13px,1vw,17px)]">
+        <p className="text-[clamp(13px,1vw,15px)] text-text-dim mb-10">
           tu perfil público está en{' '}
-          <Link href={`/u/${alias}`} className="underline hover:text-text-bright">
+          <Link href={`/u/${alias}`} className="text-text underline hover:text-text-bright transition-colors">
             tlacuilo.org/u/{alias}
           </Link>
         </p>
 
         {perfil?.rol === 'editor' && (
-          <div className="mb-12 border border-rule p-4 bg-bg-soft font-mono">
-            <p className="text-[10px] uppercase tracking-wider opacity-60 mb-3">
-              &gt; zona editora
-            </p>
-            <div className="flex flex-wrap items-center gap-3">
-              <Link
-                href="/admin/prestamos"
-                className="text-xs lowercase tracking-wider bg-invert-bg text-invert-fg px-4 py-2 hover:opacity-90"
-              >
-                préstamos activos →
-              </Link>
+          <div className="mb-14">
+            <div className="font-micro uppercase tracking-[0.12em] text-[10px] text-dirty mb-3">
+              · zona editora · administración tlacuilo
+            </div>
+            <div className="flex flex-wrap gap-2">
               <Link
                 href="/admin/libros"
-                className="text-xs lowercase tracking-wider border border-rule hover:border-rule-strong px-4 py-2"
+                className="inline-flex items-baseline gap-2 bg-tinta text-bone border border-tinta rounded-sm px-3 py-2 font-micro text-[11px] uppercase tracking-[0.08em] hover:bg-dirty hover:text-tinta transition-colors"
               >
-                catálogo →
+                Libros · agregar / editar
               </Link>
-              <span className="opacity-50 text-[10px] uppercase tracking-wider">
-                portadas · agregar libros · marcar recogido/devuelto · joyas
-              </span>
+              <Link
+                href="/admin/portadas"
+                className="inline-flex items-baseline gap-2 bg-tinta text-bone border border-tinta rounded-sm px-3 py-2 font-micro text-[11px] uppercase tracking-[0.08em] hover:bg-dirty hover:text-tinta transition-colors"
+              >
+                Portadas · subir
+              </Link>
+              <Link
+                href="/admin/prestamos"
+                className="inline-flex items-baseline gap-2 bg-tinta text-bone border border-tinta rounded-sm px-3 py-2 font-micro text-[11px] uppercase tracking-[0.08em] hover:bg-dirty hover:text-tinta transition-colors"
+              >
+                Préstamos activos
+              </Link>
+              <Link
+                href="/admin/selecciones"
+                className="inline-flex items-baseline gap-2 bg-tinta text-bone border border-tinta rounded-sm px-3 py-2 font-micro text-[11px] uppercase tracking-[0.08em] hover:bg-dirty hover:text-tinta transition-colors"
+              >
+                Selecciones del landing
+              </Link>
+              <Link
+                href="/admin/eventos"
+                className="inline-flex items-baseline gap-2 bg-tinta text-bone border border-tinta rounded-sm px-3 py-2 font-micro text-[11px] uppercase tracking-[0.08em] hover:bg-dirty hover:text-tinta transition-colors"
+              >
+                Eventos del calendario
+              </Link>
             </div>
           </div>
         )}
 
-        <div className="mb-14">
-          <div className="flex items-baseline justify-between mb-4">
-            <h2 className="font-mono uppercase tracking-wide text-[clamp(16px,1.6vw,22px)] text-text-bright">
+        <div className="mb-14 border-t border-rule pt-8">
+          <div className="flex items-baseline justify-between mb-5">
+            <h2 className="font-sans font-light text-[clamp(22px,2.4vw,34px)] tracking-[-0.005em] text-text">
               Mi morral
             </h2>
-            <span className="font-mono text-xs opacity-50 uppercase tracking-wider">
+            <span className="font-micro text-[10px] uppercase tracking-[0.12em] text-dirty">
               {morral.length} {morral.length === 1 ? 'libro' : 'libros'}
             </span>
           </div>
@@ -235,12 +250,12 @@ export default function MiTlacuiloPage() {
           )}
         </div>
 
-        <div className="mb-14">
-          <div className="flex items-baseline justify-between mb-4">
-            <h2 className="font-mono uppercase tracking-wide text-[clamp(16px,1.6vw,22px)] text-text-bright">
+        <div className="mb-14 border-t border-rule pt-8">
+          <div className="flex items-baseline justify-between mb-5">
+            <h2 className="font-sans font-light text-[clamp(22px,2.4vw,34px)] tracking-[-0.005em] text-text">
               Mis visitas
             </h2>
-            <span className="font-mono text-xs opacity-50 uppercase tracking-wider">
+            <span className="font-micro text-[10px] uppercase tracking-[0.12em] text-dirty">
               {visitas.length} {visitas.length === 1 ? 'libro' : 'libros'}
             </span>
           </div>
@@ -272,9 +287,9 @@ export default function MiTlacuiloPage() {
           )}
         </div>
 
-        <div className="border-t border-rule pt-8 mt-4 font-mono">
-          <h2 className="uppercase tracking-wide mb-2 opacity-70 text-[clamp(11px,0.9vw,14px)]">
-            // tu bio (la ven los demás)
+        <div className="border-t border-rule pt-8 mt-4">
+          <h2 className="font-micro uppercase tracking-[0.12em] text-[11px] text-text-dim mb-2">
+            tu bio · la ven los demás
           </h2>
           <p className="opacity-50 text-[10px] mb-3">
             &gt; máx. 280 caracteres · una línea, una frase, lo que quieras decir.
@@ -303,9 +318,9 @@ export default function MiTlacuiloPage() {
           </div>
         </div>
 
-        <div className="border-t border-rule pt-8 mt-12 font-mono">
-          <h2 className="uppercase tracking-wide mb-4 opacity-70 text-[clamp(11px,0.9vw,14px)]">
-            // tu identidad (solo tú lo ves)
+        <div className="border-t border-rule pt-8 mt-12">
+          <h2 className="font-micro uppercase tracking-[0.12em] text-[11px] text-text-dim mb-4">
+            tu identidad · solo tú la ves
           </h2>
           <dl className="grid grid-cols-1 sm:grid-cols-2 gap-y-2 gap-x-8 text-[clamp(12px,0.95vw,15px)] mb-8">
             <div>

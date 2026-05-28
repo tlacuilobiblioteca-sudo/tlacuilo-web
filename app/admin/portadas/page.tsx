@@ -85,20 +85,23 @@ export default function AdminPortadasPage() {
 
   return (
     <TecaLayout>
-      <section className="px-8 pt-6 pb-16 max-w-6xl mx-auto">
-        <h1 className="font-mono uppercase tracking-[0.18em] text-text text-[11px] mb-2">
-          admin / portadas
+      <section className="px-10 pt-10 pb-16 max-w-6xl mx-auto max-md:px-5">
+        <p className="font-micro uppercase tracking-[0.12em] text-[11px] text-dirty mb-3">
+          admin · portadas
+        </p>
+        <h1 className="font-sans font-light leading-none mb-3 text-[clamp(32px,3.8vw,52px)] tracking-[-0.01em] text-text">
+          Subir portadas
         </h1>
-        <p className="font-mono text-[11px] text-text-dim mb-6 lowercase">
-          libros sin portada. paste URL o sube archivo. al guardar pasa al siguiente.
+        <p className="text-text-dim mb-8 text-[clamp(13px,1vw,15px)]">
+          libros sin portada. pega URL o sube archivo. al guardar pasa al siguiente.
         </p>
 
         {/* Buscador */}
         <input
           value={searchTitulo}
           onChange={(e) => setSearchTitulo(e.target.value)}
-          placeholder="filtrar por título o autor..."
-          className="w-full mb-8 bg-transparent border border-rule font-mono text-sm px-3 py-2 outline-none focus:border-text"
+          placeholder="Filtrar por título o autor..."
+          className="w-full mb-8 bg-bone text-tinta border border-tinta px-4 py-2 font-micro text-[12px] tracking-[0.02em] placeholder:text-tinta/40 placeholder:italic outline-none focus:border-text-bright"
         />
 
         {libros.length === 0 ? (
@@ -212,18 +215,18 @@ function PortadaRow({ libro, onSaved }: { libro: Libro; onSaved: () => void }) {
             className="bg-transparent border border-rule font-mono text-[11px] px-2 py-1.5 outline-none focus:border-text disabled:opacity-50"
           />
 
-          <div className="flex gap-2">
+          <div className="flex gap-2 flex-wrap">
             <button
               onClick={guardarUrl}
               disabled={busy || !url.trim()}
-              className="font-mono text-[10px] uppercase tracking-[0.12em] px-3 py-1.5 bg-text text-bg disabled:opacity-30 hover:opacity-90 transition-opacity"
+              className="inline-flex items-center bg-dirty text-tinta border border-tinta rounded-sm px-3 py-1.5 font-micro text-[10px] uppercase tracking-[0.08em] disabled:opacity-30 hover:bg-tinta hover:text-dirty transition-colors"
             >
               guardar url
             </button>
             <button
               onClick={() => fileRef.current?.click()}
               disabled={busy}
-              className="font-mono text-[10px] uppercase tracking-[0.12em] px-3 py-1.5 border border-rule-strong disabled:opacity-30 hover:border-text transition-colors"
+              className="inline-flex items-center bg-tinta text-bone border border-tinta rounded-sm px-3 py-1.5 font-micro text-[10px] uppercase tracking-[0.08em] disabled:opacity-30 hover:bg-dirty hover:text-tinta transition-colors"
             >
               subir archivo
             </button>
