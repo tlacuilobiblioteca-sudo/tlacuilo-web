@@ -3,6 +3,7 @@ import { supabase } from '@/lib/supabase'
 import TecaLayout from '@/components/TecaLayout'
 import Cover from '@/components/Cover'
 import MorralButton from '@/components/MorralButton'
+import AdminEditButton from '@/components/AdminEditButton'
 import { notFound } from 'next/navigation'
 
 export const dynamic = 'force-dynamic'
@@ -73,9 +74,13 @@ export default async function LibroPage({
         </div>
 
         <div className="flex flex-col">
-          <h1 className="font-mono leading-tight mb-2 text-[clamp(22px,2.3vw,38px)] uppercase tracking-wide">
-            {libro.titulo}
-          </h1>
+          <div className="flex items-start justify-between gap-4 mb-2">
+            <h1 className="font-mono leading-tight text-[clamp(22px,2.3vw,38px)] uppercase tracking-wide">
+              {libro.titulo}
+            </h1>
+            {/* Botón editar · solo visible para admins */}
+            <AdminEditButton libroId={libro.id} variant="floating" />
+          </div>
 
           <p className="text-[clamp(14px,1.2vw,20px)] opacity-80 mb-1">
             {libro.autor ?? '—'}
