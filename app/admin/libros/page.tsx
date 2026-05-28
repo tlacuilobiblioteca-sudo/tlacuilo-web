@@ -22,7 +22,7 @@ type Libro = {
 
 const PAGE_SIZE = 25
 
-const MOTIVOS_PRESET = ['reparación', 'estudio', 'archivado']
+const MOTIVOS_PRESET = ['solo consulta', 'reparación', 'estudio', 'archivado']
 
 export default function AdminLibrosPage() {
   const router = useRouter()
@@ -39,9 +39,33 @@ export default function AdminLibrosPage() {
   const [refreshKey, setRefreshKey] = useState(0)
 
   const [editingLibro, setEditingLibro] = useState<Libro | null>(null)
-  const [uploadTab, setUploadTab] = useState<'file' | 'url'>('file')
   const [uploadUrl, setUploadUrl] = useState('')
   const [uploading, setUploading] = useState(false)
+  const [draggingOver, setDraggingOver] = useState(false)
+
+  // Form state del modal de edición (se inicializa cuando se abre editingLibro)
+  const [editTitulo, setEditTitulo] = useState('')
+  const [editAutor, setEditAutor] = useState('')
+  const [editAnio, setEditAnio] = useState('')
+  const [editIsbn, setEditIsbn] = useState('')
+  const [editCategorias, setEditCategorias] = useState('')
+  const [editDescripcion, setEditDescripcion] = useState('')
+  const [savingEdit, setSavingEdit] = useState(false)
+  const [editMsg, setEditMsg] = useState<string | null>(null)
+
+  // Cuando se abre un libro, hidratar el form de edit con sus valores
+  useEffect(() => {
+    if (editingLibro) {
+      setEditTitulo(editingLibro.titulo)
+      setEditAutor(editingLibro.autor ?? '')
+      setEditAnio(editingLibro.anio ? String(editingLibro.anio) : '')
+      setEditIsbn(editingLibro.isbn ?? '')
+      setEditCategorias((editingLibro.categorias ?? []).join(', '))
+      setEditDescripcion(editingLibro.descripcion ?? '')
+      setUploadUrl('')
+      setEditMsg(null)
+    }
+  }, [editingLibro])
 
   const [showAdd, setShowAdd] = useState(false)
   const [newTitulo, setNewTitulo] = useState('')
@@ -254,6 +278,64 @@ export default function AdminLibrosPage() {
     setLibros((ls) =>
       ls.map((l) => (l.id === libro.id ? { ...l, edicion_especial: !libro.edicion_especial } : l))
     )
+    if (editingLibro?.id === libro.id) {
+      setEditingLibro({ ...editingLibro, edicion_especial: !libro.edicion_especial })
+    }
+  }
+
+  /* Guarda título / autor / año / isbn / categorías / descripción del libro abierto */
+  async function guardarEdiciones() {
+    if (!editingLibro) return
+    if (!editTitulo.trim() || !editAutor.trim()) {
+      setEditMsg('título y autor son obligatorios')
+      return
+    }
+    setSavingEdit(true)
+    setEditMsg(null)
+
+    const cats = editCategorias
+      .split(',')
+      .map((s) => s.trim())
+      .filter(Boolean)
+
+    const payload = {
+      titulo: editTitulo.trim(),
+      autor: editAutor.trim() || null,
+      anio: editAnio ? parseInt(editAnio, 10) : null,
+      isbn: editIsbn.trim() || null,
+      categorias: cats.length > 0 ? cats : null,
+      descripcion: editDescripcion.trim() || null,
+    }
+
+    const { error } = await supabase
+      .from('libros')
+      .update(payload)
+      .eq('id', editingLibro.id)
+    setSavingEdit(false)
+    if (error) {
+      setEditMsg('error: ' + error.message)
+      return
+    }
+
+    setLibros((ls) =>
+      ls.map((l) => (l.id === editingLibro.id ? { ...l, ...payload } : l))
+    )
+    setEditingLibro({ ...editingLibro, ...payload })
+    setEditMsg('guardado ✓')
+    setTimeout(() => setEditMsg(null), 2200)
+  }
+
+  async function eliminarLibro() {
+    if (!editingLibro) return
+    if (!confirm(`Eliminar permanentemente "${editingLibro.titulo}"? Esta acción NO se puede deshacer.`)) return
+    const { error } = await supabase.from('libros').delete().eq('id', editingLibro.id)
+    if (error) {
+      alert('error: ' + error.message)
+      return
+    }
+    setLibros((ls) => ls.filter((l) => l.id !== editingLibro.id))
+    setEditingLibro(null)
+    setRefreshKey((k) => k + 1)
   }
 
   if (loading) {
@@ -333,11 +415,17 @@ export default function AdminLibrosPage() {
             {libros.map((l) => {
               const noDisponible = !l.disponible
               return (
-                <div key={l.id} className="flex flex-col gap-1 group relative">
+                <button
+                  key={l.id}
+                  type="button"
+                  onClick={() => setEditingLibro(l)}
+                  className="flex flex-col gap-1 group relative text-left hover:opacity-90 transition-opacity"
+                  title="Click para editar"
+                >
                   {l.edicion_especial && (
                     <span
                       title="Edición especial"
-                      className="absolute top-1 right-1 z-10 bg-invert-bg text-invert-fg font-mono text-[10px] px-1.5 py-0.5"
+                      className="absolute top-1 right-1 z-10 bg-dirty text-tinta font-mono text-[10px] px-1.5 py-0.5"
                     >
                       ★
                     </span>
@@ -350,7 +438,7 @@ export default function AdminLibrosPage() {
                       {l.motivo ?? 'no disp.'}
                     </span>
                   )}
-                  <div className={`aspect-[2/3] bg-bg-soft flex items-center justify-center text-text-dim p-2 text-center overflow-hidden text-[10px] mb-1 ${noDisponible ? 'opacity-50' : ''}`}>
+                  <div className={`aspect-[2/3] bg-bg-soft flex items-center justify-center text-text-dim p-2 text-center overflow-hidden text-[10px] mb-1 group-hover:ring-2 group-hover:ring-dirty ${noDisponible ? 'opacity-50' : ''}`}>
                     <Cover
                       titulo={l.titulo}
                       portada_url={l.portada_url}
@@ -360,61 +448,10 @@ export default function AdminLibrosPage() {
                   </div>
                   <p className="font-medium leading-tight text-[11px] line-clamp-2">{l.titulo}</p>
                   <p className="opacity-60 text-[10px] line-clamp-1">{l.autor ?? '—'}</p>
-                  <div className="flex gap-2 mt-1 font-mono text-[10px] uppercase tracking-wider flex-wrap">
-                    <button
-                      onClick={() => {
-                        setEditingLibro(l)
-                        setUploadTab('file')
-                        setUploadUrl('')
-                      }}
-                      className="opacity-70 hover:opacity-100 hover:text-text-bright underline"
-                    >
-                      portada
-                    </button>
-                    <button
-                      onClick={() => toggleEspecial(l)}
-                      className={`opacity-70 hover:opacity-100 hover:text-text-bright underline ${l.edicion_especial ? 'text-text-bright' : ''}`}
-                    >
-                      {l.edicion_especial ? '× joya' : '★ joya'}
-                    </button>
-                    <div className="relative">
-                      <button
-                        onClick={() => setEstadoMenuOpen(estadoMenuOpen === l.id ? null : l.id)}
-                        className={`opacity-70 hover:opacity-100 hover:text-text-bright underline ${noDisponible ? 'text-loan' : ''}`}
-                      >
-                        estado ▾
-                      </button>
-                      {estadoMenuOpen === l.id && (
-                        <div className="absolute left-0 top-full mt-1 z-20 bg-bg-card border border-rule-strong min-w-[140px] py-1 shadow-lg">
-                          <button
-                            onClick={() => setEstadoLibro(l, null)}
-                            className={`block w-full text-left px-3 py-1.5 text-[10px] hover:bg-bg-soft ${l.disponible && !l.motivo ? 'text-text-bright' : ''}`}
-                          >
-                            · disponible
-                          </button>
-                          {MOTIVOS_PRESET.map((m) => (
-                            <button
-                              key={m}
-                              onClick={() => setEstadoLibro(l, m)}
-                              className={`block w-full text-left px-3 py-1.5 text-[10px] hover:bg-bg-soft ${l.motivo === m ? 'text-text-bright' : ''}`}
-                            >
-                              · {m}
-                            </button>
-                          ))}
-                          <button
-                            onClick={() => {
-                              const custom = window.prompt('Motivo personalizado:')
-                              if (custom?.trim()) setEstadoLibro(l, custom.trim())
-                            }}
-                            className="block w-full text-left px-3 py-1.5 text-[10px] hover:bg-bg-soft opacity-70"
-                          >
-                            · otro...
-                          </button>
-                        </div>
-                      )}
-                    </div>
-                  </div>
-                </div>
+                  <span className="mt-1 font-micro text-[9px] uppercase tracking-[0.08em] text-dirty opacity-0 group-hover:opacity-100 transition-opacity">
+                    · editar →
+                  </span>
+                </button>
               )
             })}
           </div>
@@ -444,84 +481,237 @@ export default function AdminLibrosPage() {
 
         {editingLibro && (
           <div
-            className="fixed inset-0 bg-black/70 z-50 flex items-center justify-center p-4"
-            onClick={() => !uploading && setEditingLibro(null)}
+            className="fixed inset-0 bg-black/70 z-50 flex items-start justify-center p-4 overflow-y-auto"
+            onClick={() => !uploading && !savingEdit && setEditingLibro(null)}
           >
             <div
-              className="bg-bg-base border border-rule-strong max-w-lg w-full p-6 font-mono"
+              className="bg-bg-card border border-tinta max-w-3xl w-full p-6 my-8 shadow-2xl"
               onClick={(e) => e.stopPropagation()}
             >
-              <p className="text-xs uppercase tracking-wider opacity-60 mb-1">
-                &gt; portada de
-              </p>
-              <h2 className="text-base text-text-bright mb-1">{editingLibro.titulo}</h2>
-              <p className="text-xs opacity-70 mb-6">{editingLibro.autor ?? '—'}</p>
-
-              <div className="flex gap-3 border-b border-rule mb-4 text-xs uppercase tracking-wider">
-                <button
-                  onClick={() => setUploadTab('file')}
-                  className={`pb-2 ${uploadTab === 'file' ? 'text-text-bright border-b-2 border-text-bright -mb-px' : 'opacity-60 hover:opacity-100'}`}
-                >
-                  subir archivo
-                </button>
-                <button
-                  onClick={() => setUploadTab('url')}
-                  className={`pb-2 ${uploadTab === 'url' ? 'text-text-bright border-b-2 border-text-bright -mb-px' : 'opacity-60 hover:opacity-100'}`}
-                >
-                  pegar url
-                </button>
-              </div>
-
-              {uploadTab === 'file' && (
+              <div className="flex items-start justify-between mb-5">
                 <div>
-                  <p className="opacity-70 text-xs mb-3">
-                    &gt; jpg, png, webp · máx 5mb
+                  <p className="font-micro text-[11px] uppercase tracking-[0.12em] text-dirty mb-1">
+                    editando libro
                   </p>
-                  <input
-                    type="file"
-                    accept="image/jpeg,image/png,image/webp"
-                    disabled={uploading}
-                    onChange={(e) => {
-                      const f = e.target.files?.[0]
-                      if (f) uploadPortadaFile(f)
-                    }}
-                    className="block w-full text-xs file:mr-3 file:py-2 file:px-4 file:border file:border-rule file:bg-bg-soft file:text-text-bright file:font-mono file:uppercase file:tracking-wider file:text-xs hover:file:border-rule-strong"
-                  />
-                  {uploading && (
-                    <p className="mt-2 text-xs opacity-70">
-                      &gt; subiendo<span className="animate-pulse">_</span>
-                    </p>
-                  )}
+                  <h2 className="font-sans font-light text-[clamp(20px,2.2vw,28px)] tracking-[-0.005em] text-text leading-tight">
+                    {editingLibro.titulo}
+                  </h2>
                 </div>
-              )}
-
-              {uploadTab === 'url' && (
-                <div className="flex flex-col gap-3">
-                  <input
-                    type="url"
-                    value={uploadUrl}
-                    onChange={(e) => setUploadUrl(e.target.value)}
-                    placeholder="https://..."
-                    className="w-full bg-bg-soft border border-rule focus:border-rule-strong focus:outline-none px-3 py-2 text-xs text-text-bright placeholder:opacity-30"
-                  />
-                  <button
-                    onClick={setPortadaFromUrl}
-                    disabled={uploading || !uploadUrl.trim()}
-                    className="self-start px-4 py-2 bg-invert-bg text-invert-fg text-xs uppercase tracking-wider hover:opacity-90 disabled:opacity-40"
-                  >
-                    {uploading ? 'guardando...' : 'guardar url'}
-                  </button>
-                </div>
-              )}
-
-              <div className="mt-6 flex justify-end">
                 <button
-                  onClick={() => !uploading && setEditingLibro(null)}
-                  disabled={uploading}
-                  className="text-xs uppercase tracking-wider opacity-60 hover:opacity-100"
+                  onClick={() => !uploading && !savingEdit && setEditingLibro(null)}
+                  disabled={uploading || savingEdit}
+                  className="font-micro text-[10px] uppercase tracking-[0.08em] text-text-dim hover:text-text-bright"
                 >
                   × cerrar
                 </button>
+              </div>
+
+              <div className="grid grid-cols-[180px_1fr] gap-6 max-md:grid-cols-1">
+                {/* === PORTADA · drop zone + upload + paste URL === */}
+                <div className="flex flex-col gap-3">
+                  <div
+                    onDragOver={(e) => {
+                      e.preventDefault()
+                      setDraggingOver(true)
+                    }}
+                    onDragLeave={() => setDraggingOver(false)}
+                    onDrop={(e) => {
+                      e.preventDefault()
+                      setDraggingOver(false)
+                      const f = e.dataTransfer.files?.[0]
+                      if (f && f.type.startsWith('image/')) uploadPortadaFile(f)
+                    }}
+                    className={`aspect-[2/3] bg-bg-soft flex items-center justify-center text-text-dim p-2 text-center text-[10px] border-2 border-dashed transition-colors ${
+                      draggingOver ? 'border-dirty bg-dirty/10' : 'border-rule'
+                    }`}
+                  >
+                    {editingLibro.portada_url ? (
+                      <img
+                        src={editingLibro.portada_url}
+                        alt={editingLibro.titulo}
+                        className="w-full h-full object-cover"
+                      />
+                    ) : (
+                      <span className="font-micro uppercase tracking-[0.08em] text-text-dim">
+                        {draggingOver ? '↓ soltar imagen ↓' : 'arrastra una imagen aquí'}
+                      </span>
+                    )}
+                  </div>
+
+                  <label className="font-micro text-[10px] uppercase tracking-[0.08em] text-text-dim cursor-pointer text-center border border-tinta px-2 py-1.5 hover:bg-dirty hover:text-tinta transition-colors">
+                    <input
+                      type="file"
+                      accept="image/jpeg,image/png,image/webp"
+                      disabled={uploading}
+                      onChange={(e) => {
+                        const f = e.target.files?.[0]
+                        if (f) uploadPortadaFile(f)
+                        e.target.value = ''
+                      }}
+                      className="hidden"
+                    />
+                    + subir archivo
+                  </label>
+
+                  <div className="flex flex-col gap-1.5">
+                    <input
+                      type="url"
+                      value={uploadUrl}
+                      onChange={(e) => setUploadUrl(e.target.value)}
+                      placeholder="o pega URL..."
+                      className="w-full bg-bone text-tinta border border-tinta px-2 py-1.5 font-micro text-[10px] placeholder:text-tinta/40 outline-none focus:border-text-bright"
+                    />
+                    <button
+                      onClick={setPortadaFromUrl}
+                      disabled={uploading || !uploadUrl.trim()}
+                      className="font-micro text-[10px] uppercase tracking-[0.08em] border border-tinta px-2 py-1.5 hover:bg-dirty hover:text-tinta disabled:opacity-30 transition-colors"
+                    >
+                      guardar URL
+                    </button>
+                  </div>
+
+                  {uploading && (
+                    <p className="font-micro text-[10px] text-text-dim lowercase">subiendo...</p>
+                  )}
+                </div>
+
+                {/* === CAMPOS EDITABLES === */}
+                <div className="flex flex-col gap-3">
+                  <label className="flex flex-col gap-1">
+                    <span className="font-micro text-[10px] uppercase tracking-[0.08em] text-text-dim">título *</span>
+                    <input
+                      value={editTitulo}
+                      onChange={(e) => setEditTitulo(e.target.value)}
+                      className="bg-bone text-tinta border border-tinta px-3 py-2 font-mono text-[13px] outline-none focus:border-text-bright"
+                    />
+                  </label>
+
+                  <label className="flex flex-col gap-1">
+                    <span className="font-micro text-[10px] uppercase tracking-[0.08em] text-text-dim">autor *</span>
+                    <input
+                      value={editAutor}
+                      onChange={(e) => setEditAutor(e.target.value)}
+                      className="bg-bone text-tinta border border-tinta px-3 py-2 font-mono text-[13px] outline-none focus:border-text-bright"
+                    />
+                  </label>
+
+                  <div className="grid grid-cols-2 gap-3">
+                    <label className="flex flex-col gap-1">
+                      <span className="font-micro text-[10px] uppercase tracking-[0.08em] text-text-dim">año</span>
+                      <input
+                        type="number"
+                        value={editAnio}
+                        onChange={(e) => setEditAnio(e.target.value)}
+                        className="bg-bone text-tinta border border-tinta px-3 py-2 font-mono text-[13px] outline-none focus:border-text-bright"
+                      />
+                    </label>
+                    <label className="flex flex-col gap-1">
+                      <span className="font-micro text-[10px] uppercase tracking-[0.08em] text-text-dim">ISBN</span>
+                      <input
+                        value={editIsbn}
+                        onChange={(e) => setEditIsbn(e.target.value)}
+                        className="bg-bone text-tinta border border-tinta px-3 py-2 font-mono text-[13px] outline-none focus:border-text-bright"
+                      />
+                    </label>
+                  </div>
+
+                  <label className="flex flex-col gap-1">
+                    <span className="font-micro text-[10px] uppercase tracking-[0.08em] text-text-dim">categorías (separadas por comas)</span>
+                    <input
+                      value={editCategorias}
+                      onChange={(e) => setEditCategorias(e.target.value)}
+                      className="bg-bone text-tinta border border-tinta px-3 py-2 font-mono text-[13px] outline-none focus:border-text-bright"
+                    />
+                  </label>
+
+                  <label className="flex flex-col gap-1">
+                    <span className="font-micro text-[10px] uppercase tracking-[0.08em] text-text-dim">descripción</span>
+                    <textarea
+                      value={editDescripcion}
+                      onChange={(e) => setEditDescripcion(e.target.value)}
+                      rows={3}
+                      className="bg-bone text-tinta border border-tinta px-3 py-2 font-mono text-[13px] outline-none focus:border-text-bright resize-y"
+                    />
+                  </label>
+
+                  {/* === TOGGLES rápidos === */}
+                  <div className="flex flex-wrap gap-2 pt-2 border-t border-rule">
+                    <button
+                      type="button"
+                      onClick={() => toggleEspecial(editingLibro)}
+                      className={`inline-flex items-center border border-tinta rounded-sm px-3 py-1.5 font-micro text-[10px] uppercase tracking-[0.08em] transition-colors ${
+                        editingLibro.edicion_especial ? 'bg-dirty text-tinta' : 'bg-tinta text-bone hover:bg-dirty hover:text-tinta'
+                      }`}
+                    >
+                      {editingLibro.edicion_especial ? '★ joya' : '☆ marcar joya'}
+                    </button>
+
+                    <button
+                      type="button"
+                      onClick={() => setEstadoLibro(editingLibro, null)}
+                      className={`inline-flex items-center border border-tinta rounded-sm px-3 py-1.5 font-micro text-[10px] uppercase tracking-[0.08em] transition-colors ${
+                        editingLibro.disponible && !editingLibro.motivo
+                          ? 'bg-available text-tinta border-available'
+                          : 'bg-tinta text-bone hover:bg-available hover:text-tinta hover:border-available'
+                      }`}
+                    >
+                      ● disponible
+                    </button>
+
+                    {MOTIVOS_PRESET.map((m) => (
+                      <button
+                        key={m}
+                        type="button"
+                        onClick={() => setEstadoLibro(editingLibro, m)}
+                        className={`inline-flex items-center border border-tinta rounded-sm px-3 py-1.5 font-micro text-[10px] uppercase tracking-[0.08em] transition-colors ${
+                          editingLibro.motivo === m
+                            ? 'bg-loan text-tinta border-loan'
+                            : 'bg-tinta text-bone hover:bg-loan hover:text-tinta hover:border-loan'
+                        }`}
+                      >
+                        ○ {m}
+                      </button>
+                    ))}
+
+                    <button
+                      type="button"
+                      onClick={() => {
+                        const custom = window.prompt('Motivo personalizado:')
+                        if (custom?.trim()) setEstadoLibro(editingLibro, custom.trim())
+                      }}
+                      className="inline-flex items-center border border-rule rounded-sm px-3 py-1.5 font-micro text-[10px] uppercase tracking-[0.08em] text-text-dim hover:bg-tinta hover:text-bone hover:border-tinta transition-colors"
+                    >
+                      + otro motivo
+                    </button>
+                  </div>
+
+                  {/* === ACTIONS === */}
+                  <div className="flex flex-wrap items-center gap-3 pt-4 border-t border-rule mt-2">
+                    <button
+                      type="button"
+                      onClick={guardarEdiciones}
+                      disabled={savingEdit}
+                      className="inline-flex items-center bg-dirty text-tinta border border-tinta rounded-sm px-4 py-2 font-micro text-[11px] uppercase tracking-[0.08em] disabled:opacity-30 hover:bg-tinta hover:text-dirty transition-colors"
+                    >
+                      {savingEdit ? 'guardando...' : '✓ guardar cambios'}
+                    </button>
+
+                    {editMsg && (
+                      <span className={`font-micro text-[10px] uppercase tracking-[0.08em] ${editMsg.includes('✓') ? 'text-available' : 'text-loan'}`}>
+                        {editMsg}
+                      </span>
+                    )}
+
+                    <button
+                      type="button"
+                      onClick={eliminarLibro}
+                      disabled={savingEdit}
+                      className="ml-auto inline-flex items-center border border-loan rounded-sm px-3 py-1.5 font-micro text-[10px] uppercase tracking-[0.08em] text-loan hover:bg-loan hover:text-bg disabled:opacity-30 transition-colors"
+                    >
+                      × eliminar libro
+                    </button>
+                  </div>
+                </div>
               </div>
             </div>
           </div>
@@ -533,7 +723,7 @@ export default function AdminLibrosPage() {
             onClick={() => !savingNew && setShowAdd(false)}
           >
             <div
-              className="bg-bg-base border border-rule-strong max-w-xl w-full p-6 font-mono my-8"
+              className="bg-bg-card border border-tinta max-w-xl w-full p-6 font-mono my-8 shadow-2xl"
               onClick={(e) => e.stopPropagation()}
             >
               <p className="text-xs uppercase tracking-wider opacity-60 mb-1">
