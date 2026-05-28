@@ -1,7 +1,8 @@
 'use client'
 
-import { Suspense, useEffect, useState } from 'react'
+import { Suspense, useCallback, useEffect, useState } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
+import Link from 'next/link'
 import { supabase } from '@/lib/supabase'
 import TecaLayout from '@/components/TecaLayout'
 import Cover from '@/components/Cover'
@@ -50,55 +51,34 @@ function BuscarContent() {
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
-  const [placeholders, setPlaceholders] = useState<string[]>([
-    'buscar por título, autor, categoría...',
-  ])
-  const [phIdx, setPhIdx] = useState(0)
+  // 1 placeholder fijo, elegido aleatoriamente al cargar.
+  // Sin setInterval que rote solo (regla no-auto-movimiento).
+  const [placeholder, setPlaceholder] = useState<string>(
+    'buscar por título, autor, categoría...'
+  )
 
-  // Cargar 30 títulos aleatorios para el placeholder
+  // Carga 1 título aleatorio para mostrar como placeholder
   useEffect(() => {
     const loadRandom = async () => {
       const { count } = await supabase
         .from('libros')
         .select('id', { count: 'exact', head: true })
       if (!count) return
-
-      const titles: string[] = []
-      for (let i = 0; i < 30; i++) {
-        const offset = Math.floor(Math.random() * count)
-        const { data } = await supabase
-          .from('libros')
-          .select('titulo')
-          .not('titulo', 'is', null)
-          .range(offset, offset)
-          .limit(1)
-        if (data && data[0]?.titulo) titles.push(data[0].titulo)
-      }
-      if (titles.length > 0) setPlaceholders(titles)
+      const offset = Math.floor(Math.random() * count)
+      const { data } = await supabase
+        .from('libros')
+        .select('titulo')
+        .not('titulo', 'is', null)
+        .range(offset, offset)
+        .limit(1)
+      if (data && data[0]?.titulo) setPlaceholder(data[0].titulo)
     }
     loadRandom()
   }, [])
 
-  useEffect(() => {
-    if (placeholders.length < 2) return
-    const interval = setInterval(() => {
-      setPhIdx((i) => (i + 1) % placeholders.length)
-    }, 2500)
-    return () => clearInterval(interval)
-  }, [placeholders])
-
-  useEffect(() => {
-    const q = sp.get('q')?.trim()
-    if (!q) {
-      setResults(null)
-      return
-    }
-    setQuery(q)
-    runSearch(q)
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [sp])
-
-  const runSearch = async (q: string) => {
+  // runSearch declarado ANTES del useEffect que lo llama
+  // (evita warning de React 19 sobre uso antes de declarar)
+  const runSearch = useCallback(async (q: string) => {
     setLoading(true)
     setError(null)
     const { data, error: rpcError } = await supabase.rpc('search_libros', { q })
@@ -109,7 +89,17 @@ function BuscarContent() {
       setResults((data as Libro[]) ?? [])
     }
     setLoading(false)
-  }
+  }, [])
+
+  useEffect(() => {
+    const q = sp.get('q')?.trim()
+    if (!q) {
+      setResults(null)
+      return
+    }
+    setQuery(q)
+    runSearch(q)
+  }, [sp, runSearch])
 
   const onSubmit = (e: React.FormEvent) => {
     e.preventDefault()
@@ -117,8 +107,6 @@ function BuscarContent() {
     if (!q) return
     router.push(`/buscar?q=${encodeURIComponent(q)}`)
   }
-
-  const currentPlaceholder = placeholders[phIdx]
 
   return (
     <>
@@ -131,13 +119,13 @@ function BuscarContent() {
             type="text"
             value={query}
             onChange={(e) => setQuery(e.target.value)}
-            placeholder={currentPlaceholder}
+            placeholder={placeholder}
             className="flex-1 bg-bg-soft px-5 py-3 outline-none focus:bg-bg-card text-[clamp(13px,1.1vw,17px)] placeholder:opacity-50 text-text-bright font-mono border border-rule focus:border-rule-strong transition-colors"
             autoFocus
           />
           <button
             type="submit"
-            className="bg-invert-bg text-invert-fg px-6 py-3 uppercase tracking-wide hover:bg-text-bright transition-colors text-[clamp(11px,0.9vw,14px)] font-sonoran font-black"
+            className="bg-invert-bg text-invert-fg px-6 py-3 uppercase tracking-wide hover:bg-text-bright transition-colors text-[clamp(11px,0.9vw,14px)] font-mono"
           >
             Buscar
           </button>
@@ -158,7 +146,7 @@ function BuscarContent() {
         <section className="px-8 pb-12 max-w-7xl mx-auto">
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-x-8 gap-y-10">
             {results.map((libro) => (
-              <a
+              <Link
                 key={libro.id}
                 href={'/biblioteca/' + libro.id}
                 className="flex gap-5 items-start opacity-95 hover:opacity-100 transition"
@@ -186,7 +174,7 @@ function BuscarContent() {
                     title={libro.disponible ? 'Disponible' : 'En préstamo'}
                   />
                 </div>
-              </a>
+              </Link>
             ))}
           </div>
         </section>

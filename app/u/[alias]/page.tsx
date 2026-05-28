@@ -1,3 +1,4 @@
+import Link from 'next/link'
 import { supabase } from '@/lib/supabase'
 import TecaLayout from '@/components/TecaLayout'
 import { notFound } from 'next/navigation'
@@ -40,12 +41,12 @@ export default async function PerfilPublicoPage({
   return (
     <TecaLayout>
       <section className="px-6 md:px-10 pt-6 pb-4 max-w-3xl mx-auto">
-        <a
+        <Link
           href="/"
           className="uppercase tracking-wide opacity-70 hover:opacity-100 hover:underline text-[clamp(10px,0.8vw,13px)] font-mono-tl"
         >
           ← Volver
-        </a>
+        </Link>
       </section>
 
       <section className="px-6 md:px-10 pb-20 max-w-3xl mx-auto">
@@ -53,7 +54,7 @@ export default async function PerfilPublicoPage({
           &gt; alias
         </p>
 
-        <h1 className="font-sonoran uppercase leading-tight text-[clamp(36px,5vw,72px)] text-[#c5c4f5] mb-6">
+        <h1 className="font-mono uppercase leading-tight text-[clamp(36px,5vw,72px)] text-[#c5c4f5] mb-6">
           {perfil.handle}
         </h1>
 

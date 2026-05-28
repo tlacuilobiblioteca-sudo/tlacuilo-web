@@ -1,282 +1,269 @@
-'use client'
-
-import { useEffect, useRef, useState } from 'react'
-import Header from '@/components/Header'
-import Biblioticker from '@/components/Biblioticker'
+import Link from 'next/link'
 import { supabase } from '@/lib/supabase'
+import Header from '@/components/Header'
+import Cover from '@/components/Cover'
+
+export const dynamic = 'force-dynamic'
 
 /* ============================================================
-   POOLS DE COPY — del booklet impreso de Tlacuilo
+   Tipos + Data
    ============================================================ */
 
-type HeroLema = { head: string; pop: string; tail: string }
+type Libro = {
+  id: string
+  titulo: string
+  autor: string | null
+  portada_url: string | null
+  isbn: string | null
+}
 
-const HERO_POOL: HeroLema[] = [
-  { head: 'UNA BIBLIOTECA NO ES UN EDIFICIO. ES UNA', pop: 'CULTURA DE ACCESO', tail: '' },
-  { head: 'UNA BIBLIOTECA QUE NO PRESTA ES', pop: 'UNA CÁRCEL DE LIBROS', tail: '' },
-  { head: '', pop: 'MI COSA ES TU COSA', tail: '' },
-  { head: 'TLACUILO ES UNA', pop: 'ACCIÓN DIRECTA', tail: ' SOBRE LAS COSAS' },
-  { head: 'TLACUILO ES PARA', pop: 'HABLAR CON LOS MUERTOS', tail: '' },
-  { head: 'UN LIBRO QUE NUNCA ES LEÍDO', pop: 'ES UN LIBRO MUERTO', tail: '' },
-  { head: 'UN LIBRO DEBE', pop: 'ACOMPAÑARTE', tail: ' A TODAS PARTES' },
-  { head: 'TODOS SOMOS', pop: 'TLACUILOS', tail: '' },
-]
+type CategoriaConteo = { nombre: string; total: number }
 
-/* ============================================================
-   UTILS
-   ============================================================ */
+type Counters = {
+  libros: number
+  prestamos: number
+}
 
-function pickRandom<T>(arr: T[]): T {
-  return arr[Math.floor(Math.random() * arr.length)]
+async function getLandingLibros(): Promise<Libro[]> {
+  // Mezclado tipo "remix": ordenamos por id (UUID) que es efectivamente aleatorio.
+  // Si después queremos true random, agregar una RPC `random_libros(n)` en Supabase.
+  const { data, error } = await supabase
+    .from('libros')
+    .select('id, titulo, autor, portada_url, isbn')
+    .order('id', { ascending: false })
+    .limit(54)
+
+  if (error || !data) return []
+  return data as Libro[]
+}
+
+async function getCategorias(): Promise<CategoriaConteo[]> {
+  const { data, error } = await supabase
+    .from('libros')
+    .select('categorias')
+
+  if (error || !data) return []
+
+  const counts = new Map<string, number>()
+  for (const row of data) {
+    const cats = (row.categorias ?? []) as string[]
+    for (const cat of cats) {
+      if (!cat) continue
+      counts.set(cat, (counts.get(cat) ?? 0) + 1)
+    }
+  }
+
+  return Array.from(counts.entries())
+    .map(([nombre, total]) => ({ nombre, total }))
+    .sort((a, b) => b.total - a.total) // ordenado por volumen descendente
+}
+
+async function getCounters(): Promise<Counters> {
+  let libros = 0
+  let prestamos = 0
+
+  try {
+    const { count } = await supabase
+      .from('libros')
+      .select('id', { count: 'exact', head: true })
+    libros = count ?? 0
+  } catch {
+    libros = 0
+  }
+
+  try {
+    const { count } = await supabase
+      .from('prestamos')
+      .select('id', { count: 'exact', head: true })
+    prestamos = count ?? 0
+  } catch {
+    prestamos = 0
+  }
+
+  return { libros, prestamos }
 }
 
 /* ============================================================
-   PÁGINA
+   Util: fade opacity para los últimos items
    ============================================================ */
 
-const STEPS = [
-  { n: '01', t: 'Encuentra', d: <>explora el catálogo. busca por título, autor o categoría.</> },
-  { n: '02', t: 'Aparta', d: <>guarda los libros que te interesan en tu morral.</> },
-  { n: '03', t: 'Visita', d: <>agenda lun a vie, 10am-7pm, en Coyoacán.</> },
-  { n: '04', t: 'Devuelve', d: <>2 meses máximo. después regresan a circular.</> },
-]
+function fadeOpacity(i: number, total: number): number {
+  const tailStart = total - 12
+  if (i < tailStart) return 1
+  const step = Math.min(Math.floor((i - tailStart) / 3) + 1, 4)
+  const levels = [1, 0.72, 0.5, 0.32, 0.18]
+  return levels[step]
+}
 
-const VISITS = [5, 10, 15, 20, 25, 30, 35, 40, 45]
-const MAX_VISIT = 45
+/* ============================================================
+   Landing
+   ============================================================ */
 
-const CTA_PRIMARY = 'font-mono text-[13px] lowercase tracking-[0.06em] px-[26px] py-3.5 bg-invert-bg text-invert-fg border border-invert-bg font-bold no-underline inline-block transition-all duration-200 hover:bg-text-bright hover:border-text-bright hover:-translate-y-px cursor-pointer'
-
-const CTA_GHOST = 'font-mono text-[13px] lowercase tracking-[0.06em] px-[26px] py-3.5 bg-transparent text-text border border-rule-strong no-underline inline-block transition-all duration-200 hover:text-text-bright hover:border-text-bright hover:-translate-y-px cursor-pointer'
-
-export default function Home() {
-  // Hero fijo: 1 lema random elegido al cargar. Cambia solo al recargar.
-  const [heroLema, setHeroLema] = useState<HeroLema>(HERO_POOL[0])
-  const escalaRef = useRef<HTMLDivElement>(null)
-  const [visitaHref, setVisitaHref] = useState('/login')
-
-  useEffect(() => {
-    setHeroLema(pickRandom(HERO_POOL))
-  }, [])
-
-  // CTA "agendar visita" cambia según auth: si hay sesión → /mi-tlacuilo, si no → /login
-  useEffect(() => {
-    supabase.auth.getUser().then(({ data: { user } }) => {
-      setVisitaHref(user ? '/mi-tlacuilo' : '/login')
-    })
-  }, [])
-
-  // Visibility pause: cuando la tab no está visible, pausamos animaciones
-  // para no quemar batería ni datos del usuario.
-  useEffect(() => {
-    const onVisibilityChange = () => {
-      if (document.hidden) {
-        document.body.classList.add('anim-paused')
-      } else {
-        document.body.classList.remove('anim-paused')
-      }
-    }
-    document.addEventListener('visibilitychange', onVisibilityChange)
-    return () => {
-      document.removeEventListener('visibilitychange', onVisibilityChange)
-      document.body.classList.remove('anim-paused')
-    }
-  }, [])
-
-  // Escala: animar barras al entrar al viewport
-  useEffect(() => {
-    if (!escalaRef.current) return
-    const bars = escalaRef.current.querySelectorAll<HTMLDivElement>('.escala-bar')
-    const observer = new IntersectionObserver(
-      (entries) => {
-        entries.forEach((entry) => {
-          if (entry.isIntersecting) {
-            bars.forEach((b, i) => {
-              setTimeout(() => {
-                const h = b.dataset.h
-                if (h) b.style.setProperty('--h', h)
-                b.classList.add('in')
-              }, 80 * i)
-            })
-            observer.disconnect()
-          }
-        })
-      },
-      { threshold: 0.3 }
-    )
-    observer.observe(escalaRef.current)
-    return () => observer.disconnect()
-  }, [])
+export default async function Home() {
+  const [libros, categorias, counters] = await Promise.all([
+    getLandingLibros(),
+    getCategorias(),
+    getCounters(),
+  ])
+  const total = libros.length
 
   return (
     <>
       <Header />
 
-      {/* ============ HERO ============ */}
-      <section className="relative flex flex-col items-center justify-center text-center gap-7 min-h-[62vh] px-14 pt-[60px] pb-[100px] max-md:px-5">
-        <div className="font-mono text-xs text-text-dim tracking-[0.18em] lowercase">
-          activación de bibliotecas
-          <span className="inline-block w-1.5 h-1.5 bg-text mx-2.5 align-baseline animate-pulse-dot" />
-          cdmx
+      {/* ============ CATEGORÍAS EN BOTONES CUADRITOS · full width ============ */}
+      {categorias.length > 0 && (
+        <section className="px-10 pt-10 pb-6 max-md:px-5">
+          <div className="flex flex-wrap gap-2">
+            {categorias.map((cat) => (
+              <Link
+                key={cat.nombre}
+                href={`/biblioteca?categoria=${encodeURIComponent(cat.nombre)}`}
+                className="inline-flex items-baseline gap-2 bg-tinta text-bone border border-tinta rounded-sm px-3 py-1.5 font-micro text-[10px] uppercase tracking-[0.08em] hover:bg-dirty hover:text-tinta transition-colors"
+              >
+                <span>{cat.nombre}</span>
+                <span className="opacity-50 text-[9px]">{cat.total}</span>
+              </Link>
+            ))}
+          </div>
+        </section>
+      )}
+
+      {/* ============ CATÁLOGO HEADER · TÍTULO + COUNTERS · full width ============ */}
+      <section className="px-10 pt-10 pb-6 max-md:px-5 border-t border-rule">
+        <div className="flex items-end justify-between flex-wrap gap-6">
+          <h2 className="font-sans font-light text-[clamp(28px,3.4vw,48px)] leading-none tracking-[-0.01em] text-text">
+            Catálogo
+          </h2>
+          <div className="flex gap-10">
+            <div className="flex flex-col items-start gap-1">
+              <div className="font-sans font-light text-[clamp(22px,2.4vw,34px)] leading-none text-text tabular-nums">
+                {counters.libros.toLocaleString('es-MX')}
+              </div>
+              <div className="font-micro text-[10px] uppercase tracking-[0.12em] text-dirty">
+                Libros
+              </div>
+            </div>
+            <div className="flex flex-col items-start gap-1">
+              <div className="font-sans font-light text-[clamp(22px,2.4vw,34px)] leading-none text-text tabular-nums">
+                {counters.prestamos.toLocaleString('es-MX')}
+              </div>
+              <div className="font-micro text-[10px] uppercase tracking-[0.12em] text-dirty">
+                Préstamos
+              </div>
+            </div>
+          </div>
         </div>
-
-        <h1 className="font-sonoran font-black uppercase text-text text-[clamp(38px,5.6vw,84px)] leading-[1.02] tracking-[0.04em] max-w-[1080px]">
-          {heroLema.head && heroLema.head + ' '}
-          <span className="pop">{heroLema.pop}</span>
-          {heroLema.tail}
-        </h1>
-
-        <p className="font-sans font-medium text-text max-w-[600px] tracking-[0.02em] text-[clamp(15px,1.5vw,18px)] leading-[1.55]">
-          una biblioteca pública en tu bolsillo. préstamo gratis de libros,
-          vinilos, arte y objetos físicos — sin precio, sin candado, con confianza.
-        </p>
-
-        <div className="flex gap-3.5 flex-wrap justify-center mt-1.5">
-          <a className={CTA_PRIMARY} href="/biblioteca">explorar la biblioteca</a>
-          <a className={CTA_GHOST} href="https://instagram.com/tlacuilobiblioteca" target="_blank" rel="noreferrer">
-            @tlacuilobiblioteca
-          </a>
-        </div>
-
-        {/* State chips · stamps de manifiesto */}
-        <div className="flex gap-3 flex-wrap justify-center mt-4 max-w-[640px]">
-          {['sin precio', 'sin candado', 'sin algoritmo', 'sin intermediario'].map((label) => (
-            <span
-              key={label}
-              className="inline-flex items-center gap-2 px-3 py-1.5 border border-rule-strong font-mono text-[11px] uppercase tracking-[0.08em] text-text-dim"
-            >
-              <span className="w-2 h-2 rounded-full bg-text-dim animate-pulse-dot" />
-              {label}
-            </span>
-          ))}
-        </div>
-
       </section>
 
-      {/* ============ BIBLIOTICKER (3 hileras de letanías) ============ */}
-      <Biblioticker />
-
-      {/* ============ CÓMO FUNCIONA ============ */}
-      <section className="px-14 pt-[90px] pb-[100px] border-t border-rule max-md:px-5">
-        <h2 className="font-sonoran font-black uppercase text-text leading-none tracking-[0.04em] mb-[18px] text-[clamp(28px,3.8vw,56px)]">
-          la confianza<br />crece con cada visita.
-        </h2>
-        <p className="font-sans text-[15px] text-text-dim leading-[1.6] max-w-[620px] mb-12">
-          tlacuilo es un sistema de préstamo de objetos físicos. la biblioteca
-          se mueve por confianza, y la confianza se gana usándola.
-        </p>
-
-        <div className="grid grid-cols-4 gap-3.5 mb-[60px] max-[860px]:grid-cols-2">
-          {STEPS.map((s) => (
-            <div key={s.n} className="relative flex flex-col gap-2 border border-rule bg-bg-card px-4 py-[18px]">
-              <div className="font-mono text-[11px] text-text-dim tracking-[0.18em] lowercase">{s.n}</div>
-              <div className="font-sonoran font-black uppercase text-text leading-[1.15] tracking-[0.04em] text-[clamp(15px,1.5vw,19px)]">{s.t}</div>
-              <div className="font-sans text-[13px] text-text-dim leading-[1.5]">{s.d}</div>
-            </div>
-          ))}
-        </div>
-
-        <div className="mt-[30px]">
-          <div className="font-mono text-xs text-text-dim tracking-[0.18em] lowercase mb-[18px]">
-            &gt; el préstamo escala con tus visitas
-          </div>
-          <div ref={escalaRef} className="grid grid-cols-9 gap-2 items-end h-[220px] border-b border-rule">
-            {VISITS.map((n, i) => {
-              const pct = Math.round((n / MAX_VISIT) * 100)
+      {/* ============ GRID MEZCLADO · 4 columnas fijas ============ */}
+      <section className="relative max-w-4xl mx-auto px-5 pt-6 pb-0">
+        {total === 0 ? (
+          <p className="font-mono text-sm text-text-dim lowercase py-20 text-center">
+            sin libros en el catálogo todavía.
+          </p>
+        ) : (
+          <div className="grid grid-cols-4 gap-x-6 gap-y-10 max-md:grid-cols-2 max-[420px]:grid-cols-1">
+            {libros.map((libro, i) => {
+              const opacity = fadeOpacity(i, total)
               return (
-                <div
-                  key={n}
-                  className="escala-bar relative flex flex-col items-center justify-end h-full"
-                  data-h={`${pct}%`}
+                <Link
+                  key={libro.id}
+                  href={`/biblioteca/${libro.id}`}
+                  className="group flex flex-col gap-2 transition-opacity hover:!opacity-100"
+                  style={{ opacity }}
                 >
-                  <div className="escala-bar-col flex items-start justify-center pt-1.5 font-mono text-[11px] font-bold text-invert-fg tracking-[0.04em]">{n}</div>
-                  <div className="absolute -bottom-[22px] left-0 right-0 text-center font-mono text-[10px] text-text-dim tracking-[0.06em] lowercase">{i + 1}ª · {n}</div>
-                </div>
+                  <div className="aspect-[2/3] bg-bg-card flex items-center justify-center text-text-dim text-[11px] overflow-hidden p-2 text-center">
+                    <Cover
+                      titulo={libro.titulo}
+                      portada_url={libro.portada_url}
+                      isbn={libro.isbn}
+                      autor={libro.autor}
+                    />
+                  </div>
+                  <div className="font-mono uppercase text-[11px] tracking-[0.06em] text-text line-clamp-2 mt-2">
+                    {libro.titulo}
+                  </div>
+                  {libro.autor && (
+                    <div className="font-micro text-[10px] uppercase tracking-[0.04em] text-text-dim line-clamp-1">
+                      {libro.autor}
+                    </div>
+                  )}
+                </Link>
               )
             })}
           </div>
-        </div>
+        )}
 
-        <div className="mt-12 font-sonoran font-black uppercase text-text leading-[1.15] tracking-[0.04em] text-[clamp(20px,2.4vw,32px)] max-w-[680px]">
-          en tu <span className="pop pop-sm">1ª</span> visita: 5 libros.<br />
-          en tu <span className="pop pop-sm">9ª</span>: 45.
-        </div>
-
-        <div className="flex gap-3.5 flex-wrap mt-10">
-          <a className={CTA_PRIMARY} href={visitaHref}>
-            agendar mi primera visita
-          </a>
-          <a className={CTA_GHOST} href="#">
-            ver el manifiesto completo
-          </a>
-        </div>
+        {/* Overlay gradient al fondo refuerza el fade */}
+        {total > 0 && (
+          <div
+            aria-hidden="true"
+            className="absolute bottom-0 left-0 right-0 h-40 pointer-events-none"
+            style={{
+              background:
+                'linear-gradient(to bottom, transparent 0%, var(--color-bg) 100%)',
+            }}
+          />
+        )}
       </section>
 
-      {/* ============ TODOS SOMOS TLACUILOS (federación v0) ============ */}
-      <section className="px-14 pt-[90px] pb-[100px] border-t border-rule max-md:px-5">
-        <p className="font-mono uppercase tracking-[0.2em] text-xs text-text-dim mb-3">
-          &gt; federación
-        </p>
-        <h2 className="font-sonoran font-black uppercase text-text leading-none tracking-[0.04em] mb-[18px] text-[clamp(28px,3.8vw,56px)]">
-          no somos una.<br />somos muchas.
-        </h2>
-        <p className="font-sans text-[15px] text-text-dim leading-[1.6] max-w-[620px] mb-10">
-          tlacuilo es solo el comienzo. cualquiera podrá subir su biblioteca
-          personal y compartirla. cada casa una sucursal, cada lectora bibliotecaria.
-          una red distribuida, sin precio, sin intermediario.
-        </p>
-        <div className="flex gap-3.5 flex-wrap items-center">
-          <span className="inline-flex items-center gap-2 px-4 py-3 border border-rule bg-bg-soft font-mono text-[12px] uppercase tracking-[0.06em] text-text-dim">
-            <span className="w-2 h-2 rounded-full bg-loan animate-pulse-dot" />
-            próximamente · federación v0
-          </span>
-          <span className="font-mono text-[11px] text-text-faint lowercase tracking-wider">
-            (avísanos si quieres ser nodo)
-          </span>
-        </div>
+      {/* ============ BOTÓN IR AL CATÁLOGO ============ */}
+      <section className="max-w-4xl mx-auto px-5 py-14 flex justify-center">
+        <Link
+          href="/biblioteca"
+          className="inline-flex items-center gap-3 bg-invert-bg text-invert-fg font-mono uppercase tracking-[0.12em] text-[12px] px-8 py-4 hover:opacity-90 transition-opacity"
+        >
+          Ir al catálogo completo
+          <span aria-hidden="true">→</span>
+        </Link>
       </section>
 
-      {/* ============ CIERRE NÁHUATL ============ */}
-      <section className="px-14 pt-[90px] pb-[80px] border-t border-rule bg-[#101018] max-md:px-5">
-        <div className="grid grid-cols-2 gap-12 max-w-[1100px] mx-auto max-[780px]:grid-cols-1 max-[780px]:gap-8">
-          <div>
-            <h3 className="font-mono text-xs text-text-dim tracking-[0.18em] lowercase mb-6">&gt; in tlahcuilo · náhuatl</h3>
-            <div className="font-sonoran font-black uppercase text-text leading-[1.2] tracking-[0.03em] text-[clamp(22px,2.6vw,36px)]">
-              in qualli tlahcuilo<br />
-              mihmati · yolteutl<br />
-              tlayolteuiani<br />
-              moyolnonotzani
-            </div>
+      {/* ============ FOOTER CUADRITO ============ */}
+      <footer className="max-w-4xl mx-auto px-5 pb-16 flex justify-center">
+        <div className="w-full max-w-[380px] border border-rule-strong bg-bg-card p-5 font-micro text-[10px] uppercase tracking-[0.08em] leading-relaxed">
+          <div className="flex justify-between text-text">
+            <span>// tlacuilo</span>
+            <span>2026</span>
           </div>
-          <div>
-            <h3 className="font-mono text-xs text-text-dim tracking-[0.18em] lowercase mb-6">&gt; el pintor · español</h3>
-            <div className="font-sonoran font-black uppercase text-text leading-[1.2] tracking-[0.03em] text-[clamp(22px,2.6vw,36px)]">
-              el buen pintor:<br />
-              <span className="text-text-dim">entendido,</span><br />
-              <span className="text-text-dim">dios en su corazón.</span><br />
-              diviniza con su corazón las cosas.<br />
-              dialoga con su propio corazón.
-            </div>
+          <div className="flex justify-between text-text">
+            <span>cdmx · coyoacán</span>
+            <span>los comunes</span>
           </div>
-        </div>
-        <div className="mt-[60px] text-center font-mono text-xs text-text-faint tracking-[0.18em] lowercase">
-          — spread 7 del booklet · fragmento del códice florentino
-        </div>
-      </section>
 
-      {/* ============ FOOTER ============ */}
-      <footer className="grid grid-cols-[auto_1fr_auto] gap-8 items-center px-14 py-9 border-t border-rule font-mono text-xs text-text-dim tracking-[0.04em] lowercase max-[700px]:grid-cols-1 max-[700px]:gap-4 max-[700px]:text-center max-[700px]:justify-items-center">
-        <div className="w-[34px] h-10 relative">
-          <img src="/logodark.svg" alt="tlacuilo" className="logo-dark absolute inset-0 w-full h-full object-contain opacity-70" />
-          <img src="/logolight.svg" alt="tlacuilo" className="logo-light absolute inset-0 w-full h-full object-contain opacity-70" aria-hidden="true" />
+          <hr className="border-t border-text-dim/40 my-3" />
+
+          <div className="flex flex-col gap-1.5">
+            <a
+              href="https://instagram.com/tlacuilobiblioteca"
+              target="_blank"
+              rel="noreferrer"
+              className="text-text hover:text-text-bright transition-colors"
+            >
+              → @tlacuilobiblioteca
+            </a>
+            <Link href="/manifesto" className="text-text hover:text-text-bright transition-colors">
+              → manifesto
+            </Link>
+            <a href="#" className="text-text hover:text-text-bright transition-colors">
+              → newsletter
+            </a>
+            <a href="#" className="text-text hover:text-text-bright transition-colors">
+              → booklet (pdf)
+            </a>
+            <a
+              href="mailto:hola@tlacuilo.org"
+              className="text-text hover:text-text-bright transition-colors"
+            >
+              → hola@tlacuilo.org
+            </a>
+          </div>
+
+          <hr className="border-t border-text-dim/40 my-3" />
+
+          <div className="text-text-dim">diseño + código: marina</div>
+          <div className="text-text-dim">curaduría: marina, pedro reyes, samm</div>
         </div>
-        <div className="flex flex-wrap gap-[22px]">
-          <a href="https://instagram.com/tlacuilobiblioteca" target="_blank" rel="noreferrer" className="text-text no-underline hover:text-text-bright transition-colors">@tlacuilobiblioteca</a>
-          <a href="#" className="text-text no-underline hover:text-text-bright transition-colors">manifiesto</a>
-          <a href="#" className="text-text no-underline hover:text-text-bright transition-colors">booklet</a>
-          <a href="/biblioteca" className="text-text no-underline hover:text-text-bright transition-colors">catálogo</a>
-          <a href="mailto:hola@tlacuilo.mx" className="text-text no-underline hover:text-text-bright transition-colors">contacto</a>
-        </div>
-        <div className="text-text-faint">© tlacuilo · 2026 · cdmx · los comunes</div>
       </footer>
     </>
   )

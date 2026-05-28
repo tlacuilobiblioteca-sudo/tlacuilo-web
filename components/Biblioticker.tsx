@@ -3,9 +3,11 @@
 import { useEffect, useState } from 'react'
 
 /**
- * Biblioticker — 1 hilera de letanías del booklet scrolling.
- * Pool aleatorio por carga (cambia al recargar la página).
- * Sin Supabase: data hardcoded del booklet impreso.
+ * Biblioticker — 1 hilera de letanías del booklet impreso.
+ * Pool aleatorio por carga. Sin Supabase: data hardcoded.
+ *
+ * Sin auto-scroll (decisión Marina 2026-05-25: cero auto-movimiento).
+ * El usuario puede arrastrar/scroll horizontal con trackpad si quiere ver todo.
  */
 
 const POOLS: string[][] = [
@@ -35,13 +37,10 @@ export default function Biblioticker() {
   }, [])
 
   return (
-    <section className="border-y border-rule bg-bg-soft overflow-hidden">
-      <div className="flex items-center h-[clamp(96px,11vw,140px)] overflow-hidden">
-        <div
-          className="flex gap-14 whitespace-nowrap font-mono font-bold text-[clamp(24px,3vw,44px)] text-text will-change-transform uppercase tracking-[0.08em]"
-          style={{ animation: 'slideL 60s linear infinite' }}
-        >
-          {[...items, ...items].map((item, i) => (
+    <section className="border-y border-rule bg-bg-soft">
+      <div className="flex items-center h-[clamp(96px,11vw,140px)] overflow-x-auto overflow-y-hidden scrollbar-thin">
+        <div className="flex gap-14 whitespace-nowrap font-mono font-bold text-[clamp(24px,3vw,44px)] text-text uppercase tracking-[0.08em] px-8">
+          {items.map((item, i) => (
             <span key={i} className="inline-flex items-center gap-14">
               <span>{item}</span>
               <span className="text-text-dim">·</span>

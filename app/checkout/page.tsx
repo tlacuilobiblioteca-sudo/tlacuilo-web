@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
+import Link from 'next/link'
 import { supabase } from '@/lib/supabase'
 import TecaLayout from '@/components/TecaLayout'
 import Cover from '@/components/Cover'
@@ -126,15 +127,15 @@ export default function CheckoutPage() {
           <p className="font-mono uppercase tracking-[0.2em] text-[clamp(10px,0.8vw,13px)] opacity-60 mb-2">
             &gt; checkout
           </p>
-          <h1 className="font-sonoran leading-tight mb-6 text-[clamp(28px,3.5vw,52px)] uppercase tracking-wide text-text-bright">
+          <h1 className="font-mono leading-tight mb-6 text-[clamp(28px,3.5vw,52px)] uppercase tracking-wide text-text-bright">
             Tu morral está vacío
           </h1>
           <p className="opacity-70 mb-6 text-[clamp(13px,1vw,17px)]">
             Necesitas agregar libros antes de agendar una visita.
           </p>
-          <a href="/biblioteca" className="font-mono text-sm uppercase tracking-wider underline hover:text-text-bright">
+          <Link href="/biblioteca" className="font-mono text-sm uppercase tracking-wider underline hover:text-text-bright">
             explorar la biblioteca →
-          </a>
+          </Link>
         </section>
       </TecaLayout>
     )
@@ -146,7 +147,7 @@ export default function CheckoutPage() {
         <p className="font-mono uppercase tracking-[0.2em] text-[clamp(10px,0.8vw,13px)] opacity-60 mb-2">
           &gt; checkout
         </p>
-        <h1 className="font-sonoran leading-tight mb-2 text-[clamp(28px,3.5vw,52px)] uppercase tracking-wide text-text-bright">
+        <h1 className="font-mono leading-tight mb-2 text-[clamp(28px,3.5vw,52px)] uppercase tracking-wide text-text-bright">
           Agenda tu visita
         </h1>
         <p className="opacity-70 mb-12 text-[clamp(13px,1vw,17px)]">
@@ -154,7 +155,7 @@ export default function CheckoutPage() {
         </p>
 
         <div className="mb-12">
-          <h2 className="font-sonoran uppercase tracking-wide text-[clamp(16px,1.6vw,22px)] text-text-bright mb-4">
+          <h2 className="font-mono uppercase tracking-wide text-[clamp(16px,1.6vw,22px)] text-text-bright mb-4">
             Llevas {morral.length} {morral.length === 1 ? 'libro' : 'libros'}
           </h2>
           <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-5">
@@ -244,9 +245,9 @@ export default function CheckoutPage() {
             >
               {submitting ? <>confirmando<span className="animate-pulse">_</span></> : <>confirmar visita →</>}
             </button>
-            <a href="/mi-tlacuilo" className="font-mono text-xs uppercase tracking-wider opacity-60 hover:opacity-100 hover:text-text-bright transition-opacity">
+            <Link href="/mi-tlacuilo" className="font-mono text-xs uppercase tracking-wider opacity-60 hover:opacity-100 hover:text-text-bright transition-opacity">
               × cancelar
-            </a>
+            </Link>
           </div>
         </div>
       </section>

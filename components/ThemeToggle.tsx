@@ -14,16 +14,8 @@ export default function ThemeToggle({ className }: { className?: string }) {
   const [mode, setMode] = useState<Mode>('dark')
   const [mounted, setMounted] = useState(false)
 
-  // Lee preferencia inicial al montar
-  useEffect(() => {
-    const saved = localStorage.getItem('tl-mode') as Mode | null
-    const prefersLight = window.matchMedia('(prefers-color-scheme: light)').matches
-    const initial: Mode = saved ?? (prefersLight ? 'light' : 'dark')
-    applyMode(initial)
-    setMode(initial)
-    setMounted(true)
-  }, [])
-
+  // Helper: aplica la clase al body. Declarado ANTES del useEffect
+  // para evitar warning de React 19 sobre uso antes de declarar.
   const applyMode = (m: Mode) => {
     if (m === 'light') {
       document.body.classList.add('light-mode')
@@ -32,6 +24,17 @@ export default function ThemeToggle({ className }: { className?: string }) {
     }
   }
 
+  // Lee preferencia inicial al montar
+  useEffect(() => {
+    const saved = localStorage.getItem('tl-mode') as Mode | null
+    const prefersLight = window.matchMedia('(prefers-color-scheme: light)').matches
+    const initial: Mode = saved ?? (prefersLight ? 'light' : 'dark')
+    applyMode(initial)
+    setMode(initial)
+    setMounted(true)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
+
   const toggle = () => {
     const next: Mode = mode === 'light' ? 'dark' : 'light'
     applyMode(next)
@@ -39,7 +42,7 @@ export default function ThemeToggle({ className }: { className?: string }) {
     try {
       localStorage.setItem('tl-mode', next)
     } catch {
-      // localStorage puede fallar en privado/iframe — ignoramos
+      // localStorage puede fallar en privado/iframe, ignoramos
     }
   }
 

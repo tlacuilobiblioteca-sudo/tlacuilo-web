@@ -1,3 +1,4 @@
+import Link from 'next/link'
 import { supabase } from '@/lib/supabase'
 import TecaLayout from '@/components/TecaLayout'
 import Cover from '@/components/Cover'
@@ -51,12 +52,12 @@ export default async function LibroPage({
   return (
     <TecaLayout>
       <section className="px-8 pt-6 pb-4 max-w-7xl mx-auto">
-        <a
+        <Link
           href="/biblioteca"
           className="uppercase tracking-wide opacity-70 hover:opacity-100 hover:underline text-[clamp(10px,0.8vw,13px)] font-mono"
         >
           ← Volver a Biblioteca
-        </a>
+        </Link>
       </section>
 
       <section className="px-8 pb-16 max-w-7xl mx-auto grid grid-cols-1 md:grid-cols-[minmax(200px,30%)_1fr] gap-10">
@@ -72,7 +73,7 @@ export default async function LibroPage({
         </div>
 
         <div className="flex flex-col">
-          <h1 className="font-sonoran leading-tight mb-2 text-[clamp(22px,2.3vw,38px)] uppercase tracking-wide">
+          <h1 className="font-mono leading-tight mb-2 text-[clamp(22px,2.3vw,38px)] uppercase tracking-wide">
             {libro.titulo}
           </h1>
 
@@ -127,13 +128,13 @@ export default async function LibroPage({
               </h2>
               <div className="flex flex-wrap gap-x-3 gap-y-1 text-[clamp(11px,0.9vw,14px)]">
                 {libro.categorias.map((cat) => (
-                  <a
+                  <Link
                     key={cat}
                     href={'/biblioteca?categoria=' + encodeURIComponent(cat)}
                     className="opacity-80 hover:opacity-100 hover:underline"
                   >
                     {cat}
-                  </a>
+                  </Link>
                 ))}
               </div>
             </div>
@@ -165,7 +166,7 @@ export default async function LibroPage({
           </h2>
           <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-6 gap-4">
             {relacionados.map((book) => (
-              <a
+              <Link
                 key={book.id}
                 href={'/biblioteca/' + book.id}
                 className="block opacity-90 hover:opacity-100"
@@ -184,7 +185,7 @@ export default async function LibroPage({
                 <p className="opacity-70 text-[clamp(9px,0.7vw,11px)]">
                   {book.autor ?? '—'}
                 </p>
-              </a>
+              </Link>
             ))}
           </div>
         </section>

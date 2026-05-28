@@ -200,7 +200,7 @@ export default function AdminPrestamosPage() {
         <p className="font-mono uppercase tracking-[0.2em] text-[clamp(10px,0.8vw,13px)] opacity-60 mb-2">
           &gt; admin / préstamos
         </p>
-        <h1 className="font-sonoran leading-tight mb-2 text-[clamp(28px,3.5vw,52px)] uppercase tracking-wide text-text-bright">
+        <h1 className="font-mono leading-tight mb-2 text-[clamp(28px,3.5vw,52px)] uppercase tracking-wide text-text-bright">
           Préstamos activos
         </h1>
         <p className="opacity-70 mb-8 text-[clamp(13px,1vw,17px)]">

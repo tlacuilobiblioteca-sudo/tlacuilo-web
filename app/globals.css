@@ -1,87 +1,55 @@
 @import "tailwindcss";
 
 /* ============================================================
-   TLACUILO · Tailwind v4 + tokens + globals
+   TLACUILO · Tailwind v4 + tokens canon v2
+   ============================================================
+   Paleta v2 confirmada 2026-05-26:
+   - morado tlacuilo #6E6BA0 (light bg primario)
+   - periwinkle    #9D9BC8 (hover/disabled, bg-card alterno)
+   - tinta         #15151D (dark bg, light text)
+   - bone          #ECEAF0 (light surface, dark text)
+   - dirty yellow  #E8DC4A (detalle, nunca dominante)
+   - lilac depth   #2A2838 (dark bg-card)
+   - warm white    #F7F6FA (light surface más clara)
+
+   Fuentes (Sonoran fuera):
+   - Jost Light  → headings, números grandes (font-sans)
+   - JetBrains Mono → nav, botones uppercase (font-mono)
+   - DM Mono → micro-labels, datos crudos (font-micro)
    ============================================================ */
 
-@font-face {
-  font-family: 'Sonoran';
-  src: url('/SONORAN.otf') format('opentype');
-  font-weight: 900;
-  font-style: normal;
-  font-display: swap;
-}
-
-/* ---------- Tokens ----------
-   Tailwind v4: cada --color-X expone bg-X / text-X / border-X.
-   Cada --font-X expone font-X. Cada --animate-X expone animate-X.
-*/
+/* ---------- Tokens ---------- */
 @theme {
-  /* Colores */
-  --color-bg: #120824;
-  --color-bg-card: #1c1132;
-  --color-bg-soft: rgba(144, 145, 196, 0.08);
-  --color-text: #9091c4;
-  --color-text-bright: #c5c4f5;
-  --color-text-dim: rgba(144, 145, 196, 0.55);
-  --color-text-faint: rgba(144, 145, 196, 0.28);
-  --color-rule: rgba(144, 145, 196, 0.18);
-  --color-rule-strong: rgba(144, 145, 196, 0.32);
-  --color-invert-bg: #9091c4;
-  --color-invert-fg: #120824;
+  /* Brand colors directos */
+  --color-morado: #6E6BA0;
+  --color-periwinkle: #9D9BC8;
+  --color-tinta: #15151D;
+  --color-bone: #ECEAF0;
+  --color-dirty: #E8DC4A;
+  --color-lilac-depth: #2A2838;
+  --color-warm-white: #F7F6FA;
+
+  /* Roles semánticos (DARK MODE default) */
+  --color-bg: #15151D;
+  --color-bg-card: #2A2838;
+  --color-bg-soft: rgba(236, 234, 240, 0.06);
+  --color-text: #ECEAF0;
+  --color-text-bright: #F7F6FA;
+  --color-text-dim: rgba(236, 234, 240, 0.55);
+  --color-text-faint: rgba(236, 234, 240, 0.28);
+  --color-rule: rgba(236, 234, 240, 0.18);
+  --color-rule-strong: rgba(236, 234, 240, 0.32);
+  --color-invert-bg: #ECEAF0;
+  --color-invert-fg: #15151D;
+
+  /* Estados reales (no decoración) */
   --color-available: #22c55e;
   --color-loan: #fb923c;
 
-  /* Fuentes */
-  --font-sans: 'Jost', 'Futura PT', 'Futura', ui-sans-serif, system-ui, sans-serif;
-  --font-mono: ui-monospace, 'SF Mono', 'JetBrains Mono', 'Menlo', monospace;
-  --font-sonoran: 'Sonoran', 'Orbitron', ui-sans-serif, system-ui, sans-serif;
-
-  /* Animaciones (apuntan a @keyframes definidos abajo) */
-  --animate-jitter-main: jitterMain 0.32s steps(4) 1;
-  --animate-jitter-g1: jitterG1 0.32s steps(4) 1;
-  --animate-jitter-g2: jitterG2 0.32s steps(4) 1;
-  --animate-slide-l: slideL 60s linear infinite;
-  --animate-slide-r: slideR 60s linear infinite;
-  --animate-pulse-dot: pulseDot 2.2s ease-in-out infinite;
-  --animate-blink: blink 1s steps(1) infinite;
-}
-
-/* ============ KEYFRAMES ============ */
-@keyframes jitterMain {
-  0%   { transform: translate(0, 0); }
-  25%  { transform: translate(-2px, 1px); }
-  50%  { transform: translate(2px, -1px); }
-  75%  { transform: translate(-1px, 0); }
-  100% { transform: translate(0, 0); }
-}
-@keyframes jitterG1 {
-  0%   { opacity: 0;    transform: translate(0, 0); }
-  25%  { opacity: 0.5;  transform: translate(-3px, 1px); }
-  50%  { opacity: 0.35; transform: translate(2px, -2px); }
-  75%  { opacity: 0.25; transform: translate(-1px, 1px); }
-  100% { opacity: 0;    transform: translate(0, 0); }
-}
-@keyframes jitterG2 {
-  0%   { opacity: 0;   transform: translate(0, 0); }
-  25%  { opacity: 0.4; transform: translate(3px, -1px); }
-  50%  { opacity: 0.3; transform: translate(-2px, 2px); }
-  75%  { opacity: 0.2; transform: translate(1px, 0); }
-  100% { opacity: 0;   transform: translate(0, 0); }
-}
-@keyframes slideL {
-  from { transform: translateX(0); }
-  to   { transform: translateX(-50%); }
-}
-@keyframes slideR {
-  from { transform: translateX(-50%); }
-  to   { transform: translateX(0); }
-}
-@keyframes pulseDot {
-  50% { opacity: 0.3; }
-}
-@keyframes blink {
-  50% { opacity: 0; }
+  /* Fuentes (los var(--font-X) los expone next/font/google desde layout.tsx) */
+  --font-sans: var(--font-jost), 'Jost', ui-sans-serif, system-ui, sans-serif;
+  --font-mono: var(--font-jetbrains-mono), 'JetBrains Mono', ui-monospace, 'SF Mono', Menlo, monospace;
+  --font-micro: var(--font-dm-mono), 'DM Mono', 'JetBrains Mono', ui-monospace, Menlo, monospace;
 }
 
 /* ============ GLOBAL ============ */
@@ -97,83 +65,33 @@ body {
 }
 
 /* ============ LIGHT MODE ============
-   Inversión total: lila se vuelve fondo, dark se vuelve texto.
-   El logo cambia a silueta dark (filter: brightness(0)).
-   Los invert tokens también se invierten (highlights dark sobre lila). */
+   Activado por body.light-mode (manejado por ThemeToggle).
+   Inversión total: morado tlacuilo es bg, tinta es texto. */
 body.light-mode {
-  --color-bg: #9091c4;          /* lila como fondo principal */
-  --color-bg-card: #a3a4d3;     /* lila ligeramente más clara para cards */
-  --color-bg-soft: rgba(42, 31, 71, 0.10);
-  --color-text: #2a1f47;        /* deep purple como texto principal */
-  --color-text-bright: #1a1235; /* deep purple oscuro para títulos / énfasis */
-  --color-text-dim: rgba(42, 31, 71, 0.65);
-  --color-text-faint: rgba(42, 31, 71, 0.40);
-  --color-rule: rgba(42, 31, 71, 0.22);
-  --color-rule-strong: rgba(42, 31, 71, 0.45);
-  --color-invert-bg: #2a1f47;   /* highlight deep purple sobre lila */
-  --color-invert-fg: #9091c4;
+  --color-bg: #6E6BA0;          /* morado tlacuilo como fondo */
+  --color-bg-card: #9D9BC8;     /* periwinkle como surface */
+  --color-bg-soft: rgba(21, 21, 29, 0.06);
+  --color-text: #15151D;        /* tinta como texto */
+  --color-text-bright: #15151D;
+  --color-text-dim: rgba(21, 21, 29, 0.55);
+  --color-text-faint: rgba(21, 21, 29, 0.32);
+  --color-rule: rgba(21, 21, 29, 0.18);
+  --color-rule-strong: rgba(21, 21, 29, 0.32);
+  --color-invert-bg: #15151D;   /* highlight tinta sobre morado */
+  --color-invert-fg: #ECEAF0;
 }
 
-/* Logo swap: dark version oculta en light mode, light version oculta en dark mode.
-   Se renderizan ambas en el HTML y CSS controla cuál está visible. */
+/* Logo swap entre modos */
 body:not(.light-mode) .logo-light { display: none; }
 body.light-mode .logo-dark { display: none; }
-
-/* Scanlines y vignette en light mode (sutil sobre lila) */
-body.light-mode::before {
-  background: repeating-linear-gradient(0deg, rgba(21, 21, 29, 0.04) 0 1px, transparent 1px 4px);
-}
-body.light-mode::after {
-  background: radial-gradient(ellipse at center, transparent 70%, rgba(21, 21, 29, 0.18) 100%);
+/* En dark mode invertimos el SVG negro para que se vea claro */
+body:not(.light-mode) img[src*="TLACUILOLOGONEGRO"] {
+  filter: invert(1);
 }
 
-/* Scanlines + vignette globales (sutiles) */
-body::before {
-  content: "";
-  position: fixed;
-  inset: 0;
-  pointer-events: none;
-  z-index: 9999;
-  background: repeating-linear-gradient(0deg, rgba(0, 0, 0, 0.05) 0 1px, transparent 1px 3px);
-  mix-blend-mode: multiply;
-}
-body::after {
-  content: "";
-  position: fixed;
-  inset: 0;
-  pointer-events: none;
-  z-index: 9998;
-  background: radial-gradient(ellipse at center, transparent 70%, rgba(0, 0, 0, 0.4) 100%);
-}
+/* ============ CLASES UTILITARIAS MÍNIMAS ============ */
 
-/* ============ CLASES UTILITARIAS MÍNIMAS ============
-   Solo lo que Tailwind no hace bien: glitch del logo,
-   highlight del hero (.pop), underline animado de nav,
-   transición del hero h1, barras de la escala.
-*/
-
-/* Logo glitch — imágenes stacked con filtros y animaciones por clase */
-.logobox {
-  position: relative;
-  display: block;
-}
-.logobox img {
-  position: absolute;
-  inset: 0;
-  width: 100%;
-  height: 100%;
-  object-fit: contain;
-  display: block;
-}
-.logobox img.main { opacity: 1; }
-.logobox img.ghost { opacity: 0; mix-blend-mode: screen; }
-.logobox img.g1 { filter: hue-rotate(-12deg) brightness(1.45) saturate(1.2); }
-.logobox img.g2 { filter: hue-rotate(14deg) brightness(0.6) saturate(0.8); }
-.logobox.glitching img.main { animation: var(--animate-jitter-main); }
-.logobox.glitching img.g1   { animation: var(--animate-jitter-g1); }
-.logobox.glitching img.g2   { animation: var(--animate-jitter-g2); }
-
-/* Highlight del hero — bloque lavanda con texto oscuro */
+/* Highlight tipo bloque para énfasis (.pop) */
 .pop {
   background: var(--color-invert-bg);
   color: var(--color-invert-fg);
@@ -184,11 +102,11 @@ body::after {
   padding: 2px 12px 0;
 }
 
-/* Hero h1 fading transition */
+/* Hero h1 fading (transición de texto en hero) */
 .hero-h1 { transition: opacity 0.5s ease; }
 .hero-h1.fading { opacity: 0; }
 
-/* Underline animado en nav links */
+/* Underline animado en nav links (hover-triggered, NO autoplay) */
 .nav-link {
   position: relative;
   display: inline-block;
@@ -206,19 +124,49 @@ body::after {
 }
 .nav-link:hover::after { right: 0; }
 
-/* ============ FAILSAFES + ANIMATION PAUSE ============ */
-
-/* Pausa global cuando la tab no está visible (toggled por home-page.tsx
-   con document.body.classList.add('anim-paused')). Ahorra batería/datos. */
-body.anim-paused *,
-body.anim-paused *::before,
-body.anim-paused *::after {
-  animation-play-state: paused !important;
+/* Divider lines (Utrecht-style) entre secciones del landing */
+.divider-line {
+  border-top: 1px solid var(--color-text);
+  opacity: 0.85;
 }
 
-/* Respeta la preferencia del usuario de menos animación. Conservamos
-   transiciones cortas y desactivamos infinitos. */
+/* Escala bars (altura animada via --h custom prop, triggered por scroll) */
+.escala-bar-col {
+  width: 100%;
+  background: var(--color-invert-bg);
+  height: 0;
+  transition: height 1.2s cubic-bezier(0.2, 0.7, 0.2, 1);
+}
+.escala-bar.in .escala-bar-col {
+  height: var(--h);
+}
+
+/* ============ REVEAL ON SCROLL ============
+   Fade + translate al entrar al viewport. Triggered por scroll del usuario
+   (interacción, no autoplay puro). */
+.reveal {
+  opacity: 0;
+  transform: translateY(28px);
+  transition:
+    opacity 0.7s cubic-bezier(0.2, 0.7, 0.2, 1),
+    transform 0.7s cubic-bezier(0.2, 0.7, 0.2, 1);
+  will-change: opacity, transform;
+}
+.reveal.in {
+  opacity: 1;
+  transform: none;
+}
+
+/* ============ ACCESIBILIDAD ============
+   prefers-reduced-motion: respeta preferencia del usuario.
+   anim-paused: ahorra batería cuando la tab no está visible
+   (toggled desde el código de la landing). */
 @media (prefers-reduced-motion: reduce) {
+  .reveal {
+    opacity: 1;
+    transform: none;
+    transition: none;
+  }
   *,
   *::before,
   *::after {
@@ -229,23 +177,8 @@ body.anim-paused *::after {
   }
 }
 
-/* Terminal Boot — caret parpadeante */
-.caret {
-  display: inline-block;
-  width: 0.55em;
-  height: 1em;
-  background: var(--color-text);
-  vertical-align: -2px;
-  animation: var(--animate-blink);
-}
-
-/* Escala bars — altura animada via --h custom prop */
-.escala-bar-col {
-  width: 100%;
-  background: var(--color-invert-bg);
-  height: 0;
-  transition: height 1.2s cubic-bezier(0.2, 0.7, 0.2, 1);
-}
-.escala-bar.in .escala-bar-col {
-  height: var(--h);
+body.anim-paused *,
+body.anim-paused *::before,
+body.anim-paused *::after {
+  animation-play-state: paused !important;
 }

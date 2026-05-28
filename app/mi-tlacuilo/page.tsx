@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
+import Link from 'next/link'
 import { supabase } from '@/lib/supabase'
 import TecaLayout from '@/components/TecaLayout'
 import Cover from '@/components/Cover'
@@ -143,14 +144,14 @@ export default function MiTlacuiloPage() {
         <p className="font-mono uppercase tracking-[0.2em] text-[clamp(10px,0.8vw,13px)] opacity-60 mb-2">
           &gt; mi tlacuilo
         </p>
-        <h1 className="font-sonoran leading-tight mb-2 text-[clamp(28px,3.5vw,52px)] uppercase tracking-wide text-text-bright">
+        <h1 className="font-mono leading-tight mb-2 text-[clamp(28px,3.5vw,52px)] uppercase tracking-wide text-text-bright">
           Hola, {alias}
         </h1>
         <p className="opacity-70 mb-6 text-[clamp(13px,1vw,17px)]">
           tu perfil público está en{' '}
-          <a href={`/u/${alias}`} className="underline hover:text-text-bright">
+          <Link href={`/u/${alias}`} className="underline hover:text-text-bright">
             tlacuilo.org/u/{alias}
-          </a>
+          </Link>
         </p>
 
         {perfil?.rol === 'editor' && (
@@ -159,18 +160,18 @@ export default function MiTlacuiloPage() {
               &gt; zona editora
             </p>
             <div className="flex flex-wrap items-center gap-3">
-              <a
+              <Link
                 href="/admin/prestamos"
                 className="text-xs lowercase tracking-wider bg-invert-bg text-invert-fg px-4 py-2 hover:opacity-90"
               >
                 préstamos activos →
-              </a>
-              <a
+              </Link>
+              <Link
                 href="/admin/libros"
                 className="text-xs lowercase tracking-wider border border-rule hover:border-rule-strong px-4 py-2"
               >
                 catálogo →
-              </a>
+              </Link>
               <span className="opacity-50 text-[10px] uppercase tracking-wider">
                 portadas · agregar libros · marcar recogido/devuelto · joyas
               </span>
@@ -180,7 +181,7 @@ export default function MiTlacuiloPage() {
 
         <div className="mb-14">
           <div className="flex items-baseline justify-between mb-4">
-            <h2 className="font-sonoran uppercase tracking-wide text-[clamp(16px,1.6vw,22px)] text-text-bright">
+            <h2 className="font-mono uppercase tracking-wide text-[clamp(16px,1.6vw,22px)] text-text-bright">
               Mi morral
             </h2>
             <span className="font-mono text-xs opacity-50 uppercase tracking-wider">
@@ -193,22 +194,22 @@ export default function MiTlacuiloPage() {
               <p className="font-mono text-sm opacity-70 mb-3">
                 &gt; tu morral está vacío.
               </p>
-              <a href="/biblioteca" className="font-mono text-xs uppercase tracking-wider underline hover:text-text-bright">
+              <Link href="/biblioteca" className="font-mono text-xs uppercase tracking-wider underline hover:text-text-bright">
                 explorar la biblioteca →
-              </a>
+              </Link>
             </div>
           ) : (
             <>
               <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-5">
                 {morral.map((p) => (
                   <div key={p.id} className="flex flex-col gap-2">
-                    <a href={`/biblioteca/${p.libros.id}`} className="block group">
+                    <Link href={`/biblioteca/${p.libros.id}`} className="block group">
                       <div className="aspect-[2/3] bg-bg-soft flex items-center justify-center text-text-dim p-2 text-center overflow-hidden text-[10px] mb-2 group-hover:opacity-90 transition-opacity">
                         <Cover titulo={p.libros.titulo} portada_url={p.libros.portada_url} isbn={p.libros.isbn} autor={p.libros.autor} />
                       </div>
                       <p className="font-medium leading-tight text-[clamp(11px,0.9vw,14px)] line-clamp-2">{p.libros.titulo}</p>
                       <p className="opacity-70 text-[10px] line-clamp-1">{p.libros.autor ?? '—'}</p>
-                    </a>
+                    </Link>
                     <button
                       onClick={() => handleRemoveFromMorral(p.id)}
                       className="font-mono text-[10px] uppercase tracking-wider opacity-60 hover:opacity-100 hover:text-loan text-left transition-colors"
@@ -220,12 +221,12 @@ export default function MiTlacuiloPage() {
               </div>
 
               <div className="mt-8 flex items-center gap-4">
-                <a
+                <Link
                   href="/checkout"
                   className="font-mono text-sm lowercase tracking-wider bg-invert-bg text-invert-fg px-6 py-3 hover:opacity-90 transition-opacity inline-block"
                 >
                   agendar visita →
-                </a>
+                </Link>
                 <span className="font-mono text-xs opacity-50 uppercase tracking-wider">
                   lun-vie · mín. 1 día de anticipación
                 </span>
@@ -236,7 +237,7 @@ export default function MiTlacuiloPage() {
 
         <div className="mb-14">
           <div className="flex items-baseline justify-between mb-4">
-            <h2 className="font-sonoran uppercase tracking-wide text-[clamp(16px,1.6vw,22px)] text-text-bright">
+            <h2 className="font-mono uppercase tracking-wide text-[clamp(16px,1.6vw,22px)] text-text-bright">
               Mis visitas
             </h2>
             <span className="font-mono text-xs opacity-50 uppercase tracking-wider">
@@ -253,7 +254,7 @@ export default function MiTlacuiloPage() {
           ) : (
             <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-5">
               {visitas.map((p) => (
-                <a key={p.id} href={`/biblioteca/${p.libros.id}`} className="block opacity-95 hover:opacity-100">
+                <Link key={p.id} href={`/biblioteca/${p.libros.id}`} className="block opacity-95 hover:opacity-100">
                   <div className="aspect-[2/3] bg-bg-soft flex items-center justify-center text-text-dim p-2 text-center overflow-hidden text-[10px] mb-2">
                     <Cover titulo={p.libros.titulo} portada_url={p.libros.portada_url} isbn={p.libros.isbn} autor={p.libros.autor} />
                   </div>
@@ -265,7 +266,7 @@ export default function MiTlacuiloPage() {
                   <p className="font-mono text-[10px] uppercase tracking-wider opacity-50">
                     · {p.status === 'apartado' ? 'apartado' : 'recogido'}
                   </p>
-                </a>
+                </Link>
               ))}
             </div>
           )}

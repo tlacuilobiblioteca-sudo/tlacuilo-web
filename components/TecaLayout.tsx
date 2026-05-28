@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react'
 import { usePathname } from 'next/navigation'
+import Link from 'next/link'
 import { supabase } from '@/lib/supabase'
 import AuthLink from './AuthLink'
 import ThemeToggle from './ThemeToggle'
@@ -45,22 +46,16 @@ export default function TecaLayout({ children }: { children: React.ReactNode }) 
     <div className="min-h-screen bg-bg text-text">
       {/* ============ SLIM HEADER ============ */}
       <header className="relative z-50 flex items-center justify-between gap-4 px-6 md:px-10 pt-5 pb-3 border-b border-rule">
-        <a href="/" className="block relative h-[clamp(40px,5vw,72px)] w-[clamp(35px,4.5vw,64px)]">
+        <Link href="/" className="block shrink-0" aria-label="Inicio">
           <img
-            src="/logodark.svg"
+            src="/TLACUILOLOGONEGRO.svg"
             alt="tlacuilo"
-            className="logo-dark absolute inset-0 h-full w-full object-contain"
+            className="block h-[clamp(24px,2.6vw,38px)] w-auto"
           />
-          <img
-            src="/logolight.svg"
-            alt="tlacuilo"
-            className="logo-light absolute inset-0 h-full w-full object-contain"
-            aria-hidden="true"
-          />
-        </a>
+        </Link>
 
-        <div className="flex items-center gap-5 md:gap-8 font-sonoran font-black uppercase text-text text-[clamp(11px,1.1vw,15px)] tracking-[0.16em]">
-          <a
+        <div className="flex items-center gap-5 md:gap-8 font-mono uppercase text-text text-[clamp(11px,1.05vw,14px)] tracking-[0.12em]">
+          <Link
             href="/buscar"
             aria-label="Buscar"
             className="hover:text-text-bright transition-colors inline-flex items-center"
@@ -68,7 +63,7 @@ export default function TecaLayout({ children }: { children: React.ReactNode }) 
             <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth="2" stroke="currentColor" className="w-[clamp(18px,1.6vw,24px)] h-[clamp(18px,1.6vw,24px)]">
               <path strokeLinecap="round" strokeLinejoin="round" d="m21 21-5.197-5.197m0 0A7.5 7.5 0 1 0 5.196 5.196a7.5 7.5 0 0 0 10.607 10.607Z" />
             </svg>
-          </a>
+          </Link>
           <ThemeToggle />
           <AuthLink className="hover:text-text-bright transition-colors" />
           {/* Hamburger solo mobile */}
@@ -159,17 +154,17 @@ function SidebarContent({
         return (
           <div key={teca.slug}>
             {teca.enabled ? (
-              <a
+              <Link
                 href={teca.href}
                 onClick={onLinkClick}
-                className={`font-sonoran font-black uppercase tracking-[0.16em] text-[clamp(14px,1.2vw,18px)] block transition-colors ${
+                className={`font-mono uppercase tracking-[0.12em] text-[clamp(13px,1.1vw,16px)] block transition-colors ${
                   isActive ? 'text-text-bright' : 'text-text hover:text-text-bright'
                 }`}
               >
                 {teca.label}
-              </a>
+              </Link>
             ) : (
-              <span className="font-sonoran font-black uppercase tracking-[0.16em] text-[clamp(14px,1.2vw,18px)] block text-text-faint cursor-not-allowed">
+              <span className="font-mono uppercase tracking-[0.12em] text-[clamp(13px,1.1vw,16px)] block text-text-faint cursor-not-allowed">
                 {teca.label} <span className="text-[10px] tracking-normal ml-1">próx.</span>
               </span>
             )}
@@ -178,7 +173,7 @@ function SidebarContent({
             {teca.slug === 'biblioteca' && categorias.length > 0 && (
               <ul className="mt-3 flex flex-col gap-1.5 font-sans text-[13px] pl-1">
                 <li>
-                  <a
+                  <Link
                     href="/biblioteca"
                     onClick={onLinkClick}
                     className={`hover:text-text-bright transition-colors ${
@@ -188,11 +183,11 @@ function SidebarContent({
                     }`}
                   >
                     todo el catálogo
-                  </a>
+                  </Link>
                 </li>
                 {categorias.map((c) => (
                   <li key={c.categoria}>
-                    <a
+                    <Link
                       href={`/biblioteca?categoria=${encodeURIComponent(c.categoria)}`}
                       onClick={onLinkClick}
                       className={`hover:text-text-bright transition-colors ${
@@ -203,7 +198,7 @@ function SidebarContent({
                     >
                       {c.categoria}{' '}
                       <span className="opacity-50 text-[11px]">({c.libros_count})</span>
-                    </a>
+                    </Link>
                   </li>
                 ))}
               </ul>
