@@ -2,6 +2,7 @@ import Link from 'next/link'
 import { supabase } from '@/lib/supabase'
 import Header from '@/components/Header'
 import Cover from '@/components/Cover'
+import QuickMorralButton from '@/components/QuickMorralButton'
 
 export const dynamic = 'force-dynamic'
 
@@ -15,9 +16,10 @@ type Libro = {
   autor: string | null
   portada_url: string | null
   isbn: string | null
+  disponible: boolean | null
 }
 
-type CategoriaConteo = { nombre: string; total: number }
+type CategoriaConteo = { categoria: string; libros_count: number }
 
 type Counters = {
   libros: number
@@ -26,10 +28,11 @@ type Counters = {
 
 async function getLandingLibros(): Promise<Libro[]> {
   // Mezclado tipo "remix": ordenamos por id (UUID) que es efectivamente aleatorio.
-  // Si después queremos true random, agregar una RPC `random_libros(n)` en Supabase.
+  // Filtramos por has_portada para que el landing se sienta vivo (libros con cover).
   const { data, error } = await supabase
     .from('libros')
-    .select('id, titulo, autor, portada_url, isbn')
+    .select('id, titulo, autor, portada_url, isbn, disponible')
+    .order('has_portada', { ascending: false, nullsFirst: false })
     .order('id', { ascending: false })
     .limit(54)
 
@@ -38,24 +41,11 @@ async function getLandingLibros(): Promise<Libro[]> {
 }
 
 async function getCategorias(): Promise<CategoriaConteo[]> {
-  const { data, error } = await supabase
-    .from('libros')
-    .select('categorias')
-
+  // MISMA fuente que biblioteca sidebar (RPC distinct_categorias) para que
+  // estén siempre sincronizadas.
+  const { data, error } = await supabase.rpc('distinct_categorias')
   if (error || !data) return []
-
-  const counts = new Map<string, number>()
-  for (const row of data) {
-    const cats = (row.categorias ?? []) as string[]
-    for (const cat of cats) {
-      if (!cat) continue
-      counts.set(cat, (counts.get(cat) ?? 0) + 1)
-    }
-  }
-
-  return Array.from(counts.entries())
-    .map(([nombre, total]) => ({ nombre, total }))
-    .sort((a, b) => b.total - a.total) // ordenado por volumen descendente
+  return (data as CategoriaConteo[]).sort((a, b) => b.libros_count - a.libros_count)
 }
 
 async function getCounters(): Promise<Counters> {
@@ -111,26 +101,8 @@ export default async function Home() {
     <>
       <Header />
 
-      {/* ============ CATEGORÍAS EN BOTONES CUADRITOS · full width ============ */}
-      {categorias.length > 0 && (
-        <section className="px-10 pt-10 pb-6 max-md:px-5">
-          <div className="flex flex-wrap gap-2">
-            {categorias.map((cat) => (
-              <Link
-                key={cat.nombre}
-                href={`/biblioteca?categoria=${encodeURIComponent(cat.nombre)}`}
-                className="inline-flex items-baseline gap-2 bg-tinta text-bone border border-tinta rounded-sm px-3 py-1.5 font-micro text-[10px] uppercase tracking-[0.08em] hover:bg-dirty hover:text-tinta transition-colors"
-              >
-                <span>{cat.nombre}</span>
-                <span className="opacity-50 text-[9px]">{cat.total}</span>
-              </Link>
-            ))}
-          </div>
-        </section>
-      )}
-
-      {/* ============ CATÁLOGO HEADER · TÍTULO + COUNTERS · full width ============ */}
-      <section className="px-10 pt-10 pb-6 max-md:px-5 border-t border-rule">
+      {/* ============ CATÁLOGO HEADER · TÍTULO + COUNTERS · primero ============ */}
+      <section className="px-10 pt-10 pb-6 max-md:px-5">
         <div className="flex items-end justify-between flex-wrap gap-6">
           <h2 className="font-sans font-light text-[clamp(28px,3.4vw,48px)] leading-none tracking-[-0.01em] text-text">
             Catálogo
@@ -156,40 +128,82 @@ export default async function Home() {
         </div>
       </section>
 
-      {/* ============ GRID MEZCLADO · 4 columnas fijas ============ */}
-      <section className="relative max-w-4xl mx-auto px-5 pt-6 pb-0">
+      {/* ============ RAYA DIVISORA entre Catálogo y Categorías ============ */}
+      <hr className="border-t border-rule mx-10 max-md:mx-5" />
+
+      {/* ============ CATEGORÍAS EN BOTONES CUADRITOS · después del catálogo ============ */}
+      {categorias.length > 0 && (
+        <section className="px-10 pt-10 pb-10 max-md:px-5">
+          <div className="flex flex-wrap gap-2">
+            {categorias.map((cat) => (
+              <Link
+                key={cat.categoria}
+                href={`/biblioteca?categoria=${encodeURIComponent(cat.categoria)}`}
+                className="inline-flex items-baseline gap-2 bg-tinta text-bone border border-tinta rounded-sm px-3 py-1.5 font-micro text-[10px] uppercase tracking-[0.08em] hover:bg-dirty hover:text-tinta transition-colors"
+              >
+                <span>{cat.categoria}</span>
+                <span className="opacity-50 text-[9px]">{cat.libros_count}</span>
+              </Link>
+            ))}
+          </div>
+        </section>
+      )}
+
+      {/* ============ RAYA DIVISORA full width · separa metadata del catálogo visual ============ */}
+      <hr className="border-t border-rule mx-10 max-md:mx-5" />
+
+      {/* ============ GRID DE 54 LIBROS · Utrecht-style · 4 cols más grandes ============ */}
+      <section className="relative max-w-6xl mx-auto px-5 pt-20 pb-0 max-md:pt-12">
         {total === 0 ? (
           <p className="font-mono text-sm text-text-dim lowercase py-20 text-center">
             sin libros en el catálogo todavía.
           </p>
         ) : (
-          <div className="grid grid-cols-4 gap-x-6 gap-y-10 max-md:grid-cols-2 max-[420px]:grid-cols-1">
+          <div className="grid grid-cols-4 gap-x-10 gap-y-16 max-md:grid-cols-2 max-md:gap-x-6 max-md:gap-y-10 max-[420px]:grid-cols-1">
             {libros.map((libro, i) => {
               const opacity = fadeOpacity(i, total)
               return (
-                <Link
+                <article
                   key={libro.id}
-                  href={`/biblioteca/${libro.id}`}
-                  className="group flex flex-col gap-2 transition-opacity hover:!opacity-100"
+                  className="flex flex-col gap-3 transition-opacity hover:!opacity-100"
                   style={{ opacity }}
                 >
-                  <div className="aspect-[2/3] bg-bg-card flex items-center justify-center text-text-dim text-[11px] overflow-hidden p-2 text-center">
+                  <Link
+                    href={`/biblioteca/${libro.id}`}
+                    className="aspect-[2/3] bg-bg-card flex items-center justify-center text-text-dim text-[10px] overflow-hidden p-2 text-center hover:opacity-90 transition-opacity"
+                  >
                     <Cover
                       titulo={libro.titulo}
                       portada_url={libro.portada_url}
                       isbn={libro.isbn}
                       autor={libro.autor}
                     />
+                  </Link>
+
+                  {/* TÍTULO · siempre 2 líneas reservadas */}
+                  <div className="min-h-[2.6em]">
+                    <Link
+                      href={`/biblioteca/${libro.id}`}
+                      className="font-sans font-medium text-[13px] leading-snug text-text hover:text-text-bright transition-colors line-clamp-2"
+                    >
+                      {libro.titulo}
+                    </Link>
                   </div>
-                  <div className="font-mono uppercase text-[11px] tracking-[0.06em] text-text line-clamp-2 mt-2">
-                    {libro.titulo}
+
+                  {/* AUTOR · siempre 1 línea reservada */}
+                  <div className="min-h-[1.3em]">
+                    {libro.autor && (
+                      <span className="font-sans font-light text-[12px] leading-snug text-text-dim line-clamp-1 block">
+                        {libro.autor}
+                      </span>
+                    )}
                   </div>
-                  {libro.autor && (
-                    <div className="font-micro text-[10px] uppercase tracking-[0.04em] text-text-dim line-clamp-1">
-                      {libro.autor}
-                    </div>
-                  )}
-                </Link>
+
+                  {/* QUICK ADD MORRAL · siempre 1 línea reservada */}
+                  <div className="min-h-[1.3em]">
+                    {libro.disponible && <QuickMorralButton libroId={libro.id} />}
+                  </div>
+                </article>
               )
             })}
           </div>
@@ -209,7 +223,7 @@ export default async function Home() {
       </section>
 
       {/* ============ BOTÓN IR AL CATÁLOGO ============ */}
-      <section className="max-w-4xl mx-auto px-5 py-14 flex justify-center">
+      <section className="max-w-6xl mx-auto px-5 py-14 flex justify-center">
         <Link
           href="/biblioteca"
           className="inline-flex items-center gap-3 bg-invert-bg text-invert-fg font-mono uppercase tracking-[0.12em] text-[12px] px-8 py-4 hover:opacity-90 transition-opacity"
@@ -219,50 +233,66 @@ export default async function Home() {
         </Link>
       </section>
 
-      {/* ============ FOOTER CUADRITO ============ */}
-      <footer className="max-w-4xl mx-auto px-5 pb-16 flex justify-center">
-        <div className="w-full max-w-[380px] border border-rule-strong bg-bg-card p-5 font-micro text-[10px] uppercase tracking-[0.08em] leading-relaxed">
-          <div className="flex justify-between text-text">
-            <span>// tlacuilo</span>
-            <span>2026</span>
-          </div>
-          <div className="flex justify-between text-text">
-            <span>cdmx · coyoacán</span>
-            <span>los comunes</span>
+      {/* ============ FOOTER full width · estilo colofón ============ */}
+      <footer className="border-t border-rule bg-bg-card mt-10 px-10 py-8 max-md:px-5 font-micro text-[10px] uppercase tracking-[0.08em] leading-relaxed text-text">
+        <div className="flex flex-wrap justify-between items-start gap-x-10 gap-y-6">
+
+          {/* Columna 1 · Identidad y lugar */}
+          <div className="flex flex-col gap-1 min-w-[180px]">
+            <div className="flex gap-3"><span>// tlacuilo</span><span className="text-text-dim">2026</span></div>
+            <div>cdmx · coyoacán</div>
+            <div className="text-text-dim">los comunes</div>
+            <div className="text-text-dim mt-2">
+              estudio pedro reyes<br />
+              lun–vie · 10:00–14:30 · 16:00–19:00
+            </div>
           </div>
 
-          <hr className="border-t border-text-dim/40 my-3" />
-
-          <div className="flex flex-col gap-1.5">
+          {/* Columna 2 · Enlaces */}
+          <div className="flex flex-col gap-1.5 min-w-[180px]">
             <a
               href="https://instagram.com/tlacuilobiblioteca"
               target="_blank"
               rel="noreferrer"
-              className="text-text hover:text-text-bright transition-colors"
+              className="hover:text-text-bright transition-colors"
             >
               → @tlacuilobiblioteca
             </a>
-            <Link href="/manifesto" className="text-text hover:text-text-bright transition-colors">
+            <Link href="/manifesto" className="hover:text-text-bright transition-colors">
               → manifesto
             </Link>
-            <a href="#" className="text-text hover:text-text-bright transition-colors">
+            <Link href="/calendario" className="hover:text-text-bright transition-colors">
+              → calendario
+            </Link>
+            <a href="#" className="hover:text-text-bright transition-colors">
               → newsletter
             </a>
-            <a href="#" className="text-text hover:text-text-bright transition-colors">
+            <a href="#" className="hover:text-text-bright transition-colors">
               → booklet (pdf)
             </a>
             <a
               href="mailto:hola@tlacuilo.org"
-              className="text-text hover:text-text-bright transition-colors"
+              className="hover:text-text-bright transition-colors"
             >
               → hola@tlacuilo.org
             </a>
           </div>
 
-          <hr className="border-t border-text-dim/40 my-3" />
+          {/* Columna 3 · Créditos */}
+          <div className="flex flex-col gap-1 min-w-[180px] text-text-dim">
+            <div>diseño + código · marina</div>
+            <div>curaduría · marina · pedro reyes · samm</div>
+            <div className="mt-2">
+              fuentes · jost light · jetbrains mono · dm mono
+            </div>
+            <div>
+              paleta v2 · #6E6BA0 · #9D9BC8 · #15151D · #ECEAF0 · #E8DC4A
+            </div>
+            <div className="mt-2">
+              <span className="text-text">mi cosa es tu cosa.</span>
+            </div>
+          </div>
 
-          <div className="text-text-dim">diseño + código: marina</div>
-          <div className="text-text-dim">curaduría: marina, pedro reyes, samm</div>
         </div>
       </footer>
     </>
