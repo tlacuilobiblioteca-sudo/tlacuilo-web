@@ -71,7 +71,7 @@ export default function ThemeToggle({ className }: { className?: string }) {
           viewBox="0 0 24 24"
           strokeWidth="1.6"
           stroke="currentColor"
-          className="w-[clamp(17px,1.5vw,22px)] h-[clamp(17px,1.5vw,22px)]"
+          className="w-[clamp(14px,1.2vw,18px)] h-[clamp(14px,1.2vw,18px)]"
         >
           <path
             strokeLinecap="round"
@@ -87,7 +87,7 @@ export default function ThemeToggle({ className }: { className?: string }) {
           viewBox="0 0 24 24"
           strokeWidth="1.6"
           stroke="currentColor"
-          className="w-[clamp(17px,1.5vw,22px)] h-[clamp(17px,1.5vw,22px)]"
+          className="w-[clamp(14px,1.2vw,18px)] h-[clamp(14px,1.2vw,18px)]"
         >
           <path
             strokeLinecap="round"

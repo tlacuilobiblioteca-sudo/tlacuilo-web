@@ -7,14 +7,22 @@ import { supabase } from '@/lib/supabase'
 import type { User } from '@supabase/supabase-js'
 import ThemeToggle from './ThemeToggle'
 
+type HeaderProps = {
+  /** Si true, oculta la banda de 6 categorías. Útil para páginas interiores
+      (biblioteca, buscar, etc.) que ya tienen sidebar propia. */
+  slim?: boolean
+}
+
 /**
- * Header de Tlacuilo · 2 bandas
+ * Header de Tlacuilo · 2 bandas (sticky)
  *
  * BANDA 1 (top): logo + search bar input + MI TLACUILO + ThemeToggle
  * BANDA 2 (nav, periwinkle bg): 6 categorías centradas
  *   BIBLIOTECA / ARTOTECA / FONOTECA / MANIFESTO / CALENDARIO / EDITORIAL
+ *
+ * Con slim=true solo se muestra BANDA 1.
  */
-export default function Header() {
+export default function Header({ slim = false }: HeaderProps) {
   const [user, setUser] = useState<User | null>(null)
   const [q, setQ] = useState('')
   const router = useRouter()
@@ -67,24 +75,26 @@ export default function Header() {
         </form>
 
         <div className="flex items-center gap-5 shrink-0">
+          <ThemeToggle />
           <Link href={miTlacuiloHref} className="font-mono text-[clamp(11px,1.05vw,14px)] tracking-[0.12em] uppercase text-text hover:text-text-bright transition-colors">
             MI TLACUILO
           </Link>
-          <ThemeToggle />
         </div>
       </div>
 
       {/* ============ BANDA 2 · 6 CATEGORÍAS CENTRADAS (periwinkle bg) ============ */}
-      <nav className="bg-periwinkle border-y border-tinta py-3 px-10 max-md:px-5">
-        <div className="flex flex-wrap items-center justify-center gap-x-[clamp(20px,3.5vw,56px)] gap-y-2">
-          <Link href="/biblioteca" className={navLinkClass}>BIBLIOTECA</Link>
-          <a href="#" className={navLinkClass}>ARTOTECA</a>
-          <a href="#" className={navLinkClass}>FONOTECA</a>
-          <Link href="/manifesto" className={navLinkClass}>MANIFESTO</Link>
-          <Link href="/calendario" className={navLinkClass}>CALENDARIO</Link>
-          <a href="#" className={navLinkClass}>EDITORIAL</a>
-        </div>
-      </nav>
+      {!slim && (
+        <nav className="bg-periwinkle border-y border-tinta py-3 px-10 max-md:px-5">
+          <div className="flex flex-wrap items-center justify-center gap-x-[clamp(20px,3.5vw,56px)] gap-y-2">
+            <Link href="/biblioteca" className={navLinkClass}>BIBLIOTECA</Link>
+            <a href="#" className={navLinkClass}>ARTOTECA</a>
+            <a href="#" className={navLinkClass}>FONOTECA</a>
+            <Link href="/manifesto" className={navLinkClass}>MANIFESTO</Link>
+            <Link href="/calendario" className={navLinkClass}>CALENDARIO</Link>
+            <a href="#" className={navLinkClass}>EDITORIAL</a>
+          </div>
+        </nav>
+      )}
     </header>
   )
 }

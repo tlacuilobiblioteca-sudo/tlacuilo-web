@@ -8,6 +8,14 @@ export const dynamic = 'force-dynamic'
 
 const PAGE_SIZE = 27
 
+type Categoria = { categoria: string; libros_count: number }
+
+async function getCategorias(): Promise<Categoria[]> {
+  const { data, error } = await supabase.rpc('distinct_categorias')
+  if (error || !data) return []
+  return data as Categoria[]
+}
+
 export default async function BibliotecaPage({
   searchParams,
 }: {
@@ -30,7 +38,10 @@ export default async function BibliotecaPage({
     query = query.contains('categorias', [categoria])
   }
 
-  const { data: libros, count, error } = await query
+  const [{ data: libros, count, error }, categorias] = await Promise.all([
+    query,
+    getCategorias(),
+  ])
 
   const total = count ?? 0
   const totalPages = Math.max(1, Math.ceil(total / PAGE_SIZE))
@@ -45,7 +56,7 @@ export default async function BibliotecaPage({
   }
 
   return (
-    <TecaLayout>
+    <TecaLayout initialCategorias={categorias}>
       <section className="px-8 pt-6 pb-6 max-w-7xl mx-auto uppercase tracking-wide opacity-70 text-[clamp(10px,0.8vw,13px)] font-mono">
         {categoria ? categoria + ' · ' : ''}
         Página {page} de {totalPages} · {total.toLocaleString('es-MX')} libros
