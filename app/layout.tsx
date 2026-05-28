@@ -29,6 +29,22 @@ export const metadata: Metadata = {
   title: "Tlacuilo · activación de bibliotecas",
   description:
     "Sistema de préstamo de objetos físicos. Libros, vinilos, arte. CDMX, los comunes.",
+  appleWebApp: {
+    capable: true,
+    statusBarStyle: "black-translucent",
+    title: "Tlacuilo",
+  },
+  formatDetection: {
+    telephone: false,
+  },
+};
+
+export const viewport = {
+  themeColor: "#15151D",
+  width: "device-width",
+  initialScale: 1,
+  maximumScale: 1,
+  userScalable: false,
 };
 
 export default function RootLayout({
