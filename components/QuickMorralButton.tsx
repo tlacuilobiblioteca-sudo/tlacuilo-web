@@ -87,7 +87,7 @@ export default function QuickMorralButton({ libroId }: Props) {
       type="button"
       onClick={handleClick}
       disabled={working}
-      className={`font-mono text-[11px] lowercase tracking-wider mt-2 self-start transition-colors disabled:opacity-50 ${
+      className={`font-mono text-[14px] lowercase tracking-wider mt-2 self-start transition-colors disabled:opacity-50 ${
         inMorral
           ? 'text-text-bright hover:text-loan'
           : 'text-text-dim hover:text-text-bright'

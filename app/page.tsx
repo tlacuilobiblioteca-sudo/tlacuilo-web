@@ -159,7 +159,7 @@ export default async function Home() {
             sin libros en el catálogo todavía.
           </p>
         ) : (
-          <div className="grid grid-cols-4 gap-x-10 gap-y-16 max-md:grid-cols-2 max-md:gap-x-6 max-md:gap-y-10 max-[420px]:grid-cols-1">
+          <div className="grid grid-cols-3 gap-x-12 gap-y-20 max-md:grid-cols-2 max-md:gap-x-6 max-md:gap-y-12 max-[420px]:grid-cols-1">
             {libros.map((libro, i) => {
               const opacity = fadeOpacity(i, total)
               return (
@@ -184,7 +184,7 @@ export default async function Home() {
                   <div className="min-h-[2.6em]">
                     <Link
                       href={`/biblioteca/${libro.id}`}
-                      className="font-sans font-medium text-[13px] leading-snug text-text hover:text-text-bright transition-colors line-clamp-2"
+                      className="font-sans font-medium text-[19px] leading-snug text-text hover:text-text-bright transition-colors line-clamp-2"
                     >
                       {libro.titulo}
                     </Link>
@@ -193,7 +193,7 @@ export default async function Home() {
                   {/* AUTOR · siempre 1 línea reservada */}
                   <div className="min-h-[1.3em]">
                     {libro.autor && (
-                      <span className="font-sans font-light text-[12px] leading-snug text-text-dim line-clamp-1 block">
+                      <span className="font-sans font-light text-[16px] leading-snug text-text-dim line-clamp-1 block">
                         {libro.autor}
                       </span>
                     )}
