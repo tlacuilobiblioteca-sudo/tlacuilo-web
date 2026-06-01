@@ -125,7 +125,7 @@ export default async function VideotecaPage({
       </section>
 
       {totalPages > 1 && (
-        <section className="px-8 pb-16 max-w-7xl mx-auto flex justify-between items-center uppercase tracking-wide text-[clamp(11px,0.95vw,15px)] gap-4 flex-wrap">
+        <section className="px-8 pb-8 max-w-7xl mx-auto flex justify-between items-center uppercase tracking-wide text-[clamp(11px,0.95vw,15px)] gap-4 flex-wrap">
           {hasPrev ? (
             <a href={buildUrl(page - 1)} className="hover:underline">
               ← Página anterior
@@ -145,6 +145,22 @@ export default async function VideotecaPage({
           )}
         </section>
       )}
+
+      {/* ============ TMDB ATTRIBUTION · requerida por terms ============ */}
+      <section className="px-8 pb-16 max-w-7xl mx-auto border-t border-rule pt-6 flex items-center gap-3">
+        <span className="font-micro text-[10px] uppercase tracking-[0.08em] text-text-dim">
+          metadata de películas vía
+        </span>
+        <a
+          href="https://www.themoviedb.org/"
+          target="_blank"
+          rel="noreferrer"
+          className="inline-block hover:opacity-70 transition-opacity"
+          aria-label="The Movie Database"
+        >
+          <img src="/tmdb-logo.svg" alt="TMDB" className="h-4 w-auto" />
+        </a>
+      </section>
     </TecaLayout>
   )
 }

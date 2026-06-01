@@ -161,6 +161,50 @@ export default function AdminLibrosPage() {
     setSearchingApi(false)
   }
 
+  /* TMDB para movies (VHS, DVD, Blu-ray). API key v3, read-only.
+     Configura NEXT_PUBLIC_TMDB_API_KEY en .env.local y en Vercel env vars.
+     Atribución requerida: el logo aparece en el footer de /videoteca. */
+  async function buscarEnTmdb() {
+    if (!newTitulo.trim()) {
+      setApiMsg('> escribe al menos un título primero')
+      return
+    }
+    const apiKey = process.env.NEXT_PUBLIC_TMDB_API_KEY
+    if (!apiKey) {
+      setApiMsg('> falta configurar NEXT_PUBLIC_TMDB_API_KEY en env vars')
+      return
+    }
+    setSearchingApi(true)
+    setApiMsg(null)
+    try {
+      const params = new URLSearchParams({
+        api_key: apiKey,
+        query: newTitulo,
+        language: 'es-MX',
+        include_adult: 'false',
+      })
+      const res = await fetch(`https://api.themoviedb.org/3/search/movie?${params}`)
+      const data = await res.json()
+      if (data.results && data.results.length > 0) {
+        const m = data.results[0]
+        if (!newAutor.trim() && m.original_title && m.original_title !== m.title) {
+          // Para movies, el "autor" es ambiguo. Si no hay autor, dejamos vacío.
+          // Si quieres director, requiere una segunda llamada a /movie/{id}/credits.
+        }
+        if (m.release_date) setNewAnio(m.release_date.substring(0, 4))
+        if (m.poster_path) setNewPortadaUrl(`https://image.tmdb.org/t/p/w500${m.poster_path}`)
+        if (m.overview && !newDescripcion.trim()) setNewDescripcion(m.overview)
+        // El título lo mantenemos editable; si el match no es perfecto, marina/samm lo corrigen
+        setApiMsg(`> ${data.results.length} resultados · usando "${m.title}" (${m.release_date?.substring(0, 4) ?? 's/f'}) ✓`)
+      } else {
+        setApiMsg('> sin resultados en tmdb')
+      }
+    } catch (e) {
+      setApiMsg('> error consultando tmdb · revisa la api key')
+    }
+    setSearchingApi(false)
+  }
+
   function resetNewForm() {
     setNewTeca('biblioteca')
     setNewFormato('')
@@ -795,14 +839,25 @@ export default function AdminLibrosPage() {
                 </label>
 
                 <div className="flex items-center gap-3 mt-1 flex-wrap">
-                  <button
-                    type="button"
-                    onClick={buscarEnApi}
-                    disabled={searchingApi || !newTitulo.trim()}
-                    className="px-3 py-2 border border-rule hover:border-rule-strong disabled:opacity-40 uppercase tracking-wider"
-                  >
-                    {searchingApi ? 'buscando...' : '⌕ autorrellenar con open library'}
-                  </button>
+                  {newTeca === 'videoteca' ? (
+                    <button
+                      type="button"
+                      onClick={buscarEnTmdb}
+                      disabled={searchingApi || !newTitulo.trim()}
+                      className="px-3 py-2 border border-rule hover:border-rule-strong disabled:opacity-40 uppercase tracking-wider"
+                    >
+                      {searchingApi ? 'buscando...' : '⌕ autorrellenar con tmdb'}
+                    </button>
+                  ) : (
+                    <button
+                      type="button"
+                      onClick={buscarEnApi}
+                      disabled={searchingApi || !newTitulo.trim()}
+                      className="px-3 py-2 border border-rule hover:border-rule-strong disabled:opacity-40 uppercase tracking-wider"
+                    >
+                      {searchingApi ? 'buscando...' : '⌕ autorrellenar con open library'}
+                    </button>
+                  )}
                   {apiMsg && <span className="opacity-70">{apiMsg}</span>}
                 </div>
 
