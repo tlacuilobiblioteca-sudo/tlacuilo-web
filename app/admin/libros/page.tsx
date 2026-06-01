@@ -68,6 +68,8 @@ export default function AdminLibrosPage() {
   }, [editingLibro])
 
   const [showAdd, setShowAdd] = useState(false)
+  const [newTeca, setNewTeca] = useState<'biblioteca' | 'artoteca' | 'fonoteca' | 'videoteca' | 'editorial'>('biblioteca')
+  const [newFormato, setNewFormato] = useState('')
   const [newTitulo, setNewTitulo] = useState('')
   const [newAutor, setNewAutor] = useState('')
   const [newAnio, setNewAnio] = useState<string>('')
@@ -160,6 +162,8 @@ export default function AdminLibrosPage() {
   }
 
   function resetNewForm() {
+    setNewTeca('biblioteca')
+    setNewFormato('')
     setNewTitulo('')
     setNewAutor('')
     setNewAnio('')
@@ -181,7 +185,9 @@ export default function AdminLibrosPage() {
       titulo: newTitulo.trim(),
       autor: newAutor.trim(),
       edicion_especial: newEspecial,
+      teca: newTeca,
     }
+    if (newFormato.trim()) payload.formato = newFormato.trim()
     if (newAnio) payload.anio = parseInt(newAnio, 10)
     if (newIsbn.trim()) payload.isbn = newIsbn.trim()
     if (newCategorias.trim()) {
@@ -726,19 +732,55 @@ export default function AdminLibrosPage() {
               className="bg-bg-card border border-tinta max-w-xl w-full p-6 font-mono my-8 shadow-2xl"
               onClick={(e) => e.stopPropagation()}
             >
-              <p className="text-xs uppercase tracking-wider opacity-60 mb-1">
-                &gt; nuevo libro
+              <p className="font-micro text-[11px] uppercase tracking-[0.12em] text-dirty mb-1">
+                nuevo item
               </p>
-              <h2 className="font-mono uppercase tracking-wide text-text-bright text-lg mb-4">
-                Agregar libro
+              <h2 className="font-sans font-light text-[clamp(20px,2.2vw,28px)] tracking-[-0.005em] text-text mb-5">
+                Agregar al catálogo
               </h2>
 
               <div className="flex flex-col gap-3 text-xs">
+                {/* SELECTOR DE TECA · obligatorio antes que nada */}
+                <div className="flex flex-col gap-2 pb-3 border-b border-rule">
+                  <span className="font-micro text-[10px] uppercase tracking-[0.08em] text-text-dim">¿a qué teca va este item? *</span>
+                  <div className="flex flex-wrap gap-2">
+                    {(['biblioteca', 'artoteca', 'fonoteca', 'videoteca', 'editorial'] as const).map((t) => (
+                      <button
+                        key={t}
+                        type="button"
+                        onClick={() => setNewTeca(t)}
+                        className={`inline-flex items-center border border-tinta rounded-sm px-3 py-1.5 font-micro text-[10px] uppercase tracking-[0.08em] transition-colors ${
+                          newTeca === t
+                            ? 'bg-dirty text-tinta'
+                            : 'bg-tinta text-bone hover:bg-dirty hover:text-tinta'
+                        }`}
+                      >
+                        {t}
+                      </button>
+                    ))}
+                  </div>
+                  {newTeca === 'videoteca' && (
+                    <p className="font-micro text-[10px] text-text-dim mt-1 lowercase">
+                      tip: para videoteca puedes poner el formato (vhs, dvd, bluray, 16mm) en el campo de abajo.
+                    </p>
+                  )}
+                </div>
+
                 <label className="flex flex-col gap-1">
                   <span className="opacity-70 uppercase tracking-wider">título *</span>
                   <input
                     value={newTitulo}
                     onChange={(e) => setNewTitulo(e.target.value)}
+                    className="bg-bg-soft border border-rule focus:border-rule-strong focus:outline-none px-3 py-2 text-text-bright"
+                  />
+                </label>
+
+                <label className="flex flex-col gap-1">
+                  <span className="opacity-70 uppercase tracking-wider">formato (vhs, dvd, lp, cassette, etc.)</span>
+                  <input
+                    value={newFormato}
+                    onChange={(e) => setNewFormato(e.target.value)}
+                    placeholder={newTeca === 'videoteca' ? 'vhs, dvd, bluray, 16mm...' : newTeca === 'fonoteca' ? 'lp, ep, cassette, cd...' : 'opcional'}
                     className="bg-bg-soft border border-rule focus:border-rule-strong focus:outline-none px-3 py-2 text-text-bright"
                   />
                 </label>

@@ -30,6 +30,7 @@ export default async function BibliotecaPage({
   let query = supabase
     .from('libros')
     .select('id, titulo, autor, anio, portada_url, disponible, isbn', { count: 'exact' })
+    .eq('teca', 'biblioteca')
     .order('has_portada', { ascending: false, nullsFirst: false })
     .order('titulo', { ascending: true, nullsFirst: false })
     .range(from, to)

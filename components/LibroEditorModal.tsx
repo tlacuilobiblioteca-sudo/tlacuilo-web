@@ -14,6 +14,8 @@ import { supabase } from '@/lib/supabase'
      (landing, biblioteca, etc.) vuelva a fetchear data fresca
    ============================================================ */
 
+type Teca = 'biblioteca' | 'artoteca' | 'fonoteca' | 'videoteca' | 'editorial'
+
 type Libro = {
   id: string
   titulo: string
@@ -26,9 +28,12 @@ type Libro = {
   edicion_especial: boolean
   disponible: boolean
   motivo: string | null
+  teca: Teca
+  formato: string | null
 }
 
 export const MOTIVOS_PRESET = ['solo consulta', 'reparación', 'estudio', 'archivado']
+const TECAS_OPCIONES: Teca[] = ['biblioteca', 'artoteca', 'fonoteca', 'videoteca', 'editorial']
 
 type Props = {
   libroId: string
@@ -47,6 +52,8 @@ export default function LibroEditorModal({ libroId, onClose }: Props) {
   const [editIsbn, setEditIsbn] = useState('')
   const [editCategorias, setEditCategorias] = useState('')
   const [editDescripcion, setEditDescripcion] = useState('')
+  const [editTeca, setEditTeca] = useState<Teca>('biblioteca')
+  const [editFormato, setEditFormato] = useState('')
 
   // UI state
   const [uploading, setUploading] = useState(false)
@@ -61,7 +68,7 @@ export default function LibroEditorModal({ libroId, onClose }: Props) {
     const load = async () => {
       const { data, error } = await supabase
         .from('libros')
-        .select('id, titulo, autor, anio, isbn, portada_url, categorias, descripcion, edicion_especial, disponible, motivo')
+        .select('id, titulo, autor, anio, isbn, portada_url, categorias, descripcion, edicion_especial, disponible, motivo, teca, formato')
         .eq('id', libroId)
         .single<Libro>()
       if (cancelled) return
@@ -76,6 +83,8 @@ export default function LibroEditorModal({ libroId, onClose }: Props) {
       setEditIsbn(data.isbn ?? '')
       setEditCategorias((data.categorias ?? []).join(', '))
       setEditDescripcion(data.descripcion ?? '')
+      setEditTeca(data.teca ?? 'biblioteca')
+      setEditFormato(data.formato ?? '')
     }
     load()
     return () => { cancelled = true }
@@ -197,6 +206,8 @@ export default function LibroEditorModal({ libroId, onClose }: Props) {
       isbn: editIsbn.trim() || null,
       categorias: cats.length > 0 ? cats : null,
       descripcion: editDescripcion.trim() || null,
+      teca: editTeca,
+      formato: editFormato.trim() || null,
     }
     const { error } = await supabase
       .from('libros')
@@ -312,11 +323,42 @@ export default function LibroEditorModal({ libroId, onClose }: Props) {
 
           {/* CAMPOS EDITABLES */}
           <div className="flex flex-col gap-3">
+            {/* TECA selector · siempre arriba para que se vea claro */}
+            <div className="flex flex-col gap-2 pb-3 border-b border-rule">
+              <span className="font-micro text-[10px] uppercase tracking-[0.08em] text-text-dim">teca</span>
+              <div className="flex flex-wrap gap-2">
+                {TECAS_OPCIONES.map((t) => (
+                  <button
+                    key={t}
+                    type="button"
+                    onClick={() => setEditTeca(t)}
+                    className={`inline-flex items-center border border-tinta rounded-sm px-3 py-1.5 font-micro text-[10px] uppercase tracking-[0.08em] transition-colors ${
+                      editTeca === t
+                        ? 'bg-dirty text-tinta'
+                        : 'bg-tinta text-bone hover:bg-dirty hover:text-tinta'
+                    }`}
+                  >
+                    {t}
+                  </button>
+                ))}
+              </div>
+            </div>
+
             <label className="flex flex-col gap-1">
               <span className="font-micro text-[10px] uppercase tracking-[0.08em] text-text-dim">título *</span>
               <input
                 value={editTitulo}
                 onChange={(e) => setEditTitulo(e.target.value)}
+                className="bg-bone text-tinta border border-tinta px-3 py-2 font-mono text-[13px] outline-none focus:border-text-bright"
+              />
+            </label>
+
+            <label className="flex flex-col gap-1">
+              <span className="font-micro text-[10px] uppercase tracking-[0.08em] text-text-dim">formato (vhs, dvd, lp, cassette, etc.)</span>
+              <input
+                value={editFormato}
+                onChange={(e) => setEditFormato(e.target.value)}
+                placeholder={editTeca === 'videoteca' ? 'vhs, dvd, bluray, 16mm...' : editTeca === 'fonoteca' ? 'lp, ep, cassette, cd...' : 'opcional'}
                 className="bg-bone text-tinta border border-tinta px-3 py-2 font-mono text-[13px] outline-none focus:border-text-bright"
               />
             </label>

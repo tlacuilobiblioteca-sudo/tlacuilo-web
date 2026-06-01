@@ -12,6 +12,7 @@ const TECAS = [
   { slug: 'biblioteca', label: 'Biblioteca', href: '/biblioteca', enabled: true },
   { slug: 'artoteca', label: 'Artoteca', href: '#', enabled: false },
   { slug: 'fonoteca', label: 'Fonoteca', href: '#', enabled: false },
+  { slug: 'videoteca', label: 'Videoteca', href: '/videoteca', enabled: true },
   { slug: 'editorial', label: 'Editorial', href: '#', enabled: false },
 ] as const
 

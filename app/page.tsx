@@ -265,7 +265,7 @@ export default async function Home() {
               → @tlacuilobiblioteca
             </a>
             <Link href="/manifesto" className="hover:text-text-bright transition-colors">
-              → manifesto
+              → manifiesto
             </Link>
             <Link href="/calendario" className="hover:text-text-bright transition-colors">
               → calendario

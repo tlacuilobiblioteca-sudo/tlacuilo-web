@@ -18,7 +18,7 @@ type HeaderProps = {
  *
  * BANDA 1 (top): logo + search bar input + MI TLACUILO + ThemeToggle
  * BANDA 2 (nav, periwinkle bg): 6 categorías centradas
- *   BIBLIOTECA / ARTOTECA / FONOTECA / MANIFESTO / CALENDARIO / EDITORIAL
+ *   BIBLIOTECA / ARTOTECA / FONOTECA / VIDEOTECA / MANIFIESTO / CALENDARIO / EDITORIAL
  *
  * Con slim=true solo se muestra BANDA 1.
  */
@@ -89,7 +89,8 @@ export default function Header({ slim = false }: HeaderProps) {
             <Link href="/biblioteca" className={navLinkClass}>BIBLIOTECA</Link>
             <a href="#" className={navLinkClass}>ARTOTECA</a>
             <a href="#" className={navLinkClass}>FONOTECA</a>
-            <Link href="/manifesto" className={navLinkClass}>MANIFESTO</Link>
+            <Link href="/videoteca" className={navLinkClass}>VIDEOTECA</Link>
+            <Link href="/manifesto" className={navLinkClass}>MANIFIESTO</Link>
             <Link href="/calendario" className={navLinkClass}>CALENDARIO</Link>
             <a href="#" className={navLinkClass}>EDITORIAL</a>
           </div>
