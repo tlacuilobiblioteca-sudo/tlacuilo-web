@@ -1,6 +1,6 @@
 import { supabase } from '@/lib/supabase'
 import TecaLayout from '@/components/TecaLayout'
-import Cover from '@/components/Cover'
+import ArtCover from '@/components/ArtCover'
 import PageSelector from '@/components/PageSelector'
 import QuickMorralButton from '@/components/QuickMorralButton'
 import AdminEditButton from '@/components/AdminEditButton'
@@ -9,42 +9,46 @@ export const dynamic = 'force-dynamic'
 
 const PAGE_SIZE = 27
 
-type Decada = { decada: number; libros_count: number }
+type Artista = { artista: string; libros_count: number }
 
-async function getDecadas(): Promise<Decada[]> {
-  const { data, error } = await supabase.rpc('distinct_decadas_videoteca')
+async function getArtistas(): Promise<Artista[]> {
+  const { data, error } = await supabase.rpc('distinct_artistas_artoteca')
   if (error || !data) return []
-  return data as Decada[]
+  return data as Artista[]
 }
 
-export default async function VideotecaPage({
+export default async function ArtotecaPage({
   searchParams,
 }: {
-  searchParams: Promise<{ page?: string; decada?: string }>
+  searchParams: Promise<{ page?: string; artista?: string }>
 }) {
   const params = await searchParams
   const page = Math.max(1, parseInt(params.page ?? '1', 10) || 1)
-  const decadaParam = params.decada
-  const decadaInt = decadaParam ? parseInt(decadaParam, 10) : null
+  const artistaParam = params.artista
   const from = (page - 1) * PAGE_SIZE
   const to = from + PAGE_SIZE - 1
 
   let query = supabase
     .from('libros')
-    .select('id, titulo, autor, anio, portada_url, disponible, isbn, formato', { count: 'exact' })
-    .eq('teca', 'videoteca')
+    .select('id, titulo, autor, anio, portada_url, disponible, isbn, formato, descripcion', { count: 'exact' })
+    .eq('teca', 'artoteca')
     .order('has_portada', { ascending: false, nullsFirst: false })
+    .order('autor', { ascending: true, nullsFirst: false })
     .order('anio', { ascending: true, nullsFirst: false })
     .order('titulo', { ascending: true, nullsFirst: false })
     .range(from, to)
 
-  if (decadaInt !== null && !Number.isNaN(decadaInt)) {
-    query = query.gte('anio', decadaInt).lt('anio', decadaInt + 10)
+  if (artistaParam) {
+    if (artistaParam === 'Anónimo') {
+      query = query.is('autor', null)
+    } else {
+      query = query.eq('autor', artistaParam)
+    }
   }
 
-  const [{ data: items, count, error }, decadas] = await Promise.all([
+  const [{ data: items, count, error }, artistas] = await Promise.all([
     query,
-    getDecadas(),
+    getArtistas(),
   ])
 
   const total = count ?? 0
@@ -55,17 +59,15 @@ export default async function VideotecaPage({
   const buildUrl = (p: number) => {
     const sp = new URLSearchParams()
     sp.set('page', String(p))
-    if (decadaParam) sp.set('decada', decadaParam)
-    return '/videoteca?' + sp.toString()
+    if (artistaParam) sp.set('artista', artistaParam)
+    return '/artoteca?' + sp.toString()
   }
 
-  const decadaLabel = decadaInt !== null && !Number.isNaN(decadaInt) ? `${decadaInt}s` : null
-
   return (
-    <TecaLayout initialDecadas={decadas}>
+    <TecaLayout initialArtistas={artistas}>
       <section className="px-8 pt-6 pb-6 max-w-7xl mx-auto uppercase tracking-wide opacity-70 text-[clamp(10px,0.8vw,13px)] font-mono">
-        videoteca · {decadaLabel ? decadaLabel + ' · ' : ''}
-        Página {page} de {totalPages} · {total.toLocaleString('es-MX')} {total === 1 ? 'item' : 'items'}
+        artoteca · {artistaParam ? artistaParam + ' · ' : ''}
+        Página {page} de {totalPages} · {total.toLocaleString('es-MX')} {total === 1 ? 'pieza' : 'piezas'}
       </section>
 
       <section className="px-8 pb-12 max-w-7xl mx-auto">
@@ -75,20 +77,12 @@ export default async function VideotecaPage({
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-x-8 gap-y-10">
             {items.map((item) => (
               <article key={item.id} className="flex gap-5 items-start opacity-95 hover:opacity-100 transition relative">
-                {/* Botón editar siempre visible para admins (AdminEditButton se oculta solo a no-editores) */}
                 <div className="absolute top-0 right-0 z-10">
                   <AdminEditButton libroId={item.id} />
                 </div>
 
-                <a href={'/biblioteca/' + item.id} className="w-[clamp(96px,14vw,200px)] flex-shrink-0 block">
-                  <div className="aspect-[2/3] bg-bg-soft flex items-center justify-center text-text-dim p-2 text-center overflow-hidden text-[clamp(9px,0.85vw,13px)]">
-                    <Cover
-                      titulo={item.titulo}
-                      portada_url={item.portada_url}
-                      isbn={item.isbn}
-                      autor={item.autor}
-                    />
-                  </div>
+                <a href={'/biblioteca/' + item.id} className="w-[clamp(96px,14vw,200px)] flex-shrink-0 block self-start">
+                  <ArtCover titulo={item.titulo} portada_url={item.portada_url} />
                 </a>
 
                 <div className="flex flex-col flex-1 min-w-0 text-[clamp(11px,0.95vw,15px)]">
@@ -102,6 +96,11 @@ export default async function VideotecaPage({
                     {item.anio ?? ''}
                     {item.formato && <span className="ml-2 font-micro uppercase tracking-wider text-[10px]">· {item.formato}</span>}
                   </p>
+                  {item.descripcion && (
+                    <p className="opacity-50 text-[clamp(10px,0.8vw,12px)] mt-1 line-clamp-2">
+                      {item.descripcion}
+                    </p>
+                  )}
                   <span
                     className={`mt-2 rounded-full w-[clamp(8px,0.7vw,14px)] h-[clamp(8px,0.7vw,14px)] ${
                       item.disponible ? 'bg-available' : 'bg-loan'
@@ -116,10 +115,7 @@ export default async function VideotecaPage({
         ) : (
           <div className="border border-rule p-10 text-center">
             <p className="font-mono text-sm text-text-dim mb-3 lowercase">
-              sin items en videoteca todavía.
-            </p>
-            <p className="font-mono text-[11px] text-text-faint lowercase">
-              los admins pueden agregar VHS, DVD, Blu-ray, 16mm desde /admin/libros.
+              sin piezas en artoteca todavía.
             </p>
           </div>
         )}
@@ -135,7 +131,7 @@ export default async function VideotecaPage({
             <span className="opacity-30">← Página anterior</span>
           )}
 
-          <PageSelector currentPage={page} totalPages={totalPages} basePath="/videoteca" filterParam="decada" filterValue={decadaParam} />
+          <PageSelector currentPage={page} totalPages={totalPages} basePath="/artoteca" filterParam="artista" filterValue={artistaParam} />
 
           {hasNext ? (
             <a href={buildUrl(page + 1)} className="hover:underline">
@@ -147,20 +143,15 @@ export default async function VideotecaPage({
         </section>
       )}
 
-      {/* ============ TMDB ATTRIBUTION · requerida por terms ============ */}
-      <section className="px-8 pb-16 max-w-7xl mx-auto border-t border-rule pt-6 flex items-center gap-3">
-        <span className="font-micro text-[10px] uppercase tracking-[0.08em] text-text-dim">
-          metadata de películas vía
-        </span>
-        <a
-          href="https://www.themoviedb.org/"
-          target="_blank"
-          rel="noreferrer"
-          className="inline-block hover:opacity-70 transition-opacity"
-          aria-label="The Movie Database"
-        >
-          <img src="/tmdb-logo.svg" alt="TMDB" className="h-4 w-auto" />
-        </a>
+      {/* ============ ATRIBUCIÓN MACG ============ */}
+      <section className="px-8 pb-16 max-w-7xl mx-auto border-t border-rule pt-6">
+        <p className="font-micro text-[10px] uppercase tracking-[0.08em] text-text-dim">
+          Catálogo de obra basado en la colección Artoteca Tlacuilo MACG. Donación inicial de Pedro Reyes en 2021,
+          incrementada por la generosidad de otrxs artistas. Más información en{' '}
+          <a href="https://museodeartecarrillogil.inba.gob.mx/artoteca-tlacuilo-macg/" target="_blank" rel="noreferrer" className="underline hover:text-text">
+            museo de arte carrillo gil
+          </a>.
+        </p>
       </section>
     </TecaLayout>
   )

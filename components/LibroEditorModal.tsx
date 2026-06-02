@@ -244,7 +244,11 @@ export default function LibroEditorModal({ libroId, onClose }: Props) {
         <div className="flex items-start justify-between mb-5">
           <div>
             <p className="font-micro text-[11px] uppercase tracking-[0.12em] text-dirty mb-1">
-              editando libro
+              {editTeca === 'artoteca' ? 'editando pieza' :
+               editTeca === 'videoteca' ? 'editando película' :
+               editTeca === 'fonoteca' ? 'editando disco' :
+               editTeca === 'editorial' ? 'editando edición' :
+               'editando libro'}
             </p>
             <h2 className="font-sans font-light text-[clamp(20px,2.2vw,28px)] tracking-[-0.005em] text-text leading-tight">
               {libro.titulo}
@@ -354,11 +358,24 @@ export default function LibroEditorModal({ libroId, onClose }: Props) {
             </label>
 
             <label className="flex flex-col gap-1">
-              <span className="font-micro text-[10px] uppercase tracking-[0.08em] text-text-dim">formato (vhs, dvd, lp, cassette, etc.)</span>
+              <span className="font-micro text-[10px] uppercase tracking-[0.08em] text-text-dim">
+                {editTeca === 'artoteca'
+                  ? 'técnica / material (litografía, grabado, óleo, etc.)'
+                  : editTeca === 'videoteca'
+                  ? 'formato (vhs, dvd, blu-ray, 16mm, etc.)'
+                  : editTeca === 'fonoteca'
+                  ? 'formato (lp, ep, cassette, cd, etc.)'
+                  : 'formato (opcional)'}
+              </span>
               <input
                 value={editFormato}
                 onChange={(e) => setEditFormato(e.target.value)}
-                placeholder={editTeca === 'videoteca' ? 'vhs, dvd, bluray, 16mm...' : editTeca === 'fonoteca' ? 'lp, ep, cassette, cd...' : 'opcional'}
+                placeholder={
+                  editTeca === 'videoteca' ? 'vhs, dvd, bluray, 16mm...'
+                  : editTeca === 'fonoteca' ? 'lp, ep, cassette, cd...'
+                  : editTeca === 'artoteca' ? 'litografía, grabado, técnica mixta, fotografía...'
+                  : 'opcional'
+                }
                 className="bg-bone text-tinta border border-tinta px-3 py-2 font-mono text-[13px] outline-none focus:border-text-bright"
               />
             </label>

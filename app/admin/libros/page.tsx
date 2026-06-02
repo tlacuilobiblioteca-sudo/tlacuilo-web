@@ -147,11 +147,14 @@ export default function AdminLibrosPage() {
       const data = await res.json()
       if (data.docs && data.docs.length > 0) {
         const d = data.docs[0]
+        // Solo llena campos vacíos · NUNCA sobreescribe lo que ya pusiste manualmente
         if (!newAutor.trim() && d.author_name?.[0]) setNewAutor(d.author_name[0])
-        if (d.first_publish_year) setNewAnio(String(d.first_publish_year))
-        if (d.isbn?.[0]) setNewIsbn(d.isbn[0])
-        if (d.cover_i) setNewPortadaUrl(`https://covers.openlibrary.org/b/id/${d.cover_i}-L.jpg`)
-        setApiMsg('> datos rellenados desde open library ✓')
+        if (!newAnio.trim() && d.first_publish_year) setNewAnio(String(d.first_publish_year))
+        if (!newIsbn.trim() && d.isbn?.[0]) setNewIsbn(d.isbn[0])
+        if (!newPortadaUrl.trim() && d.cover_i) {
+          setNewPortadaUrl(`https://covers.openlibrary.org/b/id/${d.cover_i}-L.jpg`)
+        }
+        setApiMsg('> campos vacíos rellenados desde open library ✓')
       } else {
         setApiMsg('> sin resultados en open library')
       }
@@ -163,7 +166,12 @@ export default function AdminLibrosPage() {
 
   /* TMDB para movies (VHS, DVD, Blu-ray). API key v3, read-only.
      Configura NEXT_PUBLIC_TMDB_API_KEY en .env.local y en Vercel env vars.
-     Atribución requerida: el logo aparece en el footer de /videoteca. */
+     Atribución requerida: el logo aparece en el footer de /videoteca.
+
+     Comportamiento:
+     - Si ya pusiste año, lo usa como FILTRO (devuelve la versión correcta).
+     - Solo llena campos VACÍOS. NO sobreescribe lo que ya escribiste.
+     - El título lo respeta siempre. Si quieres el título de TMDB, lo borras y le das de nuevo. */
   async function buscarEnTmdb() {
     if (!newTitulo.trim()) {
       setApiMsg('> escribe al menos un título primero')
@@ -183,21 +191,34 @@ export default function AdminLibrosPage() {
         language: 'es-MX',
         include_adult: 'false',
       })
+      // Si ya escribió el año, lo usa como filtro de búsqueda
+      // (así no te devuelve el remake del 2002 cuando quieres el original de 1939)
+      if (newAnio.trim()) {
+        params.set('primary_release_year', newAnio.trim())
+      }
       const res = await fetch(`https://api.themoviedb.org/3/search/movie?${params}`)
       const data = await res.json()
       if (data.results && data.results.length > 0) {
         const m = data.results[0]
-        if (!newAutor.trim() && m.original_title && m.original_title !== m.title) {
-          // Para movies, el "autor" es ambiguo. Si no hay autor, dejamos vacío.
-          // Si quieres director, requiere una segunda llamada a /movie/{id}/credits.
+        // Solo llena campos vacíos · NUNCA sobreescribe lo que ya pusiste
+        if (!newAnio.trim() && m.release_date) {
+          setNewAnio(m.release_date.substring(0, 4))
         }
-        if (m.release_date) setNewAnio(m.release_date.substring(0, 4))
-        if (m.poster_path) setNewPortadaUrl(`https://image.tmdb.org/t/p/w500${m.poster_path}`)
-        if (m.overview && !newDescripcion.trim()) setNewDescripcion(m.overview)
-        // El título lo mantenemos editable; si el match no es perfecto, marina/samm lo corrigen
-        setApiMsg(`> ${data.results.length} resultados · usando "${m.title}" (${m.release_date?.substring(0, 4) ?? 's/f'}) ✓`)
+        if (!newPortadaUrl.trim() && m.poster_path) {
+          setNewPortadaUrl(`https://image.tmdb.org/t/p/w500${m.poster_path}`)
+        }
+        if (!newDescripcion.trim() && m.overview) {
+          setNewDescripcion(m.overview)
+        }
+        const yearShown = m.release_date?.substring(0, 4) ?? 's/f'
+        if (data.results.length > 1) {
+          setApiMsg(`> ${data.results.length} resultados · usé "${m.title}" (${yearShown}) · tip: pon el año exacto y vuelve a buscar para más precisión`)
+        } else {
+          setApiMsg(`> "${m.title}" (${yearShown}) ✓ campos vacíos rellenados`)
+        }
       } else {
-        setApiMsg('> sin resultados en tmdb')
+        const yearHint = newAnio.trim() ? ` (filtrando por año ${newAnio})` : ''
+        setApiMsg(`> sin resultados en tmdb${yearHint} · prueba quitar el año o cambiar el título`)
       }
     } catch (e) {
       setApiMsg('> error consultando tmdb · revisa la api key')

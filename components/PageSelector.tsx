@@ -5,17 +5,34 @@ import { useState } from 'react'
 type Props = {
   currentPage: number
   totalPages: number
+  /** Valor del filtro activo (categoría/década/artista). */
+  filterValue?: string
+  /** Nombre del query param para el filtro. Default 'categoria'. */
+  filterParam?: string
+  /** Base path de la página (sin query string). Default '/biblioteca'. */
+  basePath?: string
+  /** @deprecated usar filterValue. Se mantiene para compat. */
   categoria?: string
 }
 
-export default function PageSelector({ currentPage, totalPages, categoria }: Props) {
+export default function PageSelector({
+  currentPage,
+  totalPages,
+  filterValue,
+  filterParam = 'categoria',
+  basePath = '/biblioteca',
+  categoria,
+}: Props) {
   const [open, setOpen] = useState(false)
+
+  // Compat: si vino categoria sin filterValue, úsala
+  const effectiveFilter = filterValue ?? categoria
 
   const buildUrl = (p: number) => {
     const sp = new URLSearchParams()
     sp.set('page', String(p))
-    if (categoria) sp.set('categoria', categoria)
-    return '/biblioteca?' + sp.toString()
+    if (effectiveFilter) sp.set(filterParam, effectiveFilter)
+    return basePath + '?' + sp.toString()
   }
 
   const pages = Array.from({ length: totalPages }, (_, i) => i + 1)

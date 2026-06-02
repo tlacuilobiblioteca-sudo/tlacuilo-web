@@ -7,10 +7,12 @@ import { supabase } from '@/lib/supabase'
 import Header from './Header'
 
 type Categoria = { categoria: string; libros_count: number }
+type Decada = { decada: number; libros_count: number }
+type Artista = { artista: string; libros_count: number }
 
 const TECAS = [
   { slug: 'biblioteca', label: 'Biblioteca', href: '/biblioteca', enabled: true },
-  { slug: 'artoteca', label: 'Artoteca', href: '#', enabled: false },
+  { slug: 'artoteca', label: 'Artoteca', href: '/artoteca', enabled: true },
   { slug: 'fonoteca', label: 'Fonoteca', href: '#', enabled: false },
   { slug: 'videoteca', label: 'Videoteca', href: '/videoteca', enabled: true },
   { slug: 'editorial', label: 'Editorial', href: '#', enabled: false },
@@ -18,23 +20,31 @@ const TECAS = [
 
 type Props = {
   children: React.ReactNode
-  /** Categorías pre-fetched server-side. Si vienen, no hacemos query cliente (evita
-      glitch de "sidebar tarda en abrir"). */
+  /** Categorías pre-fetched server-side (biblioteca). */
   initialCategorias?: Categoria[]
+  /** Décadas pre-fetched server-side (videoteca). */
+  initialDecadas?: Decada[]
+  /** Artistas pre-fetched server-side (artoteca). */
+  initialArtistas?: Artista[]
 }
 
 /**
- * Layout para páginas interiores (biblioteca, item detail, buscar, mi-tlacuilo, etc.)
+ * Layout para páginas interiores (biblioteca, item detail, buscar, mi-tlacuilo, videoteca, artoteca, etc.)
  * - Header consistente arriba (Header slim, sin la banda de 6 categorías)
- * - Sidebar izquierdo con tecas + categorías de biblioteca (siempre abierto en desktop)
+ * - Sidebar izquierdo con tecas + chips contextuales
+ *     · biblioteca → categorías
+ *     · videoteca → décadas
+ *     · artoteca → artistas
  * - Hamburguesa en mobile
  */
-export default function TecaLayout({ children, initialCategorias }: Props) {
+export default function TecaLayout({ children, initialCategorias, initialDecadas, initialArtistas }: Props) {
   const pathname = usePathname()
   const [categorias, setCategorias] = useState<Categoria[]>(initialCategorias ?? [])
+  const [decadas, setDecadas] = useState<Decada[]>(initialDecadas ?? [])
+  const [artistas, setArtistas] = useState<Artista[]>(initialArtistas ?? [])
   const [navOpen, setNavOpen] = useState(false)
 
-  // Solo fetch en cliente si NO vienen pre-cargadas (fallback)
+  // Fallback cliente solo si NO vienen pre-cargadas
   useEffect(() => {
     if (initialCategorias && initialCategorias.length > 0) return
     supabase.rpc('distinct_categorias').then(({ data }) => {
@@ -42,10 +52,25 @@ export default function TecaLayout({ children, initialCategorias }: Props) {
     })
   }, [initialCategorias])
 
+  useEffect(() => {
+    if (initialDecadas && initialDecadas.length > 0) return
+    supabase.rpc('distinct_decadas_videoteca').then(({ data }) => {
+      if (data) setDecadas(data as Decada[])
+    })
+  }, [initialDecadas])
+
+  useEffect(() => {
+    if (initialArtistas && initialArtistas.length > 0) return
+    supabase.rpc('distinct_artistas_artoteca').then(({ data }) => {
+      if (data) setArtistas(data as Artista[])
+    })
+  }, [initialArtistas])
+
   const activeTeca = TECAS.find((t) => pathname?.startsWith(t.href) && t.enabled)?.slug ?? null
-  const activeCategoria = typeof window !== 'undefined'
-    ? new URLSearchParams(window.location.search).get('categoria')
-    : null
+  const sp = typeof window !== 'undefined' ? new URLSearchParams(window.location.search) : null
+  const activeCategoria = sp?.get('categoria') ?? null
+  const activeDecada = sp?.get('decada') ?? null
+  const activeArtista = sp?.get('artista') ?? null
 
   return (
     <div className="min-h-screen bg-bg text-text">
@@ -58,8 +83,12 @@ export default function TecaLayout({ children, initialCategorias }: Props) {
         <aside className="hidden md:block w-[260px] lg:w-[280px] shrink-0 border-r border-rule p-6 sticky top-0 self-start max-h-screen overflow-y-auto">
           <SidebarContent
             categorias={categorias}
+            decadas={decadas}
+            artistas={artistas}
             activeTeca={activeTeca}
             activeCategoria={activeCategoria}
+            activeDecada={activeDecada}
+            activeArtista={activeArtista}
           />
         </aside>
 
@@ -104,8 +133,12 @@ export default function TecaLayout({ children, initialCategorias }: Props) {
             <div className="flex-1 p-6">
               <SidebarContent
                 categorias={categorias}
+                decadas={decadas}
+                artistas={artistas}
                 activeTeca={activeTeca}
                 activeCategoria={activeCategoria}
+                activeDecada={activeDecada}
+                activeArtista={activeArtista}
                 onLinkClick={() => setNavOpen(false)}
               />
             </div>
@@ -119,21 +152,37 @@ export default function TecaLayout({ children, initialCategorias }: Props) {
 /* ============================================================
    SIDEBAR CONTENT (reusado en desktop y mobile)
    - Tecas como labels grandes
-   - Categorías de biblioteca como CHIPS estilo landing (tinta bg, bone text,
-     rounded-sm, hover dirty yellow)
+   - Biblioteca → chips de categorías
+   - Videoteca → chips de décadas
+   - Artoteca → chips de artistas
    ============================================================ */
 
 function SidebarContent({
   categorias,
+  decadas,
+  artistas,
   activeTeca,
   activeCategoria,
+  activeDecada,
+  activeArtista,
   onLinkClick,
 }: {
   categorias: Categoria[]
+  decadas: Decada[]
+  artistas: Artista[]
   activeTeca: string | null
   activeCategoria: string | null
+  activeDecada: string | null
+  activeArtista: string | null
   onLinkClick?: () => void
 }) {
+  const chipClass = (isActive: boolean) =>
+    `inline-flex items-baseline gap-1.5 border border-tinta rounded-sm px-2 py-1 font-micro text-[10px] uppercase tracking-[0.06em] transition-colors ${
+      isActive
+        ? 'bg-dirty text-tinta'
+        : 'bg-tinta text-bone hover:bg-dirty hover:text-tinta'
+    }`
+
   return (
     <nav className="flex flex-col gap-8">
       {TECAS.map((teca) => {
@@ -156,38 +205,75 @@ function SidebarContent({
               </span>
             )}
 
-            {/* Categorías de Biblioteca como chips */}
+            {/* BIBLIOTECA → chips de categorías */}
             {teca.slug === 'biblioteca' && categorias.length > 0 && (
               <div className="mt-4 flex flex-wrap gap-1.5">
                 <Link
                   href="/biblioteca"
                   onClick={onLinkClick}
-                  className={`inline-flex items-baseline gap-1.5 border border-tinta rounded-sm px-2 py-1 font-micro text-[10px] uppercase tracking-[0.06em] transition-colors ${
-                    !activeCategoria && activeTeca === 'biblioteca'
-                      ? 'bg-dirty text-tinta'
-                      : 'bg-tinta text-bone hover:bg-dirty hover:text-tinta'
-                  }`}
+                  className={chipClass(!activeCategoria && activeTeca === 'biblioteca')}
                 >
                   todo
                 </Link>
-                {categorias.map((c) => {
-                  const isCatActive = activeCategoria === c.categoria
-                  return (
-                    <Link
-                      key={c.categoria}
-                      href={`/biblioteca?categoria=${encodeURIComponent(c.categoria)}`}
-                      onClick={onLinkClick}
-                      className={`inline-flex items-baseline gap-1.5 border border-tinta rounded-sm px-2 py-1 font-micro text-[10px] uppercase tracking-[0.06em] transition-colors ${
-                        isCatActive
-                          ? 'bg-dirty text-tinta'
-                          : 'bg-tinta text-bone hover:bg-dirty hover:text-tinta'
-                      }`}
-                    >
-                      <span>{c.categoria}</span>
-                      <span className="opacity-50 text-[9px]">{c.libros_count}</span>
-                    </Link>
-                  )
-                })}
+                {categorias.map((c) => (
+                  <Link
+                    key={c.categoria}
+                    href={`/biblioteca?categoria=${encodeURIComponent(c.categoria)}`}
+                    onClick={onLinkClick}
+                    className={chipClass(activeCategoria === c.categoria)}
+                  >
+                    <span>{c.categoria}</span>
+                    <span className="opacity-50 text-[9px]">{c.libros_count}</span>
+                  </Link>
+                ))}
+              </div>
+            )}
+
+            {/* VIDEOTECA → chips de décadas */}
+            {teca.slug === 'videoteca' && decadas.length > 0 && (
+              <div className="mt-4 flex flex-wrap gap-1.5">
+                <Link
+                  href="/videoteca"
+                  onClick={onLinkClick}
+                  className={chipClass(!activeDecada && activeTeca === 'videoteca')}
+                >
+                  todo
+                </Link>
+                {decadas.map((d) => (
+                  <Link
+                    key={d.decada}
+                    href={`/videoteca?decada=${d.decada}`}
+                    onClick={onLinkClick}
+                    className={chipClass(activeDecada === String(d.decada))}
+                  >
+                    <span>{d.decada}s</span>
+                    <span className="opacity-50 text-[9px]">{d.libros_count}</span>
+                  </Link>
+                ))}
+              </div>
+            )}
+
+            {/* ARTOTECA → chips de artistas */}
+            {teca.slug === 'artoteca' && artistas.length > 0 && (
+              <div className="mt-4 flex flex-wrap gap-1.5">
+                <Link
+                  href="/artoteca"
+                  onClick={onLinkClick}
+                  className={chipClass(!activeArtista && activeTeca === 'artoteca')}
+                >
+                  todo
+                </Link>
+                {artistas.map((a) => (
+                  <Link
+                    key={a.artista}
+                    href={`/artoteca?artista=${encodeURIComponent(a.artista)}`}
+                    onClick={onLinkClick}
+                    className={chipClass(activeArtista === a.artista)}
+                  >
+                    <span>{a.artista}</span>
+                    <span className="opacity-50 text-[9px]">{a.libros_count}</span>
+                  </Link>
+                ))}
               </div>
             )}
           </div>
