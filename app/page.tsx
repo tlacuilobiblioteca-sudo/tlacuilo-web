@@ -114,7 +114,7 @@ export default async function Home() {
       {/* ============ CATÁLOGO HEADER · TÍTULO + COUNTERS · primero ============ */}
       <section className="px-10 pt-8 pb-6 max-md:px-5">
         <div className="flex items-baseline justify-between flex-wrap gap-4">
-          <h2 className="font-sans font-light text-[clamp(20px,2.2vw,30px)] leading-none tracking-[-0.01em] text-text">
+          <h2 className="font-mono font-medium text-[clamp(20px,2.2vw,30px)] leading-none tracking-[0.02em] text-text">
             Catálogo
           </h2>
           <p className="font-mono text-[clamp(11px,0.95vw,13px)] text-text-dim tabular-nums">

@@ -56,9 +56,11 @@
   --font-mono: var(--font-jetbrains-mono), 'JetBrains Mono', ui-monospace, 'SF Mono', Menlo, monospace;
   --font-micro: var(--font-dm-mono), 'DM Mono', 'JetBrains Mono', ui-monospace, Menlo, monospace;
 
-  /* Fuentes del booklet (solo /manifesto). */
-  --font-acacia: var(--font-acacia), Georgia, serif;
-  --font-costa: var(--font-costa), Georgia, serif;
+  /* Fuentes display (booklet + tecas/acentos). Los var(--font-X-otf)
+     los expone next/font/local desde layout.tsx (nombres distintos al
+     token para no crear referencias circulares). */
+  --font-acacia: var(--font-acacia-otf), Georgia, serif;
+  --font-costa: var(--font-costa-otf), Georgia, serif;
   --font-oaxaca: var(--font-oaxaca-prickly), Georgia, serif;
 }
 

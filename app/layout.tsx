@@ -30,13 +30,13 @@ const dmMono = DM_Mono({
    Solo se usan en /manifesto; el resto de la app sigue con Jost / JetBrains / DM Mono. */
 const acacia = localFont({
   src: "../public/fonts/Acacia.otf",
-  variable: "--font-acacia",
+  variable: "--font-acacia-otf",
   display: "swap",
 });
 
 const costa = localFont({
   src: "../public/fonts/Costa.otf",
-  variable: "--font-costa",
+  variable: "--font-costa-otf",
   display: "swap",
 });
 
