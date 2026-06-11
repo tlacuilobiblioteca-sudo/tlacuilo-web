@@ -92,8 +92,8 @@ export default function Header({ slim = false }: HeaderProps) {
             <Link href="/artoteca" className={tecaLinkClass}>ARTOTECA</Link>
             <a href="#" className={tecaLinkClass}>FONOTECA</a>
             <Link href="/videoteca" className={tecaLinkClass}>VIDEOTECA</Link>
-            <Link href="/manifesto" className={navLinkClass}>MANIFIESTO</Link>
-            <Link href="/calendario" className={navLinkClass}>CALENDARIO</Link>
+            <Link href="/manifesto" className={tecaLinkClass}>MANIFIESTO</Link>
+            <Link href="/calendario" className={tecaLinkClass}>CALENDARIO</Link>
             <a href="#" className={tecaLinkClass}>EDITORIAL</a>
           </div>
         </nav>
