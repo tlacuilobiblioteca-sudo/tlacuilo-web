@@ -11,6 +11,7 @@ type Perfil = {
   bio: string | null
   rol: string | null
   created_at: string
+  avatar_url: string | null
 }
 
 export default async function PerfilPublicoPage({
@@ -25,7 +26,7 @@ export default async function PerfilPublicoPage({
   // porque la tabla `perfiles` tiene RLS que solo deja ver tu propio perfil.
   const { data: perfil, error } = await supabase
     .from('perfiles_publicos')
-    .select('id, handle, bio, rol, created_at')
+    .select('id, handle, bio, rol, created_at, avatar_url')
     .eq('handle', alias)
     .single<Perfil>()
 
@@ -54,9 +55,17 @@ export default async function PerfilPublicoPage({
           &gt; alias
         </p>
 
-        <h1 className="font-mono uppercase leading-tight text-[clamp(36px,5vw,72px)] text-[#c5c4f5] mb-6">
-          {perfil.handle}
-        </h1>
+        <div className="flex items-center gap-5 mb-6">
+          {perfil.avatar_url && (
+            <div className="w-[88px] h-[88px] rounded-full overflow-hidden bg-bg-card border border-rule-strong shrink-0">
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img src={perfil.avatar_url} alt={`foto de ${perfil.handle}`} className="w-full h-full object-cover" />
+            </div>
+          )}
+          <h1 className="font-mono uppercase leading-tight text-[clamp(36px,5vw,72px)] text-[#c5c4f5]">
+            {perfil.handle}
+          </h1>
+        </div>
 
         {perfil.bio && (
           <div className="mb-10 max-w-[60ch]">

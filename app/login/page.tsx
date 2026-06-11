@@ -9,6 +9,7 @@ export default function LoginPage() {
   const router = useRouter()
   const [correo, setCorreo] = useState('')
   const [password, setPassword] = useState('')
+  const [showPwd, setShowPwd] = useState(false)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
@@ -65,13 +66,23 @@ export default function LoginPage() {
             <label className="block mb-1 opacity-60 text-[clamp(11px,0.85vw,13px)]">
               contraseña..:
             </label>
-            <input
-              type="password"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              required
-              className="w-full bg-transparent border-b border-[#9091c4]/40 focus:border-[#9091c4] focus:outline-none py-1 font-mono text-[#9091c4]"
-            />
+            <div className="relative">
+              <input
+                type={showPwd ? 'text' : 'password'}
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                required
+                className="w-full bg-transparent border-b border-[#9091c4]/40 focus:border-[#9091c4] focus:outline-none py-1 pr-20 font-mono text-[#9091c4]"
+              />
+              <button
+                type="button"
+                onClick={() => setShowPwd((v) => !v)}
+                aria-label={showPwd ? 'ocultar contraseña' : 'ver contraseña'}
+                className="absolute right-0 top-1/2 -translate-y-1/2 font-mono text-[clamp(10px,0.8vw,12px)] opacity-60 hover:opacity-100"
+              >
+                {showPwd ? '[ocultar]' : '[ver]'}
+              </button>
+            </div>
           </div>
 
           {error && (

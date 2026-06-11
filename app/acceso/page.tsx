@@ -85,7 +85,7 @@ export default async function AccesoPage({
         </button>
       </form>
       {error ? (
-        <p style={{ fontSize: "0.8rem", color: "#E8DC4A" }}>
+        <p style={{ fontSize: "0.8rem", color: "#FF4D00" }}>
           esa no es. pregunta en el grupo.
         </p>
       ) : null}

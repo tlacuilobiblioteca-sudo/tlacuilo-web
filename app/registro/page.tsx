@@ -10,6 +10,7 @@ export default function RegistroPage() {
   const [alias, setAlias] = useState('')
   const [correo, setCorreo] = useState('')
   const [password, setPassword] = useState('')
+  const [showPwd, setShowPwd] = useState(false)
   const [terminos, setTerminos] = useState(false)
   const [loading, setLoading] = useState(false)
   const [success, setSuccess] = useState(false)
@@ -180,15 +181,28 @@ export default function RegistroPage() {
             <label className="block mb-1 opacity-60 text-[clamp(11px,0.85vw,13px)]">
               contraseña ..........:
             </label>
-            <input
-              type="password"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              required
-              minLength={6}
-              autoComplete="new-password"
-              className="w-full bg-transparent border-b border-[#9091c4]/40 focus:border-[#9091c4] focus:outline-none py-1 font-mono text-[#9091c4]"
-            />
+            <div className="relative">
+              <input
+                type={showPwd ? 'text' : 'password'}
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                required
+                minLength={8}
+                autoComplete="new-password"
+                className="w-full bg-transparent border-b border-[#9091c4]/40 focus:border-[#9091c4] focus:outline-none py-1 pr-20 font-mono text-[#9091c4]"
+              />
+              <button
+                type="button"
+                onClick={() => setShowPwd((v) => !v)}
+                aria-label={showPwd ? 'ocultar contraseña' : 'ver contraseña'}
+                className="absolute right-0 top-1/2 -translate-y-1/2 font-mono text-[clamp(10px,0.8vw,12px)] opacity-60 hover:opacity-100"
+              >
+                {showPwd ? '[ocultar]' : '[ver]'}
+              </button>
+            </div>
+            <p className="mt-1 text-[clamp(10px,0.8vw,12px)] uppercase tracking-wider opacity-60">
+              &gt; mínimo 8 caracteres
+            </p>
           </div>
 
           <label className="flex items-start gap-2 mt-6 text-[clamp(11px,0.85vw,13px)] opacity-80">

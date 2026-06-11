@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { supabase } from '@/lib/supabase'
+import { comprimirImagen } from '@/lib/imagen'
 import TecaLayout from '@/components/TecaLayout'
 import Cover from '@/components/Cover'
 
@@ -86,7 +87,7 @@ export default function AdminPortadasPage() {
   return (
     <TecaLayout>
       <section className="px-10 pt-10 pb-16 max-w-6xl mx-auto max-md:px-5">
-        <p className="font-micro uppercase tracking-[0.12em] text-[11px] text-dirty mb-3">
+        <p className="font-micro uppercase tracking-[0.12em] text-[11px] text-acid mb-3">
           admin · portadas
         </p>
         <h1 className="font-sans font-light leading-none mb-3 text-[clamp(32px,3.8vw,52px)] tracking-[-0.01em] text-text">
@@ -154,11 +155,12 @@ function PortadaRow({ libro, onSaved }: { libro: Libro; onSaved: () => void }) {
   async function subirArchivo(file: File) {
     setBusy(true)
     setErr(null)
-    const ext = (file.name.split('.').pop() || 'jpg').toLowerCase()
+    const procesado = await comprimirImagen(file)
+    const ext = (procesado.name.split('.').pop() || 'jpg').toLowerCase()
     const path = `${libro.id}.${ext}`
     const { error: upErr } = await supabase.storage
       .from('portadas')
-      .upload(path, file, { upsert: true, contentType: file.type })
+      .upload(path, procesado, { upsert: true, contentType: procesado.type })
     if (upErr) {
       setErr('upload: ' + upErr.message)
       setBusy(false)
@@ -219,14 +221,14 @@ function PortadaRow({ libro, onSaved }: { libro: Libro; onSaved: () => void }) {
             <button
               onClick={guardarUrl}
               disabled={busy || !url.trim()}
-              className="inline-flex items-center bg-dirty text-tinta border border-tinta rounded-sm px-3 py-1.5 font-micro text-[10px] uppercase tracking-[0.08em] disabled:opacity-30 hover:bg-tinta hover:text-dirty transition-colors"
+              className="inline-flex items-center bg-brillante text-bone border border-tinta rounded-sm px-3 py-1.5 font-micro text-[10px] uppercase tracking-[0.08em] disabled:opacity-30 hover:bg-tinta hover:text-acid transition-colors"
             >
               guardar url
             </button>
             <button
               onClick={() => fileRef.current?.click()}
               disabled={busy}
-              className="inline-flex items-center bg-tinta text-bone border border-tinta rounded-sm px-3 py-1.5 font-micro text-[10px] uppercase tracking-[0.08em] disabled:opacity-30 hover:bg-dirty hover:text-tinta transition-colors"
+              className="inline-flex items-center bg-tinta text-bone border border-tinta rounded-sm px-3 py-1.5 font-micro text-[10px] uppercase tracking-[0.08em] disabled:opacity-30 hover:bg-brillante hover:text-bone transition-colors"
             >
               subir archivo
             </button>

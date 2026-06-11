@@ -77,7 +77,7 @@ export default function Header({ slim = false }: HeaderProps) {
         <div className="flex items-center gap-5 shrink-0">
           <ThemeToggle />
           <Link href={miTlacuiloHref} className="font-mono text-[clamp(11px,1.05vw,14px)] tracking-[0.12em] uppercase text-text hover:text-text-bright transition-colors">
-            MI TLACUILO
+            {user ? 'MI TLACUILO' : 'ENTRAR'}
           </Link>
         </div>
       </div>
@@ -86,13 +86,13 @@ export default function Header({ slim = false }: HeaderProps) {
       {!slim && (
         <nav className="bg-periwinkle border-y border-tinta py-3 px-10 max-md:px-5">
           <div className="flex flex-wrap items-center justify-center gap-x-[clamp(20px,3.5vw,56px)] gap-y-2">
-            <Link href="/biblioteca" className={navLinkClass}>BIBLIOTECA</Link>
-            <a href="#" className={navLinkClass}>ARTOTECA</a>
-            <a href="#" className={navLinkClass}>FONOTECA</a>
-            <Link href="/videoteca" className={navLinkClass}>VIDEOTECA</Link>
+            <Link href="/biblioteca" className={`${navLinkClass} font-costa`}>BIBLIOTECA</Link>
+            <Link href="/artoteca" className={`${navLinkClass} font-costa`}>ARTOTECA</Link>
+            <a href="#" className={`${navLinkClass} font-costa`}>FONOTECA</a>
+            <Link href="/videoteca" className={`${navLinkClass} font-costa`}>VIDEOTECA</Link>
             <Link href="/manifesto" className={navLinkClass}>MANIFIESTO</Link>
             <Link href="/calendario" className={navLinkClass}>CALENDARIO</Link>
-            <a href="#" className={navLinkClass}>EDITORIAL</a>
+            <a href="#" className={`${navLinkClass} font-costa`}>EDITORIAL</a>
           </div>
         </nav>
       )}

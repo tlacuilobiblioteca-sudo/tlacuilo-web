@@ -29,6 +29,11 @@
   --color-lilac-depth: #2A2838;
   --color-warm-white: #F7F6FA;
 
+  /* Acentos v3 (2026-06-10) · detalles/highlights, mismos en dark y light */
+  --color-acid: #B8F200;       /* verde ácido · disponible */
+  --color-brillante: #5930CB;  /* morado brillante · hovers/highlights */
+  --color-fosfo: #FF4D00;      /* naranja fosfo · no disponible */
+
   /* Roles semánticos (DARK MODE default) */
   --color-bg: #15151D;
   --color-bg-card: #2A2838;
@@ -43,13 +48,18 @@
   --color-invert-fg: #15151D;
 
   /* Estados reales (no decoración) */
-  --color-available: #22c55e;
-  --color-loan: #fb923c;
+  --color-available: #B8F200;  /* = acid */
+  --color-loan: #FF4D00;       /* = fosfo */
 
   /* Fuentes (los var(--font-X) los expone next/font/google desde layout.tsx) */
   --font-sans: var(--font-jost), 'Jost', ui-sans-serif, system-ui, sans-serif;
   --font-mono: var(--font-jetbrains-mono), 'JetBrains Mono', ui-monospace, 'SF Mono', Menlo, monospace;
   --font-micro: var(--font-dm-mono), 'DM Mono', 'JetBrains Mono', ui-monospace, Menlo, monospace;
+
+  /* Fuentes del booklet (solo /manifesto). */
+  --font-acacia: var(--font-acacia), Georgia, serif;
+  --font-costa: var(--font-costa), Georgia, serif;
+  --font-oaxaca: var(--font-oaxaca-prickly), Georgia, serif;
 }
 
 /* ============ GLOBAL ============ */

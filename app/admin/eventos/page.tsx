@@ -152,7 +152,7 @@ export default function AdminEventosPage() {
   return (
     <TecaLayout>
       <section className="px-10 pt-10 pb-16 max-w-4xl mx-auto max-md:px-5">
-        <p className="font-micro uppercase tracking-[0.12em] text-[11px] text-dirty mb-3">
+        <p className="font-micro uppercase tracking-[0.12em] text-[11px] text-acid mb-3">
           admin · eventos
         </p>
         <h1 className="font-sans font-light leading-none mb-3 text-[clamp(32px,3.8vw,52px)] tracking-[-0.01em] text-text">
@@ -164,7 +164,7 @@ export default function AdminEventosPage() {
 
         {/* ============ NUEVO EVENTO ============ */}
         <div className="border border-rule-strong bg-bg-soft p-5 mb-10 flex flex-col gap-3">
-          <h2 className="font-micro uppercase tracking-[0.12em] text-[11px] text-dirty mb-1">
+          <h2 className="font-micro uppercase tracking-[0.12em] text-[11px] text-acid mb-1">
             nuevo evento
           </h2>
 
@@ -220,7 +220,7 @@ export default function AdminEventosPage() {
           <button
             onClick={crearEvento}
             disabled={!newTitulo.trim() || !newFechaInicio}
-            className="self-start inline-flex items-center bg-dirty text-tinta border border-tinta rounded-sm px-4 py-2 font-micro text-[11px] uppercase tracking-[0.08em] disabled:opacity-30 hover:bg-tinta hover:text-dirty transition-colors"
+            className="self-start inline-flex items-center bg-brillante text-bone border border-tinta rounded-sm px-4 py-2 font-micro text-[11px] uppercase tracking-[0.08em] disabled:opacity-30 hover:bg-tinta hover:text-acid transition-colors"
           >
             crear evento
           </button>

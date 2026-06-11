@@ -179,9 +179,13 @@ function SidebarContent({
   const chipClass = (isActive: boolean) =>
     `inline-flex items-baseline gap-1.5 border border-tinta rounded-sm px-2 py-1 font-micro text-[10px] uppercase tracking-[0.06em] transition-colors ${
       isActive
-        ? 'bg-dirty text-tinta'
-        : 'bg-tinta text-bone hover:bg-dirty hover:text-tinta'
+        ? 'bg-brillante text-bone'
+        : 'bg-tinta text-bone hover:bg-brillante hover:text-bone'
     }`
+
+  // Chips colapsables: abiertas por default, click en la teca activa las cierra
+  // (ruido visual). Estado por instancia (desktop y drawer móvil, independientes).
+  const [chipsAbiertas, setChipsAbiertas] = useState(true)
 
   return (
     <nav className="flex flex-col gap-8">
@@ -192,21 +196,34 @@ function SidebarContent({
             {teca.enabled ? (
               <Link
                 href={teca.href}
-                onClick={onLinkClick}
-                className={`font-mono uppercase tracking-[0.12em] text-[clamp(13px,1.1vw,16px)] block transition-colors ${
+                onClick={(e) => {
+                  if (isActive) {
+                    // Ya estás en esta teca: el click colapsa/expande sus chips
+                    e.preventDefault()
+                    setChipsAbiertas((v) => !v)
+                    return
+                  }
+                  onLinkClick?.()
+                }}
+                className={`font-costa uppercase tracking-[0.12em] text-[clamp(13px,1.1vw,16px)] block transition-colors ${
                   isActive ? 'text-text-bright' : 'text-text hover:text-text-bright'
                 }`}
               >
                 {teca.label}
+                {isActive && (
+                  <span className="font-micro text-[10px] tracking-normal ml-2 opacity-50">
+                    {chipsAbiertas ? '[−]' : '[+]'}
+                  </span>
+                )}
               </Link>
             ) : (
-              <span className="font-mono uppercase tracking-[0.12em] text-[clamp(13px,1.1vw,16px)] block text-text-faint cursor-not-allowed">
+              <span className="font-costa uppercase tracking-[0.12em] text-[clamp(13px,1.1vw,16px)] block text-text-faint cursor-not-allowed">
                 {teca.label} <span className="text-[10px] tracking-normal ml-1 normal-case">próx.</span>
               </span>
             )}
 
-            {/* BIBLIOTECA → chips de categorías */}
-            {teca.slug === 'biblioteca' && categorias.length > 0 && (
+            {/* BIBLIOTECA → chips de categorías (solo si es la teca activa) */}
+            {teca.slug === 'biblioteca' && activeTeca === 'biblioteca' && chipsAbiertas && categorias.length > 0 && (
               <div className="mt-4 flex flex-wrap gap-1.5">
                 <Link
                   href="/biblioteca"
@@ -229,8 +246,8 @@ function SidebarContent({
               </div>
             )}
 
-            {/* VIDEOTECA → chips de décadas */}
-            {teca.slug === 'videoteca' && decadas.length > 0 && (
+            {/* VIDEOTECA → chips de décadas (solo si es la teca activa) */}
+            {teca.slug === 'videoteca' && activeTeca === 'videoteca' && chipsAbiertas && decadas.length > 0 && (
               <div className="mt-4 flex flex-wrap gap-1.5">
                 <Link
                   href="/videoteca"
@@ -253,8 +270,8 @@ function SidebarContent({
               </div>
             )}
 
-            {/* ARTOTECA → chips de artistas */}
-            {teca.slug === 'artoteca' && artistas.length > 0 && (
+            {/* ARTOTECA → chips de artistas (solo si es la teca activa) */}
+            {teca.slug === 'artoteca' && activeTeca === 'artoteca' && chipsAbiertas && artistas.length > 0 && (
               <div className="mt-4 flex flex-wrap gap-1.5">
                 <Link
                   href="/artoteca"

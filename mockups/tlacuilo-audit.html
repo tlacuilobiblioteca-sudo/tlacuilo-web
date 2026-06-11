@@ -1,0 +1,1480 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<title>Tlacuilo · audit visual · todas las pages</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Jost:wght@300;400;500&family=JetBrains+Mono:wght@400;500;700&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root {
+  --morado: #6E6BA0;
+  --periwinkle: #9D9BC8;
+  --tinta: #15151D;
+  --bone: #ECEAF0;
+  --dirty: #E8DC4A;
+  --lilac-depth: #2A2838;
+  --warm: #F7F6FA;
+  --available: #22c55e;
+  --loan: #fb923c;
+
+  --bg: var(--tinta);
+  --bg-card: var(--lilac-depth);
+  --bg-soft: rgba(236,234,240,0.06);
+  --text: var(--bone);
+  --text-bright: var(--warm);
+  --text-dim: rgba(236,234,240,0.55);
+  --text-faint: rgba(236,234,240,0.28);
+  --rule: rgba(236,234,240,0.18);
+  --rule-strong: rgba(236,234,240,0.32);
+  --invert-bg: var(--bone);
+  --invert-fg: var(--tinta);
+
+  --sans: 'Jost', ui-sans-serif, system-ui, sans-serif;
+  --mono: 'JetBrains Mono', ui-monospace, Menlo, monospace;
+  --micro: 'DM Mono', 'JetBrains Mono', ui-monospace, Menlo, monospace;
+
+  /* Banderas de issue */
+  --issue: #fb923c;
+  --warn: var(--dirty);
+  --ok: var(--available);
+  --fix: var(--morado);
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+html, body { background: var(--bg); color: var(--text); min-height: 100vh; }
+body { font-family: var(--sans); font-weight: 300; line-height: 1.5; }
+
+/* ============ NAV LATERAL FIJO ============ */
+.toc {
+  position: fixed; top: 0; left: 0; bottom: 0;
+  width: 240px;
+  background: var(--bg-card);
+  border-right: 1px solid var(--rule);
+  padding: 24px 16px;
+  overflow-y: auto;
+  font-family: var(--mono);
+  font-size: 11px;
+}
+.toc-section {
+  font-family: var(--micro);
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  color: var(--dirty);
+  font-size: 9px;
+  margin: 18px 0 6px;
+}
+.toc a {
+  display: block;
+  padding: 4px 8px;
+  color: var(--text);
+  text-decoration: none;
+  border-left: 2px solid transparent;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  font-size: 10px;
+  margin: 1px 0;
+  transition: all 0.15s;
+}
+.toc a:hover {
+  background: var(--bg-soft);
+  border-left-color: var(--dirty);
+  color: var(--text-bright);
+}
+.toc a .issue-dot {
+  display: inline-block; width: 6px; height: 6px; border-radius: 50%;
+  background: var(--issue); margin-right: 4px; vertical-align: middle;
+}
+.toc-logo {
+  display: block; margin-bottom: 18px;
+  font-family: var(--sans); font-weight: 300; font-size: 18px;
+  color: var(--text-bright); text-transform: lowercase; letter-spacing: -0.01em;
+}
+.toc-meta {
+  font-family: var(--micro); font-size: 9px; color: var(--text-faint);
+  text-transform: uppercase; letter-spacing: 0.1em;
+  margin-top: 24px; padding-top: 12px; border-top: 1px solid var(--rule);
+}
+
+/* ============ MAIN COLUMN ============ */
+main {
+  margin-left: 240px;
+  max-width: 1100px;
+  padding: 60px 60px 120px;
+}
+
+/* ============ HERO ============ */
+.hero {
+  margin-bottom: 80px;
+  padding-bottom: 40px;
+  border-bottom: 1px solid var(--rule);
+}
+.eyebrow {
+  font-family: var(--micro);
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  color: var(--dirty);
+  margin-bottom: 12px;
+}
+.hero h1 {
+  font-family: var(--sans);
+  font-weight: 300;
+  font-size: clamp(36px, 5vw, 64px);
+  line-height: 1.05;
+  letter-spacing: -0.01em;
+  margin-bottom: 20px;
+}
+.hero h1 em {
+  font-style: normal;
+  background: var(--dirty);
+  color: var(--tinta);
+  padding: 2px 14px 0;
+}
+.hero p.lead {
+  max-width: 620px;
+  font-size: 15px;
+  color: var(--text-dim);
+  line-height: 1.6;
+}
+.hero-meta {
+  display: flex; gap: 60px; margin-top: 30px; flex-wrap: wrap;
+}
+.hero-meta dt {
+  font-family: var(--micro); font-size: 10px; text-transform: uppercase;
+  letter-spacing: 0.12em; color: var(--text-dim); margin-bottom: 4px;
+}
+.hero-meta dd {
+  font-family: var(--sans); font-weight: 300; font-size: 24px;
+  color: var(--text-bright);
+}
+
+/* ============ SECTION HEADER ============ */
+.sect {
+  margin-bottom: 70px;
+  scroll-margin-top: 20px;
+}
+.sect-header {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 24px;
+  margin-bottom: 4px;
+  padding-bottom: 14px;
+  border-bottom: 1px solid var(--rule);
+  flex-wrap: wrap;
+}
+.sect-header h2 {
+  font-family: var(--sans);
+  font-weight: 300;
+  font-size: clamp(26px, 3vw, 38px);
+  letter-spacing: -0.005em;
+  line-height: 1.1;
+}
+.sect-header .route {
+  font-family: var(--mono);
+  font-size: 12px;
+  color: var(--text-dim);
+  letter-spacing: 0.02em;
+}
+.sect-tag {
+  display: inline-block;
+  font-family: var(--micro);
+  font-size: 9px;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  padding: 3px 8px;
+  background: var(--tinta);
+  color: var(--bone);
+  border: 1px solid var(--tinta);
+  border-radius: 2px;
+  margin-right: 6px;
+  vertical-align: middle;
+}
+.sect-tag.tag-public { background: var(--morado); color: var(--bone); border-color: var(--morado); }
+.sect-tag.tag-auth { background: var(--periwinkle); color: var(--tinta); border-color: var(--periwinkle); }
+.sect-tag.tag-admin { background: var(--dirty); color: var(--tinta); border-color: var(--dirty); }
+
+/* ============ PREVIEW CARD ============ */
+.preview {
+  display: grid;
+  grid-template-columns: 1fr 320px;
+  gap: 32px;
+  margin: 24px 0 18px;
+}
+.preview-frame {
+  background: var(--bg-card);
+  border: 1px solid var(--rule);
+  padding: 16px;
+  min-height: 200px;
+  font-size: 11px;
+  position: relative;
+}
+.preview-frame.preview-light {
+  background: var(--morado);
+  color: var(--tinta);
+  --frame-text: var(--tinta);
+  --frame-text-dim: rgba(21,21,29,0.55);
+  --frame-rule: rgba(21,21,29,0.18);
+}
+.preview-frame.preview-dark {
+  --frame-text: var(--bone);
+  --frame-text-dim: rgba(236,234,240,0.55);
+  --frame-rule: rgba(236,234,240,0.18);
+  color: var(--bone);
+}
+.preview-frame.preview-legacy {
+  background: #15151d;
+  color: #9091c4;
+}
+.frame-label {
+  position: absolute; top: 8px; right: 8px;
+  font-family: var(--micro); font-size: 8px; text-transform: uppercase;
+  letter-spacing: 0.1em; color: var(--text-faint);
+}
+.frame-header {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 6px 4px 8px; border-bottom: 1px solid var(--frame-rule, var(--rule));
+  margin-bottom: 12px;
+}
+.frame-logo {
+  font-family: var(--sans); font-weight: 300; font-size: 12px;
+  text-transform: lowercase; letter-spacing: -0.01em;
+}
+.frame-nav {
+  display: flex; gap: 12px;
+  font-family: var(--mono); font-size: 8px;
+  text-transform: uppercase; letter-spacing: 0.12em;
+}
+.frame-nav span { opacity: 0.7; }
+.frame-nav span.active { color: var(--dirty); }
+
+/* ============ MINI ELEMENTS ============ */
+.mini-h1 {
+  font-family: var(--sans); font-weight: 300; font-size: 20px;
+  line-height: 1.1; letter-spacing: -0.01em; margin: 12px 0 6px;
+}
+.mini-eyebrow {
+  font-family: var(--micro); font-size: 8px; text-transform: uppercase;
+  letter-spacing: 0.14em; color: var(--dirty); margin-bottom: 6px;
+}
+.mini-text {
+  font-size: 10px; color: var(--frame-text-dim, var(--text-dim));
+  line-height: 1.5; margin-bottom: 8px;
+}
+.chips {
+  display: flex; flex-wrap: wrap; gap: 4px; margin: 8px 0;
+}
+.chip {
+  font-family: var(--micro); font-size: 8px; text-transform: uppercase;
+  letter-spacing: 0.06em;
+  padding: 2px 6px;
+  background: var(--tinta); color: var(--bone);
+  border: 1px solid var(--tinta);
+  border-radius: 2px;
+}
+.preview-light .chip {
+  background: var(--tinta); color: var(--bone);
+}
+.chip.chip-active { background: var(--dirty); color: var(--tinta); border-color: var(--tinta); }
+
+.grid-thumb {
+  display: grid; grid-template-columns: repeat(3, 1fr); gap: 4px; margin: 8px 0;
+}
+.thumb {
+  aspect-ratio: 2/3; background: var(--bg-soft);
+  border: 1px solid var(--frame-rule, var(--rule));
+  display: flex; align-items: center; justify-content: center;
+  font-size: 7px; text-align: center; padding: 4px;
+  color: var(--frame-text-dim, var(--text-dim));
+}
+.thumb.thumb-art {
+  aspect-ratio: auto;
+}
+.thumb.thumb-art-sq { aspect-ratio: 1/1; }
+.thumb.thumb-art-h { aspect-ratio: 3/2; }
+.thumb.thumb-art-v { aspect-ratio: 2/3; }
+
+.btn-mini {
+  font-family: var(--mono); font-size: 8px; text-transform: uppercase;
+  letter-spacing: 0.08em; padding: 5px 10px; display: inline-block;
+  background: var(--invert-bg); color: var(--invert-fg);
+  margin-top: 8px;
+}
+.preview-light .btn-mini { background: var(--tinta); color: var(--bone); }
+
+.input-mini {
+  background: var(--bg-soft); border: 1px solid var(--frame-rule, var(--rule));
+  padding: 5px 8px; font-family: var(--mono); font-size: 9px;
+  margin: 4px 0; width: 100%;
+}
+.preview-light .input-mini { background: var(--bone); color: var(--tinta); }
+
+.terminal-line {
+  font-family: var(--mono); font-size: 10px; color: var(--frame-text, var(--text));
+  margin: 6px 0;
+}
+.terminal-line .prompt { color: var(--dirty); margin-right: 4px; }
+.preview-legacy .terminal-line { color: #9091c4; }
+
+/* ============ NOTES PANEL ============ */
+.notes {
+  background: var(--bg-card);
+  border-left: 3px solid var(--issue);
+  padding: 18px 20px;
+  font-family: var(--mono);
+  font-size: 11px;
+  line-height: 1.55;
+  font-weight: 400;
+}
+.notes.notes-ok { border-left-color: var(--ok); }
+.notes.notes-warn { border-left-color: var(--warn); }
+.notes.notes-fix { border-left-color: var(--fix); }
+.notes h4 {
+  font-family: var(--micro); font-size: 9px; text-transform: uppercase;
+  letter-spacing: 0.12em; color: var(--dirty); margin-bottom: 10px;
+  font-weight: 500;
+}
+.notes ul { list-style: none; }
+.notes li {
+  position: relative; padding-left: 16px; margin-bottom: 8px;
+  color: var(--text);
+}
+.notes li::before {
+  content: '→'; position: absolute; left: 0; color: var(--text-dim);
+}
+.notes li.lvl-1::before { content: '!!'; color: var(--issue); }
+.notes li.lvl-2::before { content: '!'; color: var(--warn); }
+.notes li.lvl-3::before { content: '·'; color: var(--text-dim); }
+.notes li.lvl-fix::before { content: '◆'; color: var(--fix); }
+.notes li.lvl-ok::before { content: '✓'; color: var(--ok); }
+
+/* ============ RECOMENDACIONES BLOCK ============ */
+.recs {
+  background: var(--bg-card);
+  border: 1px solid var(--rule);
+  padding: 40px;
+  margin-top: 80px;
+}
+.recs h2 {
+  font-family: var(--sans); font-weight: 300;
+  font-size: clamp(28px, 3.4vw, 42px);
+  letter-spacing: -0.01em; line-height: 1.05;
+  margin-bottom: 8px;
+}
+.recs p.lead { color: var(--text-dim); margin-bottom: 30px; max-width: 600px; }
+.rec-row {
+  display: grid; grid-template-columns: 60px 100px 1fr; gap: 20px;
+  padding: 20px 0;
+  border-top: 1px solid var(--rule);
+  align-items: start;
+}
+.rec-prio {
+  font-family: var(--mono); font-size: 11px; font-weight: 700;
+  padding: 4px 8px; text-align: center;
+  text-transform: uppercase; letter-spacing: 0.08em;
+  border-radius: 2px;
+}
+.rec-prio.prio-p0 { background: var(--issue); color: var(--tinta); }
+.rec-prio.prio-p1 { background: var(--dirty); color: var(--tinta); }
+.rec-prio.prio-p2 { background: var(--periwinkle); color: var(--tinta); }
+.rec-area {
+  font-family: var(--micro); font-size: 10px; text-transform: uppercase;
+  letter-spacing: 0.08em; color: var(--text-dim); padding-top: 4px;
+}
+.rec-body h4 {
+  font-family: var(--sans); font-weight: 400; font-size: 17px;
+  letter-spacing: -0.005em; margin-bottom: 6px; color: var(--text-bright);
+}
+.rec-body p { font-size: 13px; color: var(--text-dim); line-height: 1.55; }
+
+/* ============ PALETTE STRIP ============ */
+.palette-row {
+  display: grid; grid-template-columns: repeat(7, 1fr); gap: 4px;
+  margin: 30px 0;
+}
+.swatch {
+  aspect-ratio: 1; display: flex; flex-direction: column; justify-content: flex-end;
+  padding: 8px; font-family: var(--micro); font-size: 9px;
+  text-transform: uppercase; letter-spacing: 0.06em;
+}
+.swatch .hex { font-size: 8px; opacity: 0.7; margin-top: 2px; }
+
+/* ============ TAG INLINE ============ */
+.tag {
+  display: inline-block; padding: 2px 8px;
+  font-family: var(--micro); font-size: 9px; text-transform: uppercase;
+  letter-spacing: 0.08em; border-radius: 2px;
+  vertical-align: middle; margin-left: 6px;
+}
+.tag-issue { background: var(--issue); color: var(--tinta); }
+.tag-ok { background: var(--ok); color: var(--tinta); }
+.tag-warn { background: var(--warn); color: var(--tinta); }
+.tag-fix { background: var(--morado); color: var(--bone); }
+
+@media (max-width: 980px) {
+  .toc { position: static; width: 100%; height: auto; border-right: none; border-bottom: 1px solid var(--rule); }
+  main { margin-left: 0; padding: 30px 24px 60px; }
+  .preview { grid-template-columns: 1fr; }
+  .rec-row { grid-template-columns: 1fr; }
+}
+</style>
+</head>
+<body>
+
+<!-- ============ TOC ============ -->
+<nav class="toc">
+  <span class="toc-logo">tlacuilo audit</span>
+  <span class="toc-section">públicas</span>
+  <a href="#landing">/ &nbsp;landing</a>
+  <a href="#manifesto">/manifesto</a>
+  <a href="#calendario">/calendario</a>
+  <a href="#biblioteca">/biblioteca</a>
+  <a href="#videoteca">/videoteca</a>
+  <a href="#artoteca">/artoteca</a>
+  <a href="#item-detail">/biblioteca/[id]</a>
+  <a href="#buscar">/buscar</a>
+  <a href="#perfil-publico">/u/[alias]</a>
+  <span class="toc-section">auth</span>
+  <a href="#login"><span class="issue-dot"></span>/login</a>
+  <a href="#registro"><span class="issue-dot"></span>/registro</a>
+  <a href="#mi-tlacuilo">/mi-tlacuilo</a>
+  <a href="#checkout">/checkout</a>
+  <span class="toc-section">admin</span>
+  <a href="#admin-libros">/admin/libros</a>
+  <a href="#admin-portadas">/admin/portadas</a>
+  <a href="#admin-eventos">/admin/eventos</a>
+  <a href="#admin-prestamos">/admin/prestamos</a>
+  <a href="#admin-selecciones">/admin/selecciones</a>
+  <span class="toc-section">síntesis</span>
+  <a href="#paleta">paleta v2</a>
+  <a href="#recs">recomendaciones</a>
+  <div class="toc-meta">
+    2026-06-04 · marina · pre-launch audit
+  </div>
+</nav>
+
+<!-- ============ MAIN ============ -->
+<main>
+
+<!-- HERO -->
+<section class="hero">
+  <p class="eyebrow">audit visual · pre-launch hardcore · junio 2026</p>
+  <h1>todas las páginas de <em>tlacuilo</em>, una abajo de la otra, con anotaciones</h1>
+  <p class="lead">
+    snapshot de las 17 pantallas de la app real, leídas del JSX. cada sección muestra
+    estructura, dónde respira y dónde se rompe el sistema. al final, recomendaciones
+    priorizadas para el rediseño antes del launch.
+  </p>
+  <dl class="hero-meta">
+    <div><dt>páginas</dt><dd>17</dd></div>
+    <div><dt>tecas vivas</dt><dd>3</dd></div>
+    <div><dt>tokens canon</dt><dd>v2</dd></div>
+    <div><dt>issues p0</dt><dd>2</dd></div>
+  </dl>
+</section>
+
+<!-- ============ LANDING ============ -->
+<section class="sect" id="landing">
+  <div class="sect-header">
+    <h2><span class="sect-tag tag-public">público</span>landing</h2>
+    <span class="route">/</span>
+  </div>
+  <p class="lead" style="color: var(--text-dim); font-size: 14px; max-width:640px; margin: 12px 0 20px;">
+    catálogo de entrada. 54 libros tipo utrecht.jp con fade al fondo. counters de libros/préstamos, chips de categorías, footer colofón.
+  </p>
+
+  <div class="preview">
+    <div class="preview-frame preview-dark">
+      <span class="frame-label">landing · dark mode</span>
+      <div class="frame-header">
+        <span class="frame-logo">tlacuilo</span>
+        <div class="frame-nav">
+          <span class="active">biblioteca</span><span>artoteca</span><span>fonoteca</span><span>videoteca</span><span>manifiesto</span><span>calendario</span><span>editorial</span>
+        </div>
+      </div>
+      <div style="display:flex; justify-content:space-between; align-items:flex-end; margin: 14px 0 10px;">
+        <div class="mini-h1">Catálogo</div>
+        <div style="display:flex; gap:18px;">
+          <div><div style="font-size:14px; font-family:var(--sans); font-weight:300;">1,243</div><div style="font-size:7px; color: var(--dirty); text-transform:uppercase; letter-spacing:0.12em;">libros</div></div>
+          <div><div style="font-size:14px; font-family:var(--sans); font-weight:300;">387</div><div style="font-size:7px; color: var(--dirty); text-transform:uppercase; letter-spacing:0.12em;">préstamos</div></div>
+        </div>
+      </div>
+      <div class="chips">
+        <span class="chip">narrativa <small style="opacity:0.5">128</small></span>
+        <span class="chip">poesía <small style="opacity:0.5">87</small></span>
+        <span class="chip">ensayo <small style="opacity:0.5">64</small></span>
+        <span class="chip">arte <small style="opacity:0.5">52</small></span>
+        <span class="chip">historia <small style="opacity:0.5">41</small></span>
+      </div>
+      <div class="grid-thumb" style="grid-template-columns: repeat(3, 1fr); gap:8px; margin-top:14px;">
+        <div class="thumb"></div><div class="thumb"></div><div class="thumb"></div>
+        <div class="thumb" style="opacity:0.6"></div><div class="thumb" style="opacity:0.5"></div><div class="thumb" style="opacity:0.35"></div>
+      </div>
+    </div>
+    <div class="notes notes-ok">
+      <h4>landing · notas</h4>
+      <ul>
+        <li class="lvl-ok">utrecht-style grid de 3 cols con fade al fondo · funciona como hook</li>
+        <li class="lvl-ok">counters reales jalan de supabase · vivo</li>
+        <li class="lvl-ok">chips de categorías sincronizados con sidebar de biblioteca</li>
+        <li class="lvl-2">el banner de nav muestra 7 categorías pero solo 3 están vivas (artoteca recién, fonoteca/editorial son href="#")</li>
+        <li class="lvl-3">footer colofón está bonito · diseño + código · marina, etc. mantenlo</li>
+        <li class="lvl-fix">considerar: ¿el botón "ir al catálogo completo" debería ser banda con todas las tecas en vez de solo biblioteca?</li>
+      </ul>
+    </div>
+  </div>
+</section>
+
+<!-- ============ MANIFESTO ============ -->
+<section class="sect" id="manifesto">
+  <div class="sect-header">
+    <h2><span class="sect-tag tag-public">público</span>manifiesto</h2>
+    <span class="route">/manifesto</span>
+  </div>
+  <p class="lead" style="color: var(--text-dim); font-size: 14px; max-width:640px; margin: 12px 0 20px;">
+    voz primaria del proyecto. hero con lema rotatorio (de booklet), bibliotacker, "cómo funciona" con escala 5→45 libros, federación, cierre náhuatl.
+  </p>
+
+  <div class="preview">
+    <div class="preview-frame preview-dark">
+      <span class="frame-label">manifesto · hero</span>
+      <div class="frame-header"><span class="frame-logo">tlacuilo</span><div class="frame-nav"><span>biblioteca</span><span>artoteca</span><span>videoteca</span><span class="active">manifiesto</span></div></div>
+      <div style="text-align:center; padding: 30px 0;">
+        <div style="font-family: var(--mono); font-size: 8px; text-transform:lowercase; letter-spacing:0.18em; color: var(--text-dim); margin-bottom: 12px;">
+          activación de bibliotecas · cdmx
+        </div>
+        <div style="font-family: var(--mono); font-size: 18px; line-height: 1.05; text-transform: uppercase; letter-spacing: 0.04em;">
+          una biblioteca que no presta es <span style="background: var(--bone); color: var(--tinta); padding: 1px 8px 0;">una cárcel de libros</span>
+        </div>
+        <div style="margin-top:14px; font-size:11px; color: var(--text-dim); max-width: 280px; margin-left:auto; margin-right:auto;">
+          una biblioteca pública en tu bolsillo. préstamo gratis, sin precio, con confianza.
+        </div>
+        <div style="margin-top:14px;">
+          <span class="btn-mini">explorar la biblioteca</span>
+          <span class="btn-mini" style="background: transparent; border: 1px solid var(--rule-strong); color: var(--text); margin-left: 6px;">@tlacuilobiblioteca</span>
+        </div>
+      </div>
+    </div>
+    <div class="notes">
+      <h4>manifesto · notas</h4>
+      <ul>
+        <li class="lvl-ok">copy 100% del booklet impreso · canon · no tocar</li>
+        <li class="lvl-ok">hero lema rotatorio respeta no-autoplay (cambia al cargar, no en loop)</li>
+        <li class="lvl-ok">escala 1ª→9ª visita con animación scroll-triggered · ok</li>
+        <li class="lvl-2">tono terminal `> _` y "lowercase tracking-wide" muy distinto del resto · está bien para manifesto pero crea quiebre cuando navegas a /biblioteca</li>
+        <li class="lvl-3">cierre náhuatl + español es el momento más fuerte · mantener</li>
+        <li class="lvl-fix">considerar: ¿la sección "federación próximamente" se queda o se va para launch?</li>
+      </ul>
+    </div>
+  </div>
+</section>
+
+<!-- ============ CALENDARIO ============ -->
+<section class="sect" id="calendario">
+  <div class="sect-header">
+    <h2><span class="sect-tag tag-public">público</span>calendario</h2>
+    <span class="route">/calendario</span>
+  </div>
+  <p class="lead" style="color: var(--text-dim); font-size: 14px; max-width:640px; margin: 12px 0 20px;">
+    grid de 12 mini-calendarios · días con evento en dirty yellow · lista debajo. nav por año (2025/2026/2027).
+  </p>
+
+  <div class="preview">
+    <div class="preview-frame preview-dark">
+      <span class="frame-label">calendario</span>
+      <div style="display:flex; gap: 12px;">
+        <div style="width: 80px; padding-right: 12px; border-right: 1px solid var(--rule); font-family: var(--mono); font-size: 7px; text-transform: uppercase; letter-spacing: 0.12em;">
+          <div style="margin-bottom: 4px; color: var(--text-bright);">biblioteca</div>
+          <div style="margin-bottom: 4px;">artoteca</div>
+          <div style="margin-bottom: 4px;">videoteca</div>
+        </div>
+        <div style="flex: 1;">
+          <div class="mini-eyebrow">calendario</div>
+          <div class="mini-h1" style="margin-bottom: 10px;">2026</div>
+          <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px;">
+            <div>
+              <div style="font-family: var(--mono); font-size: 7px; text-transform: uppercase; letter-spacing: 0.12em; padding-bottom: 2px; border-bottom: 1px solid var(--rule);">Junio</div>
+              <div style="display: grid; grid-template-columns: repeat(7, 1fr); gap: 1px; margin-top: 4px;">
+                <div style="aspect-ratio:1; font-size: 5px;"></div>
+                <div style="aspect-ratio:1; font-size: 5px;"></div>
+                <div style="aspect-ratio:1; font-size: 5px; color: var(--text-dim); display:flex; align-items:center; justify-content:center;">1</div>
+                <div style="aspect-ratio:1; font-size: 5px; color: var(--text-dim); display:flex; align-items:center; justify-content:center;">2</div>
+                <div style="aspect-ratio:1; font-size: 5px; color: var(--text-dim); display:flex; align-items:center; justify-content:center;">3</div>
+                <div style="aspect-ratio:1; font-size: 5px; color: var(--text-dim); display:flex; align-items:center; justify-content:center;">4</div>
+                <div style="aspect-ratio:1; font-size: 5px; color: var(--text-dim); display:flex; align-items:center; justify-content:center;">5</div>
+                <div style="aspect-ratio:1; font-size: 5px; color: var(--text-dim); display:flex; align-items:center; justify-content:center;">6</div>
+                <div style="aspect-ratio:1; font-size: 5px; color: var(--text-dim); display:flex; align-items:center; justify-content:center;">7</div>
+                <div style="aspect-ratio:1; font-size: 5px; color: var(--text-dim); display:flex; align-items:center; justify-content:center;">8</div>
+                <div style="aspect-ratio:1; font-size: 5px; color: var(--text-dim); display:flex; align-items:center; justify-content:center;">9</div>
+                <div style="aspect-ratio:1; font-size: 5px; color: var(--text-dim); display:flex; align-items:center; justify-content:center;">10</div>
+                <div style="aspect-ratio:1; font-size: 5px; color: var(--text-dim); display:flex; align-items:center; justify-content:center;">11</div>
+                <div style="aspect-ratio:1; font-size: 5px; color: var(--text-dim); display:flex; align-items:center; justify-content:center;">12</div>
+                <div style="aspect-ratio:1; font-size: 5px; background: var(--dirty); color: var(--tinta); display:flex; align-items:center; justify-content:center;">13</div>
+                <div style="aspect-ratio:1; font-size: 5px; background: var(--dirty); color: var(--tinta); display:flex; align-items:center; justify-content:center;">14</div>
+              </div>
+            </div>
+            <div style="opacity:0.4"><div style="font-family: var(--mono); font-size: 7px; text-transform: uppercase;">Julio</div></div>
+            <div style="opacity:0.4"><div style="font-family: var(--mono); font-size: 7px; text-transform: uppercase;">Agosto</div></div>
+            <div style="opacity:0.4"><div style="font-family: var(--mono); font-size: 7px; text-transform: uppercase;">Sept</div></div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="notes">
+      <h4>calendario · notas</h4>
+      <ul>
+        <li class="lvl-ok">12 mini-calendarios en 4 cols (3 en lg, 2 en md) · panorama anual de un golpe</li>
+        <li class="lvl-ok">dirty yellow para días con evento · uso correcto del token (acento, no dominante)</li>
+        <li class="lvl-ok">nav año-1/año/año+1 con chips activos</li>
+        <li class="lvl-2">la lista de eventos abajo del grid es algo redundante visualmente · podría ser drawer/modal al click en día</li>
+        <li class="lvl-fix">considerar: marcar mes/semana actual con sutil highlight</li>
+      </ul>
+    </div>
+  </div>
+</section>
+
+<!-- ============ BIBLIOTECA ============ -->
+<section class="sect" id="biblioteca">
+  <div class="sect-header">
+    <h2><span class="sect-tag tag-public">público</span>biblioteca</h2>
+    <span class="route">/biblioteca</span>
+  </div>
+  <p class="lead" style="color: var(--text-dim); font-size: 14px; max-width:640px; margin: 12px 0 20px;">
+    catálogo paginado · TecaLayout con sidebar (chips de categorías) · 27 libros por página · cards horizontales (cover + meta).
+  </p>
+
+  <div class="preview">
+    <div class="preview-frame preview-dark">
+      <span class="frame-label">biblioteca · 1 de 47</span>
+      <div style="display: flex; gap: 12px;">
+        <div style="width: 80px; padding-right: 8px; border-right: 1px solid var(--rule); font-family: var(--mono); font-size: 7px; text-transform: uppercase;">
+          <div style="color: var(--text-bright); margin-bottom: 4px;">biblioteca</div>
+          <div style="margin: 4px 0; display: flex; flex-wrap: wrap; gap: 2px;">
+            <span class="chip chip-active" style="font-size: 6px;">todo</span>
+            <span class="chip" style="font-size: 6px;">narrativa</span>
+            <span class="chip" style="font-size: 6px;">poesía</span>
+          </div>
+          <div style="margin-top: 6px;">artoteca</div>
+          <div>videoteca</div>
+        </div>
+        <div style="flex: 1;">
+          <div style="font-family: var(--mono); font-size: 8px; text-transform: uppercase; opacity: 0.7; margin-bottom: 8px;">
+            Página 1 de 47 · 1,243 libros
+          </div>
+          <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px;">
+            <div style="display:flex; gap: 4px;">
+              <div class="thumb" style="width: 24px; flex-shrink: 0;"></div>
+              <div style="font-size: 7px;">
+                <div style="font-weight: 500;">Título del libro</div>
+                <div style="opacity: 0.7;">autor</div>
+                <div style="opacity: 0.5;">2018</div>
+              </div>
+            </div>
+            <div style="display:flex; gap: 4px;">
+              <div class="thumb" style="width: 24px; flex-shrink: 0;"></div>
+              <div style="font-size: 7px;"><div style="font-weight: 500;">Otro título</div><div style="opacity: 0.7;">autor</div></div>
+            </div>
+            <div style="display:flex; gap: 4px;">
+              <div class="thumb" style="width: 24px; flex-shrink: 0;"></div>
+              <div style="font-size: 7px;"><div style="font-weight: 500;">Tercero</div><div style="opacity: 0.7;">autor</div></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="notes">
+      <h4>biblioteca · notas</h4>
+      <ul>
+        <li class="lvl-ok">TecaLayout consistente · sidebar siempre accesible</li>
+        <li class="lvl-ok">orden has_portada DESC + título · libros con foto suben</li>
+        <li class="lvl-2">header del catálogo solo dice "Página X de Y" · debería tener el eyebrow + h1 grande como mi-tlacuilo y calendario (consistencia tipográfica)</li>
+        <li class="lvl-2">cards horizontales en biblioteca, cards verticales en landing · dos lenguajes para "libro"</li>
+        <li class="lvl-fix">aplicar mismo header pattern (eyebrow biblioteca + h1 "Catálogo" + counter) que landing tiene</li>
+      </ul>
+    </div>
+  </div>
+</section>
+
+<!-- ============ VIDEOTECA ============ -->
+<section class="sect" id="videoteca">
+  <div class="sect-header">
+    <h2><span class="sect-tag tag-public">público</span>videoteca</h2>
+    <span class="route">/videoteca</span>
+  </div>
+  <p class="lead" style="color: var(--text-dim); font-size: 14px; max-width:640px; margin: 12px 0 20px;">
+    28 VHS · sidebar con chips de décadas (1920s · 1930s · 1940s · 1960s · 1980s) · cards con formato debajo del año.
+  </p>
+
+  <div class="preview">
+    <div class="preview-frame preview-dark">
+      <span class="frame-label">videoteca · 1930s</span>
+      <div style="display: flex; gap: 12px;">
+        <div style="width: 80px; padding-right: 8px; border-right: 1px solid var(--rule); font-family: var(--mono); font-size: 7px; text-transform: uppercase;">
+          <div style="margin-bottom: 4px;">biblioteca</div>
+          <div style="margin-bottom: 4px;">artoteca</div>
+          <div style="color: var(--text-bright); margin-bottom: 4px;">videoteca</div>
+          <div style="margin: 4px 0; display: flex; flex-wrap: wrap; gap: 2px;">
+            <span class="chip" style="font-size: 6px;">1920s <small>1</small></span>
+            <span class="chip chip-active" style="font-size: 6px;">1930s <small>8</small></span>
+            <span class="chip" style="font-size: 6px;">1940s <small>5</small></span>
+            <span class="chip" style="font-size: 6px;">1960s</span>
+            <span class="chip" style="font-size: 6px;">1980s</span>
+          </div>
+        </div>
+        <div style="flex: 1;">
+          <div style="font-family: var(--mono); font-size: 8px; text-transform: uppercase; opacity: 0.7; margin-bottom: 8px;">
+            videoteca · 1930s · Página 1 de 1 · 8 items
+          </div>
+          <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px;">
+            <div style="display:flex; gap: 4px;">
+              <div class="thumb" style="width: 24px; flex-shrink: 0; background: linear-gradient(135deg, #444, #666);"></div>
+              <div style="font-size: 7px;">
+                <div style="font-weight: 500;">Rebecca</div>
+                <div style="opacity: 0.7;">Alfred Hitchcock</div>
+                <div style="opacity: 0.5;">1940 <span style="font-family: var(--micro); font-size: 6px; letter-spacing: 0.08em;">· VHS</span></div>
+              </div>
+            </div>
+            <div style="display:flex; gap: 4px;">
+              <div class="thumb" style="width: 24px; flex-shrink: 0;"></div>
+              <div style="font-size: 7px;"><div style="font-weight: 500;">Dodsworth</div><div style="opacity: 0.7;">William Wyler</div><div style="opacity:0.5;">1936 · VHS</div></div>
+            </div>
+            <div style="display:flex; gap: 4px;">
+              <div class="thumb" style="width: 24px; flex-shrink: 0;"></div>
+              <div style="font-size: 7px;"><div style="font-weight: 500;">Sabotage</div><div style="opacity: 0.7;">Hitchcock</div></div>
+            </div>
+          </div>
+          <div style="margin-top: 12px; padding-top: 8px; border-top: 1px solid var(--rule); font-family: var(--micro); font-size: 6px; text-transform: uppercase; opacity: 0.5;">
+            metadata vía tmdb
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="notes notes-ok">
+      <h4>videoteca · notas</h4>
+      <ul>
+        <li class="lvl-ok">décadas como filtro funciona super bien para catálogo cinematográfico</li>
+        <li class="lvl-ok">portadas TMDB integradas · 16 de 28 con poster automático</li>
+        <li class="lvl-ok">formato (VHS/DVD/Blu-ray) muestra debajo del año en micro caps · acento útil</li>
+        <li class="lvl-3">los 12 Civilizaciones Perdidas no caen en ninguna década (sin año) · no aparecen al filtrar</li>
+        <li class="lvl-fix">considerar: chip "sin fecha" o "documentales" para capturar la serie Time-Life</li>
+      </ul>
+    </div>
+  </div>
+</section>
+
+<!-- ============ ARTOTECA ============ -->
+<section class="sect" id="artoteca">
+  <div class="sect-header">
+    <h2><span class="sect-tag tag-public">público</span>artoteca</h2>
+    <span class="route">/artoteca</span>
+  </div>
+  <p class="lead" style="color: var(--text-dim); font-size: 14px; max-width:640px; margin: 12px 0 20px;">
+    113 piezas del catálogo MACG · sidebar con 81 artistas · covers de aspect natural (no forzado a 2:3) · descripción de medidas/edición debajo del autor.
+  </p>
+
+  <div class="preview">
+    <div class="preview-frame preview-dark">
+      <span class="frame-label">artoteca · pedro reyes</span>
+      <div style="display: flex; gap: 12px;">
+        <div style="width: 80px; padding-right: 8px; border-right: 1px solid var(--rule); font-family: var(--mono); font-size: 7px; text-transform: uppercase;">
+          <div style="margin-bottom: 4px;">biblioteca</div>
+          <div style="color: var(--text-bright); margin-bottom: 4px;">artoteca</div>
+          <div style="margin: 4px 0; display: flex; flex-wrap: wrap; gap: 2px; max-height: 80px; overflow: hidden;">
+            <span class="chip" style="font-size: 6px;">todo</span>
+            <span class="chip" style="font-size: 6px;">aldo chaparro 1</span>
+            <span class="chip" style="font-size: 6px;">andrés toro 5</span>
+            <span class="chip" style="font-size: 6px;">carla fernández 4</span>
+            <span class="chip" style="font-size: 6px;">geles cabrera 4</span>
+            <span class="chip" style="font-size: 6px;">mark powell 3</span>
+            <span class="chip" style="font-size: 6px;">mario garcía torres 3</span>
+            <span class="chip chip-active" style="font-size: 6px;">pedro reyes 2</span>
+          </div>
+          <div style="margin-top: 6px;">videoteca</div>
+        </div>
+        <div style="flex: 1;">
+          <div style="font-family: var(--mono); font-size: 8px; text-transform: uppercase; opacity: 0.7; margin-bottom: 8px;">
+            artoteca · Pedro Reyes · 2 piezas
+          </div>
+          <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px;">
+            <div style="display:flex; gap: 4px; align-items: flex-start;">
+              <div class="thumb thumb-art thumb-art-h" style="width: 32px; flex-shrink: 0;"></div>
+              <div style="font-size: 7px;">
+                <div style="font-weight: 500;">Caracteres Móviles</div>
+                <div style="opacity: 0.7;">Pedro Reyes</div>
+                <div style="opacity: 0.5;">2008 <span style="font-family: var(--micro); font-size: 6px;">· cártel</span></div>
+                <div style="opacity: 0.5; font-size: 6px; margin-top: 1px;">59 x 79 x 3 cm. Colección Tlacuilo (MACG).</div>
+              </div>
+            </div>
+            <div style="display:flex; gap: 4px; align-items: flex-start;">
+              <div class="thumb thumb-art thumb-art-sq" style="width: 32px; flex-shrink: 0;"></div>
+              <div style="font-size: 7px;"><div style="font-weight: 500;">260,000 muertos…</div><div style="opacity: 0.7;">Pedro Reyes</div><div style="opacity:0.5;">2018 · póster</div></div>
+            </div>
+          </div>
+          <div style="margin-top: 12px; padding-top: 8px; border-top: 1px solid var(--rule); font-family: var(--micro); font-size: 6px; text-transform: uppercase; opacity: 0.5;">
+            catálogo MACG · donación pedro reyes 2021
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="notes notes-fix">
+      <h4>artoteca · notas</h4>
+      <ul>
+        <li class="lvl-ok">aspect natural en covers (cuadradas, horizontales, verticales se ven así) · respeta la naturaleza de las piezas</li>
+        <li class="lvl-ok">descripción condensada (medidas + edición) en line-clamp-2 debajo del autor</li>
+        <li class="lvl-ok">sidebar por artista permite curaduría tipo "todo lo de Mark Powell"</li>
+        <li class="lvl-2">81 chips de artistas es MUCHO · considerar: collapse/expand, búsqueda dentro de sidebar, o agrupar (los que tienen 1 obra en "otros")</li>
+        <li class="lvl-fix">cuando una pieza no tiene foto, el placeholder 3:4 con título es feo · podría ser un rectángulo más sutil o tarjeta con metadata destacada</li>
+        <li class="lvl-fix">considerar fallback: si no hay foto, mostrar ficha técnica grande (título · artista · año · técnica) tipo wall label de museo</li>
+      </ul>
+    </div>
+  </div>
+</section>
+
+<!-- ============ ITEM DETAIL ============ -->
+<section class="sect" id="item-detail">
+  <div class="sect-header">
+    <h2><span class="sect-tag tag-public">público</span>detalle de item</h2>
+    <span class="route">/biblioteca/[id]</span>
+  </div>
+  <p class="lead" style="color: var(--text-dim); font-size: 14px; max-width:640px; margin: 12px 0 20px;">
+    ficha de un libro/pieza/película · cover + metadata + descripción + acción (apartar/morral). compartida entre las 3 tecas.
+  </p>
+
+  <div class="preview">
+    <div class="preview-frame preview-dark">
+      <span class="frame-label">item detail</span>
+      <div style="display: flex; gap: 12px;">
+        <div style="width: 80px; padding-right: 8px; border-right: 1px solid var(--rule); font-family: var(--mono); font-size: 7px; text-transform: uppercase;">
+          <div>biblioteca</div><div>artoteca</div><div>videoteca</div>
+        </div>
+        <div style="flex: 1; display: grid; grid-template-columns: 90px 1fr; gap: 12px;">
+          <div class="thumb" style="height: 130px;"></div>
+          <div>
+            <div class="mini-eyebrow">narrativa · novela</div>
+            <div style="font-family: var(--sans); font-weight: 300; font-size: 16px; line-height: 1.1; margin-bottom: 4px;">El nombre del libro</div>
+            <div style="font-size: 9px; opacity: 0.8; margin-bottom: 6px;">autor del libro</div>
+            <div style="font-size: 8px; opacity: 0.6; margin-bottom: 8px;">1987 · 256 pp.</div>
+            <div style="display:flex; align-items: center; gap: 6px; margin-bottom: 8px;">
+              <span style="width: 8px; height: 8px; border-radius: 50%; background: var(--available); display: inline-block;"></span>
+              <span style="font-size: 8px; text-transform: uppercase; letter-spacing: 0.08em;">disponible</span>
+            </div>
+            <div style="font-size: 8px; opacity: 0.7; line-height: 1.4; margin-bottom: 10px;">
+              descripción del libro que puede ser larga, varias líneas, con la sinopsis o notas curatoriales.
+            </div>
+            <span class="btn-mini">apartar para visita</span>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="notes">
+      <h4>item detail · notas</h4>
+      <ul>
+        <li class="lvl-ok">ficha técnica clara · acción primaria (apartar) destacada</li>
+        <li class="lvl-2">misma página sirve para libros / vhs / piezas de arte · está bien pero podría especializarse: para artoteca mostrar técnica + dimensiones más grande</li>
+        <li class="lvl-2">"AdminEditButton variant=floating" en esquina pero solo si eres editor · ok</li>
+        <li class="lvl-fix">para artoteca: cover debería verse a full ancho con object-contain (no chiquito al lado de la metadata) · vale la pena layout diferenciado por teca</li>
+      </ul>
+    </div>
+  </div>
+</section>
+
+<!-- ============ BUSCAR ============ -->
+<section class="sect" id="buscar">
+  <div class="sect-header">
+    <h2><span class="sect-tag tag-public">público</span>buscar</h2>
+    <span class="route">/buscar?q=...</span>
+  </div>
+  <p class="lead" style="color: var(--text-dim); font-size: 14px; max-width:640px; margin: 12px 0 20px;">
+    búsqueda full-text vía RPC search_libros. placeholder es un título aleatorio del catálogo.
+  </p>
+
+  <div class="preview">
+    <div class="preview-frame preview-dark">
+      <span class="frame-label">buscar</span>
+      <div class="terminal-line"><span class="prompt">&gt;</span> buscar en la biblioteca</div>
+      <div style="display:flex; gap: 6px; margin: 10px 0;">
+        <div class="input-mini" style="flex: 1;">tlacuilo</div>
+        <span class="btn-mini" style="margin-top: 0;">Buscar</span>
+      </div>
+      <div class="terminal-line" style="opacity: 0.7;"><span class="prompt">&gt;</span> 12 resultados para "tlacuilo"</div>
+      <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; margin-top: 10px;">
+        <div style="display:flex; gap: 4px;">
+          <div class="thumb" style="width: 24px;"></div>
+          <div style="font-size: 7px;"><div style="font-weight: 500;">Resultado 1</div><div style="opacity: 0.7;">autor</div></div>
+        </div>
+        <div style="display:flex; gap: 4px;">
+          <div class="thumb" style="width: 24px;"></div>
+          <div style="font-size: 7px;"><div style="font-weight: 500;">Resultado 2</div></div>
+        </div>
+      </div>
+    </div>
+    <div class="notes">
+      <h4>buscar · notas</h4>
+      <ul>
+        <li class="lvl-ok">placeholder con título random del catálogo · invita a buscar</li>
+        <li class="lvl-ok">respeta no-autoplay (1 placeholder fijo, no rota)</li>
+        <li class="lvl-2">tono terminal `&gt; _` aquí · mezcla con la tipografía clean de los cards de resultado</li>
+        <li class="lvl-fix">considerar filtros: por teca (libro/vhs/pieza), por disponibilidad, por categoría</li>
+      </ul>
+    </div>
+  </div>
+</section>
+
+<!-- ============ PERFIL PUBLICO ============ -->
+<section class="sect" id="perfil-publico">
+  <div class="sect-header">
+    <h2><span class="sect-tag tag-public">público</span>perfil público</h2>
+    <span class="route">/u/[alias]</span>
+  </div>
+  <p class="lead" style="color: var(--text-dim); font-size: 14px; max-width:640px; margin: 12px 0 20px;">
+    perfil de un lector visto desde fuera · alias, bio, libros que tiene en visita o ha leído.
+  </p>
+
+  <div class="preview">
+    <div class="preview-frame preview-dark">
+      <span class="frame-label">u/marinaterrestre</span>
+      <div class="mini-eyebrow">perfil</div>
+      <div class="mini-h1">marinaterrestre</div>
+      <div style="font-size: 9px; opacity: 0.7; max-width: 280px; margin-bottom: 12px;">
+        lectora de novela latinoamericana del XX, devuelve a tiempo.
+      </div>
+      <div style="font-size: 7px; text-transform: uppercase; letter-spacing: 0.08em; opacity: 0.5; margin-bottom: 6px;">
+        actualmente en su morral · 3 libros
+      </div>
+      <div style="display: grid; grid-template-columns: repeat(5, 1fr); gap: 4px;">
+        <div class="thumb"></div>
+        <div class="thumb"></div>
+        <div class="thumb"></div>
+      </div>
+    </div>
+    <div class="notes notes-warn">
+      <h4>perfil público · notas</h4>
+      <ul>
+        <li class="lvl-3">página existe pero no la revisé en este audit · checar consistencia con mi-tlacuilo</li>
+        <li class="lvl-fix">decidir: ¿qué muestra exactamente al público? bio + visitas activas + lecturas pasadas (historial)</li>
+        <li class="lvl-fix">privacidad: opt-in para mostrar historial completo</li>
+      </ul>
+    </div>
+  </div>
+</section>
+
+<!-- ============ LOGIN ============ -->
+<section class="sect" id="login">
+  <div class="sect-header">
+    <h2><span class="sect-tag tag-auth">auth</span>login <span class="tag tag-issue">paleta v1</span></h2>
+    <span class="route">/login</span>
+  </div>
+  <p class="lead" style="color: var(--text-dim); font-size: 14px; max-width:640px; margin: 12px 0 20px;">
+    formulario de acceso. <strong style="color: var(--issue)">issue p0:</strong> usa colores hardcoded (#15151d, #9091c4) y font-futura que no está cargada. Desconectado de paleta v2.
+  </p>
+
+  <div class="preview">
+    <div class="preview-frame preview-legacy">
+      <span class="frame-label">login · paleta v1 ⚠</span>
+      <div style="font-family: var(--mono); padding: 20px 12px;">
+        <div style="font-size: 8px; text-transform: uppercase; letter-spacing: 0.12em; opacity: 0.6; margin-bottom: 8px;">
+          // tlacuilo.org · acceso
+        </div>
+        <div style="border-bottom: 1px solid #9091c440; margin-bottom: 20px;"></div>
+        <div class="terminal-line"><span class="prompt" style="color: #9091c4;">&gt;</span> identifícate.</div>
+        <div style="margin-top: 16px;">
+          <div style="font-size: 8px; opacity: 0.6; margin-bottom: 2px;">correo .....:</div>
+          <div style="border-bottom: 1px solid #9091c4; padding: 2px 0; font-size: 10px;">marina@…</div>
+        </div>
+        <div style="margin-top: 12px;">
+          <div style="font-size: 8px; opacity: 0.6; margin-bottom: 2px;">contraseña..:</div>
+          <div style="border-bottom: 1px solid #9091c4; padding: 2px 0; font-size: 10px;">••••••</div>
+        </div>
+        <div style="margin-top: 20px; font-size: 10px;"><span class="prompt" style="color: #9091c4;">&gt;</span> entrar<span style="color: #9091c4;">▮</span></div>
+      </div>
+    </div>
+    <div class="notes" style="border-left-color: var(--issue);">
+      <h4>login · issues p0</h4>
+      <ul>
+        <li class="lvl-1">colores hardcoded #15151d, #9091c4 (NO es ningún token de paleta v2 · es periwinkle viejo de v1)</li>
+        <li class="lvl-1">font-futura · no está cargada (stack actual: Jost + JetBrains Mono + DM Mono)</li>
+        <li class="lvl-1">no usa &lt;TecaLayout&gt; · queda fuera del shell de la app</li>
+        <li class="lvl-fix">migrar a tokens (bg-bg, text-text, border-rule) y font-mono</li>
+        <li class="lvl-fix">considerar diseño consistente con resto (eyebrow + h1 grande, no terminal estilo)</li>
+      </ul>
+    </div>
+  </div>
+</section>
+
+<!-- ============ REGISTRO ============ -->
+<section class="sect" id="registro">
+  <div class="sect-header">
+    <h2><span class="sect-tag tag-auth">auth</span>registro <span class="tag tag-issue">paleta v1</span></h2>
+    <span class="route">/registro</span>
+  </div>
+  <p class="lead" style="color: var(--text-dim); font-size: 14px; max-width:640px; margin: 12px 0 20px;">
+    solicitar acceso. mismos issues que login · paleta v1, font-futura, color #9091c4.
+  </p>
+
+  <div class="preview">
+    <div class="preview-frame preview-legacy">
+      <span class="frame-label">registro · paleta v1 ⚠</span>
+      <div style="font-family: var(--mono); padding: 20px 12px;">
+        <div style="font-size: 8px; text-transform: uppercase; letter-spacing: 0.12em; opacity: 0.6; margin-bottom: 8px;">
+          // tlacuilo.org · solicitar acceso
+        </div>
+        <div style="border-bottom: 1px solid #9091c440; margin-bottom: 20px;"></div>
+        <div class="terminal-line"><span class="prompt" style="color: #9091c4;">&gt;</span> elige un alias y entra al acervo.</div>
+        <div style="margin-top: 12px;">
+          <div style="font-size: 8px; opacity: 0.6;">alias ...............:</div>
+          <div style="border-bottom: 1px solid #9091c4; padding: 2px 0; font-size: 10px;">marinaterrestre</div>
+          <div style="font-size: 7px; color: #22c55e; margin-top: 2px;">&gt; disponible ✓</div>
+        </div>
+        <div style="margin-top: 12px;">
+          <div style="font-size: 8px; opacity: 0.6;">correo electrónico ..:</div>
+          <div style="border-bottom: 1px solid #9091c4; padding: 2px 0; font-size: 10px;">marina@…</div>
+        </div>
+        <div style="margin-top: 12px;">
+          <div style="font-size: 8px; opacity: 0.6;">contraseña ..........:</div>
+          <div style="border-bottom: 1px solid #9091c4; padding: 2px 0; font-size: 10px;">••••••</div>
+        </div>
+      </div>
+    </div>
+    <div class="notes" style="border-left-color: var(--issue);">
+      <h4>registro · mismos issues que login</h4>
+      <ul>
+        <li class="lvl-1">copy-paste del login · misma paleta v1 hardcoded</li>
+        <li class="lvl-ok">validación de alias en vivo con debounce + verde/naranja · funciona</li>
+        <li class="lvl-fix">migrar junto con login en un solo refactor (componente shared AuthShell)</li>
+        <li class="lvl-fix">considerar: usar handle como display name "ALIAS" pero columna DB sigue siendo handle (canon)</li>
+      </ul>
+    </div>
+  </div>
+</section>
+
+<!-- ============ MI TLACUILO ============ -->
+<section class="sect" id="mi-tlacuilo">
+  <div class="sect-header">
+    <h2><span class="sect-tag tag-auth">auth</span>mi tlacuilo</h2>
+    <span class="route">/mi-tlacuilo</span>
+  </div>
+  <p class="lead" style="color: var(--text-dim); font-size: 14px; max-width:640px; margin: 12px 0 20px;">
+    perfil propio: morral, visitas, bio, identidad. para editores también muestra grid de admin tools.
+  </p>
+
+  <div class="preview">
+    <div class="preview-frame preview-dark">
+      <span class="frame-label">mi tlacuilo</span>
+      <div class="mini-eyebrow">mi tlacuilo</div>
+      <div class="mini-h1" style="margin-bottom: 4px;">Hola, marinaterrestre.</div>
+      <div style="font-size: 8px; opacity: 0.7; margin-bottom: 12px;">tu perfil público en tlacuilo.org/u/marinaterrestre</div>
+
+      <div style="font-size: 8px; color: var(--dirty); text-transform: uppercase; letter-spacing: 0.12em; margin-bottom: 6px;">· zona editora ·</div>
+      <div style="display: flex; flex-wrap: wrap; gap: 3px; margin-bottom: 14px;">
+        <span class="chip" style="font-size: 7px;">libros</span>
+        <span class="chip" style="font-size: 7px;">portadas</span>
+        <span class="chip" style="font-size: 7px;">préstamos</span>
+        <span class="chip" style="font-size: 7px;">selecciones</span>
+        <span class="chip" style="font-size: 7px;">eventos</span>
+      </div>
+
+      <div style="padding-top: 10px; border-top: 1px solid var(--rule); margin-bottom: 14px;">
+        <div style="display:flex; justify-content: space-between; margin-bottom: 6px;">
+          <div style="font-family: var(--sans); font-weight: 300; font-size: 14px;">Mi morral</div>
+          <div style="font-family: var(--micro); font-size: 7px; text-transform: uppercase; color: var(--dirty);">3 libros</div>
+        </div>
+        <div style="display: grid; grid-template-columns: repeat(5, 1fr); gap: 4px;">
+          <div class="thumb"></div><div class="thumb"></div><div class="thumb"></div>
+        </div>
+        <div class="btn-mini" style="margin-top: 8px;">agendar visita →</div>
+      </div>
+    </div>
+    <div class="notes notes-ok">
+      <h4>mi-tlacuilo · notas</h4>
+      <ul>
+        <li class="lvl-ok">header pattern (eyebrow + h1 grande "Hola, X") es el más bonito de la app · cópialo a biblioteca/videoteca/artoteca</li>
+        <li class="lvl-ok">zona editora con chips de admin · útil para los 3 editores</li>
+        <li class="lvl-ok">separación clara: morral, visitas, bio, identidad</li>
+        <li class="lvl-2">la sección "tu identidad · solo tú la ves" usa &lt;dl&gt; con dotted lines (".....") · tono terminal, pega con login/registro pero choca con resto</li>
+        <li class="lvl-fix">considerar: meter "agendar visita" como sticky bar en mobile</li>
+      </ul>
+    </div>
+  </div>
+</section>
+
+<!-- ============ CHECKOUT ============ -->
+<section class="sect" id="checkout">
+  <div class="sect-header">
+    <h2><span class="sect-tag tag-auth">auth</span>checkout</h2>
+    <span class="route">/checkout</span>
+  </div>
+  <p class="lead" style="color: var(--text-dim); font-size: 14px; max-width:640px; margin: 12px 0 20px;">
+    agendar visita: muestra morral, selecciona día (10 weekdays próximos) y bloque (mañana 10-14:30 / tarde 16-19).
+  </p>
+
+  <div class="preview">
+    <div class="preview-frame preview-dark">
+      <span class="frame-label">checkout</span>
+      <div class="terminal-line"><span class="prompt">&gt;</span> checkout</div>
+      <div style="font-family: var(--mono); font-size: 14px; text-transform: uppercase; letter-spacing: 0.04em; color: var(--text-bright); margin: 6px 0 6px;">
+        Agenda tu visita
+      </div>
+      <div style="font-size: 8px; opacity: 0.7; margin-bottom: 10px;">Te esperamos en Coyoacán.</div>
+
+      <div style="font-family: var(--mono); font-size: 10px; text-transform: uppercase; opacity: 0.7; margin-bottom: 4px;">// qué día</div>
+      <div style="display: grid; grid-template-columns: repeat(5, 1fr); gap: 3px; margin-bottom: 12px;">
+        <div class="chip" style="font-size: 6px; text-align: center;">lun 9 jun</div>
+        <div class="chip" style="font-size: 6px; text-align: center;">mar 10 jun</div>
+        <div class="chip chip-active" style="font-size: 6px; text-align: center;">mié 11 jun</div>
+        <div class="chip" style="font-size: 6px; text-align: center;">jue 12 jun</div>
+        <div class="chip" style="font-size: 6px; text-align: center;">vie 13 jun</div>
+      </div>
+
+      <div style="font-family: var(--mono); font-size: 10px; text-transform: uppercase; opacity: 0.7; margin-bottom: 4px;">// qué bloque</div>
+      <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 4px; margin-bottom: 10px;">
+        <div class="chip chip-active" style="font-size: 7px; padding: 6px;">mañana<br><small style="opacity:0.7">10:00 a 14:30</small></div>
+        <div class="chip" style="font-size: 7px; padding: 6px;">tarde<br><small style="opacity:0.7">16:00 a 19:00</small></div>
+      </div>
+
+      <div class="terminal-line" style="font-size: 8px;">&gt; vienes el <span style="color: var(--text-bright);">mié 11 de junio</span>, bloque <span style="color: var(--text-bright);">mañana</span></div>
+      <div class="btn-mini">confirmar visita →</div>
+    </div>
+    <div class="notes">
+      <h4>checkout · notas</h4>
+      <ul>
+        <li class="lvl-ok">flujo simple: días → bloque → confirmar · mínima fricción</li>
+        <li class="lvl-ok">enforza "lun-vie · mín. 1 día anticipación" en la lógica</li>
+        <li class="lvl-2">tono terminal `&gt;` consistente con login/registro pero rompe con biblioteca/artoteca</li>
+        <li class="lvl-fix">considerar: capacidad de bloque (¿hay límite de visitas por bloque?), confirmación por correo</li>
+        <li class="lvl-fix">post-confirmación: ¿agrega recordatorio al calendario del usuario? ical/google</li>
+      </ul>
+    </div>
+  </div>
+</section>
+
+<!-- ============ ADMIN LIBROS ============ -->
+<section class="sect" id="admin-libros">
+  <div class="sect-header">
+    <h2><span class="sect-tag tag-admin">admin</span>admin · libros</h2>
+    <span class="route">/admin/libros</span>
+  </div>
+  <p class="lead" style="color: var(--text-dim); font-size: 14px; max-width:640px; margin: 12px 0 20px;">
+    CRUD: agregar/editar libros y piezas. form arriba para nuevo, lista abajo con cards clickeables que abren LibroEditorModal.
+  </p>
+
+  <div class="preview">
+    <div class="preview-frame preview-dark">
+      <span class="frame-label">admin · libros</span>
+      <div class="mini-eyebrow">administración</div>
+      <div class="mini-h1" style="margin-bottom: 8px;">Libros</div>
+
+      <div style="background: var(--bg-soft); padding: 8px; margin-bottom: 12px;">
+        <div style="font-size: 7px; text-transform: uppercase; letter-spacing: 0.12em; opacity: 0.6; margin-bottom: 4px;">+ agregar nuevo</div>
+        <div style="display: flex; gap: 4px; margin-bottom: 4px;">
+          <span class="chip chip-active" style="font-size: 6px;">biblioteca</span>
+          <span class="chip" style="font-size: 6px;">artoteca</span>
+          <span class="chip" style="font-size: 6px;">videoteca</span>
+        </div>
+        <div class="input-mini">título</div>
+        <div class="input-mini">autor</div>
+        <span class="btn-mini">+ agregar</span>
+        <span style="font-size: 7px; margin-left: 8px; opacity: 0.6;">🎬 autorrellenar TMDB</span>
+      </div>
+
+      <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 6px;">
+        <div style="display:flex; gap: 4px; background: var(--bg-soft); padding: 4px;">
+          <div class="thumb" style="width: 22px;"></div>
+          <div style="font-size: 7px;"><div style="font-weight: 500;">El nombre</div><div style="opacity:0.7">autor</div></div>
+        </div>
+        <div style="display:flex; gap: 4px; background: var(--bg-soft); padding: 4px;">
+          <div class="thumb" style="width: 22px;"></div>
+          <div style="font-size: 7px;"><div style="font-weight: 500;">Otro título</div><div style="opacity:0.7">autor</div></div>
+        </div>
+      </div>
+    </div>
+    <div class="notes">
+      <h4>admin libros · notas</h4>
+      <ul>
+        <li class="lvl-ok">selector de teca + formato consciente · funciona</li>
+        <li class="lvl-ok">click en card → LibroEditorModal · refactor reciente, mejor UX</li>
+        <li class="lvl-ok">autofill TMDB + OpenLibrary respetan campos pre-llenados (no sobreescriben)</li>
+        <li class="lvl-2">la form de "+ agregar" arriba + lista abajo es funcional pero podría ser tabbed: agregar / editar</li>
+        <li class="lvl-fix">considerar: filtrar lista por teca (chips) y por has_portada (para ver pendientes)</li>
+        <li class="lvl-fix">bulk actions: select multiple, mover entre tecas, eliminar duplicados</li>
+      </ul>
+    </div>
+  </div>
+</section>
+
+<!-- ============ ADMIN PORTADAS ============ -->
+<section class="sect" id="admin-portadas">
+  <div class="sect-header">
+    <h2><span class="sect-tag tag-admin">admin</span>admin · portadas</h2>
+    <span class="route">/admin/portadas</span>
+  </div>
+  <p class="lead" style="color: var(--text-dim); font-size: 14px; max-width:640px; margin: 12px 0 20px;">
+    UI específica para subir portadas rápido. lista de libros sin foto, drag-and-drop o file picker.
+  </p>
+
+  <div class="preview">
+    <div class="preview-frame preview-dark">
+      <span class="frame-label">admin · portadas</span>
+      <div class="mini-eyebrow">administración</div>
+      <div class="mini-h1" style="margin-bottom: 8px;">Subir portadas</div>
+      <div style="font-size: 8px; opacity: 0.7; margin-bottom: 10px;">35 piezas en artoteca sin portada todavía.</div>
+
+      <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px;">
+        <div style="text-align: center; background: var(--bg-soft); padding: 6px; border: 1px dashed var(--rule);">
+          <div style="font-size: 7px; font-weight: 500;">San Juan Chamula I</div>
+          <div style="font-size: 7px; opacity: 0.7;">Carla Fernández</div>
+          <div style="height: 30px; display:flex; align-items:center; justify-content:center; opacity: 0.5; font-size: 7px; margin-top: 4px;">+ arrastra foto</div>
+        </div>
+        <div style="text-align: center; background: var(--bg-soft); padding: 6px; border: 1px dashed var(--rule);">
+          <div style="font-size: 7px; font-weight: 500;">Vaquero</div>
+          <div style="font-size: 7px; opacity: 0.7;">Mark Powell</div>
+          <div style="height: 30px; display:flex; align-items:center; justify-content:center; opacity: 0.5; font-size: 7px; margin-top: 4px;">+ arrastra foto</div>
+        </div>
+      </div>
+    </div>
+    <div class="notes notes-warn">
+      <h4>admin portadas · notas</h4>
+      <ul>
+        <li class="lvl-ok">existe pero ahora con el editor rico desde /admin/libros (con autofill) probablemente se usa menos</li>
+        <li class="lvl-2">duplicación de UI · /admin/libros y /admin/portadas hacen cosas parecidas · decidir cuál es la canon</li>
+        <li class="lvl-fix">consolidar: la lista de "sin portada" podría ser un tab en /admin/libros</li>
+      </ul>
+    </div>
+  </div>
+</section>
+
+<!-- ============ ADMIN EVENTOS ============ -->
+<section class="sect" id="admin-eventos">
+  <div class="sect-header">
+    <h2><span class="sect-tag tag-admin">admin</span>admin · eventos</h2>
+    <span class="route">/admin/eventos</span>
+  </div>
+  <p class="lead" style="color: var(--text-dim); font-size: 14px; max-width:640px; margin: 12px 0 20px;">
+    crear/editar eventos del calendario · título, descripción, fecha inicio/fin, ubicación, url.
+  </p>
+
+  <div class="preview">
+    <div class="preview-frame preview-dark">
+      <span class="frame-label">admin · eventos</span>
+      <div class="mini-eyebrow">administración</div>
+      <div class="mini-h1" style="margin-bottom: 8px;">Eventos del calendario</div>
+      <div class="input-mini">título del evento</div>
+      <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 4px;">
+        <div class="input-mini">fecha inicio</div>
+        <div class="input-mini">fecha fin</div>
+      </div>
+      <div class="input-mini">ubicación</div>
+      <div class="input-mini" style="min-height: 30px;">descripción</div>
+      <span class="btn-mini">+ crear evento</span>
+    </div>
+    <div class="notes">
+      <h4>admin eventos · notas</h4>
+      <ul>
+        <li class="lvl-ok">form sencillo, lista de eventos del año</li>
+        <li class="lvl-fix">considerar: eventos recurrentes (taller cada miércoles), evento con multiple sesiones, cancelación</li>
+      </ul>
+    </div>
+  </div>
+</section>
+
+<!-- ============ ADMIN PRESTAMOS ============ -->
+<section class="sect" id="admin-prestamos">
+  <div class="sect-header">
+    <h2><span class="sect-tag tag-admin">admin</span>admin · préstamos</h2>
+    <span class="route">/admin/prestamos</span>
+  </div>
+  <p class="lead" style="color: var(--text-dim); font-size: 14px; max-width:640px; margin: 12px 0 20px;">
+    ver préstamos activos (apartados, recogidos), marcar devoluciones, contactar usuarios.
+  </p>
+
+  <div class="preview">
+    <div class="preview-frame preview-dark">
+      <span class="frame-label">admin · préstamos</span>
+      <div class="mini-eyebrow">administración</div>
+      <div class="mini-h1" style="margin-bottom: 8px;">Préstamos activos</div>
+      <table style="width: 100%; font-size: 8px; border-collapse: collapse;">
+        <thead>
+          <tr style="border-bottom: 1px solid var(--rule); text-align: left;">
+            <th style="padding: 4px; font-family: var(--micro); font-weight: 500; text-transform: uppercase; letter-spacing: 0.08em; opacity: 0.6;">usuario</th>
+            <th style="padding: 4px; font-family: var(--micro); font-weight: 500; text-transform: uppercase; letter-spacing: 0.08em; opacity: 0.6;">libro</th>
+            <th style="padding: 4px; font-family: var(--micro); font-weight: 500; text-transform: uppercase; letter-spacing: 0.08em; opacity: 0.6;">estado</th>
+            <th style="padding: 4px; font-family: var(--micro); font-weight: 500; text-transform: uppercase; letter-spacing: 0.08em; opacity: 0.6;">vence</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr style="border-bottom: 1px solid var(--rule); opacity: 0.9;"><td style="padding: 4px;">marinaterrestre</td><td>Pedagogía del oprimido</td><td><span style="background: var(--available); color: var(--tinta); padding: 1px 4px; font-size: 7px;">recogido</span></td><td>2026-07-05</td></tr>
+          <tr style="border-bottom: 1px solid var(--rule); opacity: 0.9;"><td style="padding: 4px;">pedro</td><td>Bestiario</td><td><span style="background: var(--dirty); color: var(--tinta); padding: 1px 4px; font-size: 7px;">apartado</span></td><td>—</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <div class="notes">
+      <h4>admin préstamos · notas</h4>
+      <ul>
+        <li class="lvl-3">no revisé el código a fondo · ojo con consistencia tipográfica</li>
+        <li class="lvl-fix">considerar: alertas para próximos a vencer, plantillas de recordatorio</li>
+        <li class="lvl-fix">vista de "vencidos" prominente · esos son los que requieren acción</li>
+      </ul>
+    </div>
+  </div>
+</section>
+
+<!-- ============ ADMIN SELECCIONES ============ -->
+<section class="sect" id="admin-selecciones">
+  <div class="sect-header">
+    <h2><span class="sect-tag tag-admin">admin</span>admin · selecciones</h2>
+    <span class="route">/admin/selecciones</span>
+  </div>
+  <p class="lead" style="color: var(--text-dim); font-size: 14px; max-width:640px; margin: 12px 0 20px;">
+    pinear ciertos libros al landing · curaduría manual del orden de aparición.
+  </p>
+
+  <div class="preview">
+    <div class="preview-frame preview-dark">
+      <span class="frame-label">admin · selecciones</span>
+      <div class="mini-eyebrow">administración</div>
+      <div class="mini-h1" style="margin-bottom: 8px;">Selecciones del landing</div>
+      <div style="font-size: 8px; opacity: 0.7;">drag para reordenar · 54 libros del landing</div>
+    </div>
+    <div class="notes notes-warn">
+      <h4>admin selecciones · notas</h4>
+      <ul>
+        <li class="lvl-3">no revisé en este audit</li>
+        <li class="lvl-fix">decidir si se usa para launch o el landing sigue con "has_portada DESC + id" random</li>
+      </ul>
+    </div>
+  </div>
+</section>
+
+<!-- ============ PALETA ============ -->
+<section class="sect" id="paleta">
+  <div class="sect-header">
+    <h2>paleta v2 · canon actual</h2>
+    <span class="route">app/globals.css</span>
+  </div>
+  <p class="lead" style="color: var(--text-dim); font-size: 14px; max-width:640px; margin: 12px 0 20px;">
+    los 7 colores del sistema. dark mode default, light mode invierte morado/bone como par primario.
+  </p>
+
+  <div class="palette-row">
+    <div class="swatch" style="background: #6E6BA0; color: #ECEAF0;">morado tlacuilo<span class="hex">#6E6BA0</span></div>
+    <div class="swatch" style="background: #9D9BC8; color: #15151D;">periwinkle<span class="hex">#9D9BC8</span></div>
+    <div class="swatch" style="background: #15151D; color: #ECEAF0;">tinta<span class="hex">#15151D</span></div>
+    <div class="swatch" style="background: #ECEAF0; color: #15151D;">bone<span class="hex">#ECEAF0</span></div>
+    <div class="swatch" style="background: #E8DC4A; color: #15151D;">dirty yellow<span class="hex">#E8DC4A</span></div>
+    <div class="swatch" style="background: #2A2838; color: #ECEAF0;">lilac depth<span class="hex">#2A2838</span></div>
+    <div class="swatch" style="background: #F7F6FA; color: #15151D;">warm white<span class="hex">#F7F6FA</span></div>
+  </div>
+
+  <div class="notes" style="border-left-color: var(--issue);">
+    <h4>uso correcto vs uso roto</h4>
+    <ul>
+      <li class="lvl-ok">en /biblioteca, /videoteca, /artoteca, /calendario, /mi-tlacuilo, /admin/* — bien usados via tokens (bg-bg, text-text, border-rule, etc.)</li>
+      <li class="lvl-ok">dirty yellow solo aparece en eyebrows y chips activos · respeta "nunca dominante"</li>
+      <li class="lvl-1">/login y /registro hardcodean #15151d (tinta ok) pero usan #9091c4 que NO está en paleta v2 · es periwinkle v1 deprecated</li>
+      <li class="lvl-fix">cuando hagas refactor de auth, reemplazar #9091c4 con var(--color-periwinkle) (#9D9BC8) o tokenizar todo</li>
+    </ul>
+  </div>
+</section>
+
+<!-- ============ RECOMENDACIONES ============ -->
+<section class="recs" id="recs">
+  <p class="eyebrow">qué tocar antes del launch de junio</p>
+  <h2>recomendaciones priorizadas</h2>
+  <p class="lead">de más urgente a más nice-to-have. P0 = bloqueador de coherencia, P1 = mejora notable, P2 = polish futuro.</p>
+
+  <div class="rec-row">
+    <div class="rec-prio prio-p0">P0</div>
+    <div class="rec-area">auth · login/registro</div>
+    <div class="rec-body">
+      <h4>migrar /login y /registro a paleta v2 + tokens</h4>
+      <p>son las páginas más rotas del sistema. usan #9091c4 (color v1 deprecated) y font-futura (no cargada). un usuario nuevo entra por aquí y ve OTRA app. refactor a un AuthShell component que use bg-bg, text-text, font-mono. mantén el estilo terminal del prompt si te gusta, pero con los colores correctos.</p>
+    </div>
+  </div>
+
+  <div class="rec-row">
+    <div class="rec-prio prio-p1">P1</div>
+    <div class="rec-area">consistencia · headers</div>
+    <div class="rec-body">
+      <h4>unificar el patrón de header de página</h4>
+      <p>mi-tlacuilo y calendario usan eyebrow (DM Mono dirty) + h1 grande (Jost Light) y se ven 10/10. biblioteca solo dice "Página 1 de 47", videoteca/artoteca usan "videoteca · página X". aplicar mi-tlacuilo pattern a las 3 tecas: eyebrow "biblioteca/videoteca/artoteca" + h1 "Catálogo" / "Películas" / "Piezas".</p>
+    </div>
+  </div>
+
+  <div class="rec-row">
+    <div class="rec-prio prio-p1">P1</div>
+    <div class="rec-area">artoteca · placeholders</div>
+    <div class="rec-body">
+      <h4>fallback de pieza sin foto: ficha técnica grande tipo wall label</h4>
+      <p>35 de 113 piezas no tienen foto. el placeholder actual (cuadrado con título serif italic) es ok pero impersonal. para piezas de arte funciona mejor mostrar grande la metadata (título · artista · año · técnica · medidas) tipo wall label de museo. comunica que la pieza existe aunque no haya imagen.</p>
+    </div>
+  </div>
+
+  <div class="rec-row">
+    <div class="rec-prio prio-p1">P1</div>
+    <div class="rec-area">artoteca · sidebar</div>
+    <div class="rec-body">
+      <h4>colapsar lista de 81 artistas o agregar búsqueda</h4>
+      <p>la sidebar de artoteca tiene 81 chips. visualmente correcto pero abrumador. opciones: collapse/expand con "ver más", agrupar artistas con 1 sola obra en chip "otros", o agregar input de búsqueda arriba de los chips.</p>
+    </div>
+  </div>
+
+  <div class="rec-row">
+    <div class="rec-prio prio-p1">P1</div>
+    <div class="rec-area">tono · voz</div>
+    <div class="rec-body">
+      <h4>decidir línea editorial: cuándo "terminal `&gt;_`" y cuándo "clean Jost"</h4>
+      <p>la app tiene dos personalidades visuales que coexisten: terminal hacker (login, registro, checkout, buscar, manifesto) y clean editorial (landing, biblioteca, artoteca, videoteca, mi-tlacuilo). ambas funcionan pero el quiebre se nota al navegar. propuesta: clean editorial en TODO lo público (catálogos, perfil, calendario), terminal solo en momentos íntimos (login, checkout post-confirmación, "tu identidad solo tú la ves").</p>
+    </div>
+  </div>
+
+  <div class="rec-row">
+    <div class="rec-prio prio-p2">P2</div>
+    <div class="rec-area">admin · consolidación</div>
+    <div class="rec-body">
+      <h4>fusionar /admin/portadas dentro de /admin/libros</h4>
+      <p>desde el refactor del editor rico, /admin/portadas hace casi lo mismo. en /admin/libros agregar tabs/filtros: todos · sin portada · pendientes · joyas. menos páginas, menos confusión sobre cuál usar.</p>
+    </div>
+  </div>
+
+  <div class="rec-row">
+    <div class="rec-prio prio-p2">P2</div>
+    <div class="rec-area">item detail · especialización</div>
+    <div class="rec-body">
+      <h4>layout diferenciado por teca para detalle de item</h4>
+      <p>actualmente /biblioteca/[id] sirve para libros, vhs y piezas de arte usando el mismo template. para artoteca el cover debería ser grande (object-contain, aspect natural). para vhs podría tener trailer/sinopsis TMDB. layout adaptativo por teca.</p>
+    </div>
+  </div>
+
+  <div class="rec-row">
+    <div class="rec-prio prio-p2">P2</div>
+    <div class="rec-area">buscar · filtros</div>
+    <div class="rec-body">
+      <h4>agregar filtros a /buscar: teca, disponibilidad, categoría</h4>
+      <p>el RPC search_libros devuelve todo. cuando el catálogo crezca, filtros chips arriba del input ayudan: [todo] [biblioteca] [artoteca] [videoteca] · [disponible] · categorías.</p>
+    </div>
+  </div>
+
+  <div class="rec-row">
+    <div class="rec-prio prio-p2">P2</div>
+    <div class="rec-area">calendario · interacción</div>
+    <div class="rec-body">
+      <h4>click en día con evento abre popover/drawer en el grid</h4>
+      <p>actualmente los eventos se listan abajo del grid. duplicación visual. mejor: hover en día muestra tooltip (ya está parcialmente), click abre drawer/popover con detalles. la lista debajo puede mantenerse como vista alternativa.</p>
+    </div>
+  </div>
+
+  <div class="rec-row">
+    <div class="rec-prio prio-p2">P2</div>
+    <div class="rec-area">data · sin fecha</div>
+    <div class="rec-body">
+      <h4>chip "sin fecha" en videoteca y artoteca</h4>
+      <p>las 12 Civilizaciones Perdidas (videoteca) y muchas piezas (artoteca) no tienen año. al filtrar por década quedan invisibles. agregar chip "sin fecha" como filtro explícito captura ese subconjunto.</p>
+    </div>
+  </div>
+
+</section>
+
+</main>
+</body>
+</html>

@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { supabase } from '@/lib/supabase'
+import { comprimirImagen } from '@/lib/imagen'
 import TecaLayout from '@/components/TecaLayout'
 import Cover from '@/components/Cover'
 
@@ -13,6 +14,7 @@ type Perfil = {
   bio: string | null
   rol: string
   created_at: string
+  avatar_url: string | null
 }
 
 type Libro = {
@@ -52,6 +54,36 @@ export default function MiTlacuiloPage() {
   const [savingBio, setSavingBio] = useState(false)
   const [bioMsg, setBioMsg] = useState<string | null>(null)
 
+  const [subiendoFoto, setSubiendoFoto] = useState(false)
+  const [fotoMsg, setFotoMsg] = useState<string | null>(null)
+
+  const handleFotoPerfil = async (file: File | null) => {
+    if (!file || !perfil) return
+    setSubiendoFoto(true)
+    setFotoMsg(null)
+    try {
+      const comprimida = await comprimirImagen(file, { maxDim: 512, quality: 0.82 })
+      const path = `${perfil.id}.webp`
+      const { error: upErr } = await supabase.storage
+        .from('avatares')
+        .upload(path, comprimida, { upsert: true, contentType: comprimida.type })
+      if (upErr) throw new Error(upErr.message)
+      const { data: pub } = supabase.storage.from('avatares').getPublicUrl(path)
+      const url = `${pub.publicUrl}?v=${Date.now()}`
+      const { error: updErr } = await supabase
+        .from('perfiles')
+        .update({ avatar_url: url })
+        .eq('id', perfil.id)
+      if (updErr) throw new Error(updErr.message)
+      setPerfil({ ...perfil, avatar_url: url })
+      setFotoMsg('> foto actualizada ✓')
+      setTimeout(() => setFotoMsg(null), 2500)
+    } catch (e) {
+      setFotoMsg(`> error: ${e instanceof Error ? e.message : 'no se pudo subir'}`)
+    }
+    setSubiendoFoto(false)
+  }
+
   useEffect(() => {
     let mounted = true
 
@@ -67,7 +99,7 @@ export default function MiTlacuiloPage() {
       const [{ data: perfilData }, { data: prestamosData }] = await Promise.all([
         supabase
           .from('perfiles')
-          .select('id, handle, bio, rol, created_at')
+          .select('id, handle, bio, rol, created_at, avatar_url')
           .eq('id', user.id)
           .single<Perfil>(),
         supabase
@@ -144,9 +176,37 @@ export default function MiTlacuiloPage() {
         <p className="font-micro uppercase tracking-[0.12em] text-[11px] text-text-dim mb-3">
           mi tlacuilo
         </p>
-        <h1 className="font-sans font-light leading-none mb-3 text-[clamp(34px,4vw,56px)] tracking-[-0.01em] text-text">
-          Hola, {alias}.
-        </h1>
+        <div className="flex items-center gap-5 mb-3">
+          {/* FOTO DE PERFIL */}
+          <div className="flex flex-col items-center gap-1.5">
+            <div className="w-[72px] h-[72px] rounded-full overflow-hidden bg-bg-card border border-rule-strong flex items-center justify-center shrink-0">
+              {perfil?.avatar_url ? (
+                // eslint-disable-next-line @next/next/no-img-element
+                <img src={perfil.avatar_url} alt={`foto de ${alias}`} className="w-full h-full object-cover" />
+              ) : (
+                <span className="font-mono text-[20px] text-text-dim uppercase">
+                  {alias.slice(0, 2)}
+                </span>
+              )}
+            </div>
+            <label className="font-micro text-[9px] uppercase tracking-[0.08em] text-text-dim cursor-pointer hover:text-text-bright transition-colors">
+              {subiendoFoto ? 'subiendo...' : perfil?.avatar_url ? 'cambiar' : '+ foto'}
+              <input
+                type="file"
+                accept="image/*"
+                className="hidden"
+                disabled={subiendoFoto}
+                onChange={(e) => handleFotoPerfil(e.target.files?.[0] ?? null)}
+              />
+            </label>
+          </div>
+          <h1 className="font-sans font-light leading-none text-[clamp(34px,4vw,56px)] tracking-[-0.01em] text-text">
+            Hola, {alias}.
+          </h1>
+        </div>
+        {fotoMsg && (
+          <p className="font-mono text-xs text-text-dim mb-3">{fotoMsg}</p>
+        )}
         <p className="text-[clamp(13px,1vw,15px)] text-text-dim mb-10">
           tu perfil público está en{' '}
           <Link href={`/u/${alias}`} className="text-text underline hover:text-text-bright transition-colors">
@@ -156,37 +216,37 @@ export default function MiTlacuiloPage() {
 
         {perfil?.rol === 'editor' && (
           <div className="mb-14">
-            <div className="font-micro uppercase tracking-[0.12em] text-[10px] text-dirty mb-3">
+            <div className="font-micro uppercase tracking-[0.12em] text-[10px] text-acid mb-3">
               · zona editora · administración tlacuilo
             </div>
             <div className="flex flex-wrap gap-2">
               <Link
                 href="/admin/libros"
-                className="inline-flex items-baseline gap-2 bg-tinta text-bone border border-tinta rounded-sm px-3 py-2 font-micro text-[11px] uppercase tracking-[0.08em] hover:bg-dirty hover:text-tinta transition-colors"
+                className="inline-flex items-baseline gap-2 bg-tinta text-bone border border-tinta rounded-sm px-3 py-2 font-micro text-[11px] uppercase tracking-[0.08em] hover:bg-brillante hover:text-bone transition-colors"
               >
                 Libros · agregar / editar
               </Link>
               <Link
                 href="/admin/portadas"
-                className="inline-flex items-baseline gap-2 bg-tinta text-bone border border-tinta rounded-sm px-3 py-2 font-micro text-[11px] uppercase tracking-[0.08em] hover:bg-dirty hover:text-tinta transition-colors"
+                className="inline-flex items-baseline gap-2 bg-tinta text-bone border border-tinta rounded-sm px-3 py-2 font-micro text-[11px] uppercase tracking-[0.08em] hover:bg-brillante hover:text-bone transition-colors"
               >
                 Portadas · subir
               </Link>
               <Link
                 href="/admin/prestamos"
-                className="inline-flex items-baseline gap-2 bg-tinta text-bone border border-tinta rounded-sm px-3 py-2 font-micro text-[11px] uppercase tracking-[0.08em] hover:bg-dirty hover:text-tinta transition-colors"
+                className="inline-flex items-baseline gap-2 bg-tinta text-bone border border-tinta rounded-sm px-3 py-2 font-micro text-[11px] uppercase tracking-[0.08em] hover:bg-brillante hover:text-bone transition-colors"
               >
                 Préstamos activos
               </Link>
               <Link
                 href="/admin/selecciones"
-                className="inline-flex items-baseline gap-2 bg-tinta text-bone border border-tinta rounded-sm px-3 py-2 font-micro text-[11px] uppercase tracking-[0.08em] hover:bg-dirty hover:text-tinta transition-colors"
+                className="inline-flex items-baseline gap-2 bg-tinta text-bone border border-tinta rounded-sm px-3 py-2 font-micro text-[11px] uppercase tracking-[0.08em] hover:bg-brillante hover:text-bone transition-colors"
               >
                 Selecciones del landing
               </Link>
               <Link
                 href="/admin/eventos"
-                className="inline-flex items-baseline gap-2 bg-tinta text-bone border border-tinta rounded-sm px-3 py-2 font-micro text-[11px] uppercase tracking-[0.08em] hover:bg-dirty hover:text-tinta transition-colors"
+                className="inline-flex items-baseline gap-2 bg-tinta text-bone border border-tinta rounded-sm px-3 py-2 font-micro text-[11px] uppercase tracking-[0.08em] hover:bg-brillante hover:text-bone transition-colors"
               >
                 Eventos del calendario
               </Link>
@@ -199,7 +259,7 @@ export default function MiTlacuiloPage() {
             <h2 className="font-sans font-light text-[clamp(22px,2.4vw,34px)] tracking-[-0.005em] text-text">
               Mi morral
             </h2>
-            <span className="font-micro text-[10px] uppercase tracking-[0.12em] text-dirty">
+            <span className="font-micro text-[10px] uppercase tracking-[0.12em] text-acid">
               {morral.length} {morral.length === 1 ? 'libro' : 'libros'}
             </span>
           </div>
@@ -255,7 +315,7 @@ export default function MiTlacuiloPage() {
             <h2 className="font-sans font-light text-[clamp(22px,2.4vw,34px)] tracking-[-0.005em] text-text">
               Mis visitas
             </h2>
-            <span className="font-micro text-[10px] uppercase tracking-[0.12em] text-dirty">
+            <span className="font-micro text-[10px] uppercase tracking-[0.12em] text-acid">
               {visitas.length} {visitas.length === 1 ? 'libro' : 'libros'}
             </span>
           </div>

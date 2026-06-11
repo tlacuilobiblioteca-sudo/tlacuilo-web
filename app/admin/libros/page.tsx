@@ -3,6 +3,7 @@
 import { useEffect, useState, useCallback } from 'react'
 import { useRouter } from 'next/navigation'
 import { supabase } from '@/lib/supabase'
+import { comprimirImagen } from '@/lib/imagen'
 import TecaLayout from '@/components/TecaLayout'
 import Cover from '@/components/Cover'
 
@@ -274,11 +275,12 @@ export default function AdminLibrosPage() {
   async function uploadPortadaFile(file: File) {
     if (!editingLibro) return
     setUploading(true)
-    const ext = (file.name.split('.').pop() || 'jpg').toLowerCase()
+    const procesado = await comprimirImagen(file)
+    const ext = (procesado.name.split('.').pop() || 'jpg').toLowerCase()
     const path = `${editingLibro.id}.${ext}`
     const { error: upErr } = await supabase.storage
       .from('portadas')
-      .upload(path, file, { upsert: true, contentType: file.type })
+      .upload(path, procesado, { upsert: true, contentType: procesado.type })
     if (upErr) {
       alert('error subiendo: ' + upErr.message)
       setUploading(false)
@@ -428,7 +430,7 @@ export default function AdminLibrosPage() {
   return (
     <TecaLayout>
       <section className="px-10 pt-10 pb-16 max-w-7xl mx-auto max-md:px-5">
-        <p className="font-micro uppercase tracking-[0.12em] text-[11px] text-dirty mb-3">
+        <p className="font-micro uppercase tracking-[0.12em] text-[11px] text-acid mb-3">
           admin · libros
         </p>
         <h1 className="font-sans font-light leading-none mb-3 text-[clamp(32px,3.8vw,52px)] tracking-[-0.01em] text-text">
@@ -450,28 +452,28 @@ export default function AdminLibrosPage() {
 
           <button
             onClick={() => setFiltroSinPortada(!filtroSinPortada)}
-            className={`inline-flex items-center border border-tinta rounded-sm px-3 py-2 font-micro text-[10px] uppercase tracking-[0.08em] transition-colors ${filtroSinPortada ? 'bg-dirty text-tinta' : 'bg-tinta text-bone hover:bg-dirty hover:text-tinta'}`}
+            className={`inline-flex items-center border border-tinta rounded-sm px-3 py-2 font-micro text-[10px] uppercase tracking-[0.08em] transition-colors ${filtroSinPortada ? 'bg-brillante text-bone' : 'bg-tinta text-bone hover:bg-brillante hover:text-bone'}`}
           >
             sin portada
           </button>
 
           <button
             onClick={() => setFiltroJoyas(!filtroJoyas)}
-            className={`inline-flex items-center border border-tinta rounded-sm px-3 py-2 font-micro text-[10px] uppercase tracking-[0.08em] transition-colors ${filtroJoyas ? 'bg-dirty text-tinta' : 'bg-tinta text-bone hover:bg-dirty hover:text-tinta'}`}
+            className={`inline-flex items-center border border-tinta rounded-sm px-3 py-2 font-micro text-[10px] uppercase tracking-[0.08em] transition-colors ${filtroJoyas ? 'bg-brillante text-bone' : 'bg-tinta text-bone hover:bg-brillante hover:text-bone'}`}
           >
             ★ joyas
           </button>
 
           <button
             onClick={() => setFiltroNoDisponibles(!filtroNoDisponibles)}
-            className={`inline-flex items-center border border-tinta rounded-sm px-3 py-2 font-micro text-[10px] uppercase tracking-[0.08em] transition-colors ${filtroNoDisponibles ? 'bg-dirty text-tinta' : 'bg-tinta text-bone hover:bg-dirty hover:text-tinta'}`}
+            className={`inline-flex items-center border border-tinta rounded-sm px-3 py-2 font-micro text-[10px] uppercase tracking-[0.08em] transition-colors ${filtroNoDisponibles ? 'bg-brillante text-bone' : 'bg-tinta text-bone hover:bg-brillante hover:text-bone'}`}
           >
             no disponibles
           </button>
 
           <button
             onClick={() => setShowAdd(true)}
-            className="inline-flex items-center bg-dirty text-tinta border border-tinta rounded-sm px-4 py-2 font-micro text-[11px] uppercase tracking-[0.08em] hover:bg-tinta hover:text-dirty transition-colors"
+            className="inline-flex items-center bg-brillante text-bone border border-tinta rounded-sm px-4 py-2 font-micro text-[11px] uppercase tracking-[0.08em] hover:bg-tinta hover:text-acid transition-colors"
           >
             + agregar libro
           </button>
@@ -496,7 +498,7 @@ export default function AdminLibrosPage() {
                   {l.edicion_especial && (
                     <span
                       title="Edición especial"
-                      className="absolute top-1 right-1 z-10 bg-dirty text-tinta font-mono text-[10px] px-1.5 py-0.5"
+                      className="absolute top-1 right-1 z-10 bg-brillante text-bone font-mono text-[10px] px-1.5 py-0.5"
                     >
                       ★
                     </span>
@@ -509,7 +511,7 @@ export default function AdminLibrosPage() {
                       {l.motivo ?? 'no disp.'}
                     </span>
                   )}
-                  <div className={`aspect-[2/3] bg-bg-soft flex items-center justify-center text-text-dim p-2 text-center overflow-hidden text-[10px] mb-1 group-hover:ring-2 group-hover:ring-dirty ${noDisponible ? 'opacity-50' : ''}`}>
+                  <div className={`aspect-[2/3] bg-bg-soft flex items-center justify-center text-text-dim p-2 text-center overflow-hidden text-[10px] mb-1 group-hover:ring-2 group-hover:ring-brillante ${noDisponible ? 'opacity-50' : ''}`}>
                     <Cover
                       titulo={l.titulo}
                       portada_url={l.portada_url}
@@ -519,7 +521,7 @@ export default function AdminLibrosPage() {
                   </div>
                   <p className="font-medium leading-tight text-[11px] line-clamp-2">{l.titulo}</p>
                   <p className="opacity-60 text-[10px] line-clamp-1">{l.autor ?? '—'}</p>
-                  <span className="mt-1 font-micro text-[9px] uppercase tracking-[0.08em] text-dirty opacity-0 group-hover:opacity-100 transition-opacity">
+                  <span className="mt-1 font-micro text-[9px] uppercase tracking-[0.08em] text-acid opacity-0 group-hover:opacity-100 transition-opacity">
                     · editar →
                   </span>
                 </button>
@@ -561,7 +563,7 @@ export default function AdminLibrosPage() {
             >
               <div className="flex items-start justify-between mb-5">
                 <div>
-                  <p className="font-micro text-[11px] uppercase tracking-[0.12em] text-dirty mb-1">
+                  <p className="font-micro text-[11px] uppercase tracking-[0.12em] text-acid mb-1">
                     editando libro
                   </p>
                   <h2 className="font-sans font-light text-[clamp(20px,2.2vw,28px)] tracking-[-0.005em] text-text leading-tight">
@@ -593,7 +595,7 @@ export default function AdminLibrosPage() {
                       if (f && f.type.startsWith('image/')) uploadPortadaFile(f)
                     }}
                     className={`aspect-[2/3] bg-bg-soft flex items-center justify-center text-text-dim p-2 text-center text-[10px] border-2 border-dashed transition-colors ${
-                      draggingOver ? 'border-dirty bg-dirty/10' : 'border-rule'
+                      draggingOver ? 'border-brillante bg-brillante/10' : 'border-rule'
                     }`}
                   >
                     {editingLibro.portada_url ? (
@@ -609,7 +611,7 @@ export default function AdminLibrosPage() {
                     )}
                   </div>
 
-                  <label className="font-micro text-[10px] uppercase tracking-[0.08em] text-text-dim cursor-pointer text-center border border-tinta px-2 py-1.5 hover:bg-dirty hover:text-tinta transition-colors">
+                  <label className="font-micro text-[10px] uppercase tracking-[0.08em] text-text-dim cursor-pointer text-center border border-tinta px-2 py-1.5 hover:bg-brillante hover:text-bone transition-colors">
                     <input
                       type="file"
                       accept="image/jpeg,image/png,image/webp"
@@ -635,7 +637,7 @@ export default function AdminLibrosPage() {
                     <button
                       onClick={setPortadaFromUrl}
                       disabled={uploading || !uploadUrl.trim()}
-                      className="font-micro text-[10px] uppercase tracking-[0.08em] border border-tinta px-2 py-1.5 hover:bg-dirty hover:text-tinta disabled:opacity-30 transition-colors"
+                      className="font-micro text-[10px] uppercase tracking-[0.08em] border border-tinta px-2 py-1.5 hover:bg-brillante hover:text-bone disabled:opacity-30 transition-colors"
                     >
                       guardar URL
                     </button>
@@ -711,7 +713,7 @@ export default function AdminLibrosPage() {
                       type="button"
                       onClick={() => toggleEspecial(editingLibro)}
                       className={`inline-flex items-center border border-tinta rounded-sm px-3 py-1.5 font-micro text-[10px] uppercase tracking-[0.08em] transition-colors ${
-                        editingLibro.edicion_especial ? 'bg-dirty text-tinta' : 'bg-tinta text-bone hover:bg-dirty hover:text-tinta'
+                        editingLibro.edicion_especial ? 'bg-brillante text-bone' : 'bg-tinta text-bone hover:bg-brillante hover:text-bone'
                       }`}
                     >
                       {editingLibro.edicion_especial ? '★ joya' : '☆ marcar joya'}
@@ -762,7 +764,7 @@ export default function AdminLibrosPage() {
                       type="button"
                       onClick={guardarEdiciones}
                       disabled={savingEdit}
-                      className="inline-flex items-center bg-dirty text-tinta border border-tinta rounded-sm px-4 py-2 font-micro text-[11px] uppercase tracking-[0.08em] disabled:opacity-30 hover:bg-tinta hover:text-dirty transition-colors"
+                      className="inline-flex items-center bg-brillante text-bone border border-tinta rounded-sm px-4 py-2 font-micro text-[11px] uppercase tracking-[0.08em] disabled:opacity-30 hover:bg-tinta hover:text-acid transition-colors"
                     >
                       {savingEdit ? 'guardando...' : '✓ guardar cambios'}
                     </button>
@@ -797,7 +799,7 @@ export default function AdminLibrosPage() {
               className="bg-bg-card border border-tinta max-w-xl w-full p-6 font-mono my-8 shadow-2xl"
               onClick={(e) => e.stopPropagation()}
             >
-              <p className="font-micro text-[11px] uppercase tracking-[0.12em] text-dirty mb-1">
+              <p className="font-micro text-[11px] uppercase tracking-[0.12em] text-acid mb-1">
                 nuevo item
               </p>
               <h2 className="font-sans font-light text-[clamp(20px,2.2vw,28px)] tracking-[-0.005em] text-text mb-5">
@@ -816,8 +818,8 @@ export default function AdminLibrosPage() {
                         onClick={() => setNewTeca(t)}
                         className={`inline-flex items-center border border-tinta rounded-sm px-3 py-1.5 font-micro text-[10px] uppercase tracking-[0.08em] transition-colors ${
                           newTeca === t
-                            ? 'bg-dirty text-tinta'
-                            : 'bg-tinta text-bone hover:bg-dirty hover:text-tinta'
+                            ? 'bg-brillante text-bone'
+                            : 'bg-tinta text-bone hover:bg-brillante hover:text-bone'
                         }`}
                       >
                         {t}

@@ -102,30 +102,28 @@ export default async function Home() {
     <>
       <Header />
 
+      {/* ============ FRASE PUENTE · para quien llega sin contexto ============ */}
+      <section className="px-10 pt-6 pb-2 max-md:px-5">
+        <p className="font-mono text-[clamp(12px,1.2vw,16px)] leading-relaxed text-text text-center max-w-4xl mx-auto">
+          Una biblioteca pública en tu bolsillo. Préstamo gratis de libros,
+          vinilos, arte y objetos físicos. Sin precio, sin candado, con
+          confianza.
+        </p>
+      </section>
+
       {/* ============ CATÁLOGO HEADER · TÍTULO + COUNTERS · primero ============ */}
-      <section className="px-10 pt-10 pb-6 max-md:px-5">
-        <div className="flex items-end justify-between flex-wrap gap-6">
-          <h2 className="font-sans font-light text-[clamp(28px,3.4vw,48px)] leading-none tracking-[-0.01em] text-text">
+      <section className="px-10 pt-8 pb-6 max-md:px-5">
+        <div className="flex items-baseline justify-between flex-wrap gap-4">
+          <h2 className="font-sans font-light text-[clamp(20px,2.2vw,30px)] leading-none tracking-[-0.01em] text-text">
             Catálogo
           </h2>
-          <div className="flex gap-10">
-            <div className="flex flex-col items-start gap-1">
-              <div className="font-sans font-light text-[clamp(22px,2.4vw,34px)] leading-none text-text tabular-nums">
-                {counters.libros.toLocaleString('es-MX')}
-              </div>
-              <div className="font-micro text-[10px] uppercase tracking-[0.12em] text-dirty">
-                Libros
-              </div>
-            </div>
-            <div className="flex flex-col items-start gap-1">
-              <div className="font-sans font-light text-[clamp(22px,2.4vw,34px)] leading-none text-text tabular-nums">
-                {counters.prestamos.toLocaleString('es-MX')}
-              </div>
-              <div className="font-micro text-[10px] uppercase tracking-[0.12em] text-dirty">
-                Préstamos
-              </div>
-            </div>
-          </div>
+          <p className="font-mono text-[clamp(11px,0.95vw,13px)] text-text-dim tabular-nums">
+            {counters.libros.toLocaleString('es-MX')}{' '}
+            <span className="text-acid uppercase tracking-[0.1em] text-[0.85em]">objetos</span>
+            <span className="mx-3 opacity-40">·</span>
+            {counters.prestamos.toLocaleString('es-MX')}{' '}
+            <span className="text-acid uppercase tracking-[0.1em] text-[0.85em]">préstamos</span>
+          </p>
         </div>
       </section>
 
@@ -140,7 +138,7 @@ export default async function Home() {
               <Link
                 key={cat.categoria}
                 href={`/biblioteca?categoria=${encodeURIComponent(cat.categoria)}`}
-                className="inline-flex items-baseline gap-2 bg-tinta text-bone border border-tinta rounded-sm px-3 py-1.5 font-micro text-[10px] uppercase tracking-[0.08em] hover:bg-dirty hover:text-tinta transition-colors"
+                className="inline-flex items-baseline gap-2 bg-tinta text-bone border border-tinta rounded-sm px-3 py-1.5 font-micro text-[10px] uppercase tracking-[0.08em] hover:bg-brillante hover:text-bone transition-colors"
               >
                 <span>{cat.categoria}</span>
                 <span className="opacity-50 text-[9px]">{cat.libros_count}</span>
@@ -292,7 +290,7 @@ export default async function Home() {
               fuentes · jost light · jetbrains mono · dm mono
             </div>
             <div>
-              paleta v2 · #6E6BA0 · #9D9BC8 · #15151D · #ECEAF0 · #E8DC4A
+              paleta v2 · #6E6BA0 · #9D9BC8 · #15151D · #ECEAF0 · #FF4D00
             </div>
             <div className="mt-2">
               <span className="text-text">mi cosa es tu cosa.</span>

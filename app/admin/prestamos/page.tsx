@@ -3,6 +3,8 @@
 import { useEffect, useState, useCallback } from 'react'
 import { useRouter } from 'next/navigation'
 import { supabase } from '@/lib/supabase'
+import { comprimirImagen } from '@/lib/imagen'
+import { CHECKOUT_STEPS, getMaxObjetosCheckout, setMaxObjetosCheckout } from '@/lib/config'
 import TecaLayout from '@/components/TecaLayout'
 
 type Libro = {
@@ -26,6 +28,8 @@ type Prestamo = {
   due_at: string | null
   notes: string | null
   user_id: string
+  asistencia: 'asistire' | 'no_asistire' | null
+  foto_registro_url: string | null
   libros: Libro
   perfiles_publicos: Perfil
 }
@@ -74,6 +78,55 @@ export default function AdminPrestamosPage() {
   const [filtro, setFiltro] = useState<Filtro>('todos')
   const [working, setWorking] = useState<string | null>(null)
   const [refreshKey, setRefreshKey] = useState(0)
+  const [maxObjetos, setMaxObjetosLocal] = useState<number | null>(null)
+  const [savingLimite, setSavingLimite] = useState(false)
+  const [limiteMsg, setLimiteMsg] = useState<string | null>(null)
+  const [subiendoFoto, setSubiendoFoto] = useState<string | null>(null)
+
+  async function subirFotoRegistro(p: Prestamo, file: File | null) {
+    if (!file) return
+    setSubiendoFoto(p.id)
+    try {
+      const comprimida = await comprimirImagen(file, { maxDim: 1200, quality: 0.8 })
+      const path = `${p.id}.webp`
+      const { error: upErr } = await supabase.storage
+        .from('registro')
+        .upload(path, comprimida, { upsert: true, contentType: comprimida.type })
+      if (upErr) throw new Error(upErr.message)
+      const { data: pub } = supabase.storage.from('registro').getPublicUrl(path)
+      const url = `${pub.publicUrl}?v=${Date.now()}`
+      const { error: updErr } = await supabase
+        .from('prestamos')
+        .update({ foto_registro_url: url })
+        .eq('id', p.id)
+      if (updErr) throw new Error(updErr.message)
+      setPrestamos((prev) => prev.map((x) => (x.id === p.id ? { ...x, foto_registro_url: url } : x)))
+    } catch (e) {
+      console.error('foto registro:', e)
+      alert('no se pudo subir la foto del ejemplar')
+    }
+    setSubiendoFoto(null)
+  }
+
+  useEffect(() => {
+    if (!isEditor) return
+    getMaxObjetosCheckout().then(setMaxObjetosLocal)
+  }, [isEditor])
+
+  async function guardarLimite(n: number) {
+    setSavingLimite(true)
+    setLimiteMsg(null)
+    const err = await setMaxObjetosCheckout(n)
+    if (err) {
+      setLimiteMsg(null)
+      console.error('error guardando límite:', err)
+    } else {
+      setMaxObjetosLocal(n)
+      setLimiteMsg('✓ guardado')
+      setTimeout(() => setLimiteMsg(null), 2500)
+    }
+    setSavingLimite(false)
+  }
 
   useEffect(() => {
     const check = async () => {
@@ -103,6 +156,7 @@ export default function AdminPrestamosPage() {
       .from('prestamos')
       .select(`
         id, status, added_at, visit_at, picked_up_at, returned_at, due_at, notes, user_id,
+        asistencia, foto_registro_url,
         libros (id, titulo, autor),
         perfiles_publicos!user_id (id, handle)
       `)
@@ -207,6 +261,25 @@ export default function AdminPrestamosPage() {
           Reservas pendientes de recoger + libros en circulación. Marca al entregar y al recibir.
         </p>
 
+        {/* LÍMITE GLOBAL · objetos por checkout */}
+        <div className="border border-rule p-4 mb-6 flex flex-wrap items-center gap-4 font-mono text-xs">
+          <span className="uppercase tracking-wider opacity-70">
+            límite de objetos por checkout (global):
+          </span>
+          <select
+            value={maxObjetos ?? ''}
+            onChange={(e) => guardarLimite(Number(e.target.value))}
+            disabled={savingLimite || maxObjetos === null}
+            className="bg-tinta text-bone border border-rule-strong px-3 py-2 font-mono text-xs cursor-pointer disabled:opacity-50"
+          >
+            {CHECKOUT_STEPS.map((n) => (
+              <option key={n} value={n}>{n}</option>
+            ))}
+          </select>
+          {savingLimite && <span className="opacity-60">&gt; guardando...</span>}
+          {limiteMsg && <span className="text-available">{limiteMsg}</span>}
+        </div>
+
         <div className="border-y border-rule py-4 mb-6 flex flex-wrap items-center gap-2 font-mono text-xs">
           {([
             ['todos', 'todos', counts.todos],
@@ -266,6 +339,32 @@ export default function AdminPrestamosPage() {
                         <span className={`uppercase ${p.status === 'apartado' ? 'text-text-bright' : 'text-available'}`}>
                           · {p.status}
                         </span>
+                        {p.status === 'apartado' && p.asistencia === 'asistire' && (
+                          <span className="text-available">· ✓ confirmó asistencia</span>
+                        )}
+                      </div>
+                      <div className="mt-3 flex items-center gap-3">
+                        {p.foto_registro_url ? (
+                          <a href={p.foto_registro_url} target="_blank" rel="noreferrer" className="block w-12 h-16 overflow-hidden border border-rule shrink-0">
+                            {/* eslint-disable-next-line @next/next/no-img-element */}
+                            <img src={p.foto_registro_url} alt="foto del ejemplar" className="w-full h-full object-cover" />
+                          </a>
+                        ) : null}
+                        <label className="font-micro text-[10px] uppercase tracking-[0.08em] text-text-dim cursor-pointer border border-rule px-2 py-1.5 hover:text-text-bright hover:border-rule-strong transition-colors">
+                          {subiendoFoto === p.id
+                            ? '> subiendo...'
+                            : p.foto_registro_url
+                              ? 'cambiar foto del ejemplar'
+                              : '+ foto del ejemplar'}
+                          <input
+                            type="file"
+                            accept="image/*"
+                            capture="environment"
+                            className="hidden"
+                            disabled={subiendoFoto === p.id}
+                            onChange={(e) => subirFotoRegistro(p, e.target.files?.[0] ?? null)}
+                          />
+                        </label>
                       </div>
                     </div>
 

@@ -52,8 +52,8 @@ export default function AdminEditButton({ libroId, variant = 'chip' }: Props) {
   }
 
   const buttonClass = variant === 'floating'
-    ? 'inline-flex items-center gap-1.5 bg-dirty text-tinta border border-tinta rounded-sm px-3 py-2 font-micro text-[11px] uppercase tracking-[0.08em] hover:bg-tinta hover:text-dirty transition-colors shadow-md'
-    : 'inline-flex items-center gap-1 bg-dirty text-tinta border border-tinta rounded-sm px-2 py-1 font-micro text-[9px] uppercase tracking-[0.06em] hover:bg-tinta hover:text-dirty transition-colors'
+    ? 'inline-flex items-center gap-1.5 bg-brillante text-bone border border-tinta rounded-sm px-3 py-2 font-micro text-[11px] uppercase tracking-[0.08em] hover:bg-tinta hover:text-acid transition-colors shadow-md'
+    : 'inline-flex items-center gap-1 bg-brillante text-bone border border-tinta rounded-sm px-2 py-1 font-micro text-[9px] uppercase tracking-[0.06em] hover:bg-tinta hover:text-acid transition-colors'
 
   return (
     <>

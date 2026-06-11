@@ -1,6 +1,6 @@
 import Link from 'next/link'
 import { supabase } from '@/lib/supabase'
-import TecaLayout from '@/components/TecaLayout'
+import Header from '@/components/Header'
 
 export const dynamic = 'force-dynamic'
 
@@ -130,14 +130,16 @@ export default async function CalendarioPage({
   const hoyKey = dateKey(new Date())
 
   return (
-    <TecaLayout>
+    <div className="min-h-screen bg-bg text-text">
+      <Header slim />
+      <main>
       {/* ============ HEADER ============ */}
       <section className="px-10 pt-10 pb-6 max-md:px-5">
-        <p className="font-micro uppercase tracking-[0.12em] text-[11px] text-dirty mb-3">
+        <p className="font-micro uppercase tracking-[0.12em] text-[11px] text-acid mb-3">
           calendario
         </p>
         <div className="flex items-end justify-between flex-wrap gap-6">
-          <h1 className="font-sans font-light leading-none text-[clamp(34px,4vw,56px)] tracking-[-0.01em] text-text">
+          <h1 className="font-costa leading-none text-[clamp(34px,4vw,56px)] tracking-[-0.01em] text-text">
             {year}
           </h1>
 
@@ -149,8 +151,8 @@ export default async function CalendarioPage({
                 href={`/calendario?year=${y}`}
                 className={`inline-flex items-center border border-tinta rounded-sm px-3 py-2 font-micro text-[11px] uppercase tracking-[0.08em] transition-colors ${
                   y === year
-                    ? 'bg-dirty text-tinta'
-                    : 'bg-tinta text-bone hover:bg-dirty hover:text-tinta'
+                    ? 'bg-brillante text-bone'
+                    : 'bg-tinta text-bone hover:bg-brillante hover:text-bone'
                 }`}
               >
                 {y}
@@ -204,7 +206,7 @@ export default async function CalendarioPage({
                         title={tieneEvento ? titulos : undefined}
                         className={`aspect-square flex items-center justify-center text-center transition-colors ${
                           tieneEvento
-                            ? 'bg-dirty text-tinta font-medium cursor-help'
+                            ? 'bg-brillante text-bone font-medium cursor-help'
                             : esHoy
                             ? 'bg-tinta text-bone font-medium'
                             : 'text-text-dim hover:text-text'
@@ -237,7 +239,7 @@ export default async function CalendarioPage({
           <ul className="flex flex-col gap-8 max-w-4xl">
             {eventos.map((e) => (
               <li key={e.id} className="border-t border-rule pt-6">
-                <div className="font-micro text-[11px] uppercase tracking-[0.12em] text-dirty mb-2">
+                <div className="font-micro text-[11px] uppercase tracking-[0.12em] text-acid mb-2">
                   {formatFechaLarga(e.fecha_inicio)}
                   {e.fecha_fin && (
                     <span className="text-text-dim">
@@ -278,6 +280,7 @@ export default async function CalendarioPage({
           </ul>
         )}
       </section>
-    </TecaLayout>
+      </main>
+    </div>
   )
 }

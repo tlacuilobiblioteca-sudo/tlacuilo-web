@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import { supabase } from '@/lib/supabase'
+import { getMaxObjetosCheckout } from '@/lib/config'
 
 type MorralButtonProps = {
   libroId: string
@@ -63,6 +64,21 @@ export default function MorralButton({ libroId }: MorralButtonProps) {
     if (!userId) return
     setWorking(true)
     setError(null)
+
+    // Límite global de objetos por checkout
+    const [{ count }, max] = await Promise.all([
+      supabase
+        .from('prestamos')
+        .select('id', { count: 'exact', head: true })
+        .eq('user_id', userId)
+        .eq('status', 'morral'),
+      getMaxObjetosCheckout(),
+    ])
+    if ((count ?? 0) >= max) {
+      setError(`tu morral está lleno (límite: ${max} objetos por visita)`)
+      setWorking(false)
+      return
+    }
 
     const { data, error: insertError } = await supabase
       .from('prestamos')

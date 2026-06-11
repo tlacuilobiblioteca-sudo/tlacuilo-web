@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { supabase } from '@/lib/supabase'
+import { comprimirImagen } from '@/lib/imagen'
 
 /* ============================================================
    Editor RICO de un libro
@@ -118,11 +119,12 @@ export default function LibroEditorModal({ libroId, onClose }: Props) {
   async function uploadPortadaFile(file: File) {
     if (!libro) return
     setUploading(true)
-    const ext = (file.name.split('.').pop() || 'jpg').toLowerCase()
+    const procesado = await comprimirImagen(file)
+    const ext = (procesado.name.split('.').pop() || 'jpg').toLowerCase()
     const path = `${libro.id}.${ext}`
     const { error: upErr } = await supabase.storage
       .from('portadas')
-      .upload(path, file, { upsert: true, contentType: file.type })
+      .upload(path, procesado, { upsert: true, contentType: procesado.type })
     if (upErr) {
       alert('error subiendo: ' + upErr.message)
       setUploading(false)
@@ -243,7 +245,7 @@ export default function LibroEditorModal({ libroId, onClose }: Props) {
       >
         <div className="flex items-start justify-between mb-5">
           <div>
-            <p className="font-micro text-[11px] uppercase tracking-[0.12em] text-dirty mb-1">
+            <p className="font-micro text-[11px] uppercase tracking-[0.12em] text-acid mb-1">
               {editTeca === 'artoteca' ? 'editando pieza' :
                editTeca === 'videoteca' ? 'editando película' :
                editTeca === 'fonoteca' ? 'editando disco' :
@@ -276,7 +278,7 @@ export default function LibroEditorModal({ libroId, onClose }: Props) {
                 if (f && f.type.startsWith('image/')) uploadPortadaFile(f)
               }}
               className={`aspect-[2/3] bg-bg-soft flex items-center justify-center text-text-dim p-2 text-center text-[10px] border-2 border-dashed transition-colors ${
-                draggingOver ? 'border-dirty bg-dirty/10' : 'border-rule'
+                draggingOver ? 'border-brillante bg-brillante/10' : 'border-rule'
               }`}
             >
               {libro.portada_url ? (
@@ -288,7 +290,7 @@ export default function LibroEditorModal({ libroId, onClose }: Props) {
               )}
             </div>
 
-            <label className="font-micro text-[10px] uppercase tracking-[0.08em] text-text-dim cursor-pointer text-center border border-tinta px-2 py-1.5 hover:bg-dirty hover:text-tinta transition-colors">
+            <label className="font-micro text-[10px] uppercase tracking-[0.08em] text-text-dim cursor-pointer text-center border border-tinta px-2 py-1.5 hover:bg-brillante hover:text-bone transition-colors">
               <input
                 type="file"
                 accept="image/jpeg,image/png,image/webp"
@@ -314,7 +316,7 @@ export default function LibroEditorModal({ libroId, onClose }: Props) {
               <button
                 onClick={setPortadaFromUrl}
                 disabled={uploading || !uploadUrl.trim()}
-                className="font-micro text-[10px] uppercase tracking-[0.08em] border border-tinta px-2 py-1.5 hover:bg-dirty hover:text-tinta disabled:opacity-30 transition-colors"
+                className="font-micro text-[10px] uppercase tracking-[0.08em] border border-tinta px-2 py-1.5 hover:bg-brillante hover:text-bone disabled:opacity-30 transition-colors"
               >
                 guardar URL
               </button>
@@ -338,8 +340,8 @@ export default function LibroEditorModal({ libroId, onClose }: Props) {
                     onClick={() => setEditTeca(t)}
                     className={`inline-flex items-center border border-tinta rounded-sm px-3 py-1.5 font-micro text-[10px] uppercase tracking-[0.08em] transition-colors ${
                       editTeca === t
-                        ? 'bg-dirty text-tinta'
-                        : 'bg-tinta text-bone hover:bg-dirty hover:text-tinta'
+                        ? 'bg-brillante text-bone'
+                        : 'bg-tinta text-bone hover:bg-brillante hover:text-bone'
                     }`}
                   >
                     {t}
@@ -433,7 +435,7 @@ export default function LibroEditorModal({ libroId, onClose }: Props) {
                 type="button"
                 onClick={toggleEspecial}
                 className={`inline-flex items-center border border-tinta rounded-sm px-3 py-1.5 font-micro text-[10px] uppercase tracking-[0.08em] transition-colors ${
-                  libro.edicion_especial ? 'bg-dirty text-tinta' : 'bg-tinta text-bone hover:bg-dirty hover:text-tinta'
+                  libro.edicion_especial ? 'bg-brillante text-bone' : 'bg-tinta text-bone hover:bg-brillante hover:text-bone'
                 }`}
               >
                 {libro.edicion_especial ? '★ joya' : '☆ marcar joya'}
@@ -483,7 +485,7 @@ export default function LibroEditorModal({ libroId, onClose }: Props) {
                 type="button"
                 onClick={guardarEdiciones}
                 disabled={savingEdit}
-                className="inline-flex items-center bg-dirty text-tinta border border-tinta rounded-sm px-4 py-2 font-micro text-[11px] uppercase tracking-[0.08em] disabled:opacity-30 hover:bg-tinta hover:text-dirty transition-colors"
+                className="inline-flex items-center bg-brillante text-bone border border-tinta rounded-sm px-4 py-2 font-micro text-[11px] uppercase tracking-[0.08em] disabled:opacity-30 hover:bg-tinta hover:text-acid transition-colors"
               >
                 {savingEdit ? 'guardando...' : '✓ guardar cambios'}
               </button>

@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { supabase } from '@/lib/supabase'
+import { getMaxObjetosCheckout } from '@/lib/config'
 import TecaLayout from '@/components/TecaLayout'
 import Cover from '@/components/Cover'
 
@@ -60,6 +61,7 @@ export default function CheckoutPage() {
   const [selectedDate, setSelectedDate] = useState<Date | null>(null)
   const [selectedBlock, setSelectedBlock] = useState<BlockId | null>(null)
   const [error, setError] = useState<string | null>(null)
+  const [maxObjetos, setMaxObjetos] = useState(5)
 
   const days = getNextWeekdays(10)
 
@@ -72,23 +74,29 @@ export default function CheckoutPage() {
         router.push('/login')
         return
       }
-      const { data, error: err } = await supabase
-        .from('prestamos')
-        .select('id, libros (id, titulo, autor, portada_url, isbn)')
-        .eq('user_id', user.id)
-        .eq('status', 'morral')
-        .order('added_at', { ascending: false })
+      const [{ data, error: err }, max] = await Promise.all([
+        supabase
+          .from('prestamos')
+          .select('id, libros (id, titulo, autor, portada_url, isbn)')
+          .eq('user_id', user.id)
+          .eq('status', 'morral')
+          .order('added_at', { ascending: false }),
+        getMaxObjetosCheckout(),
+      ])
       if (!mounted) return
       if (err) setError(err.message)
       else if (data) setMorral(data as unknown as Prestamo[])
+      setMaxObjetos(max)
       setLoading(false)
     }
     load()
     return () => { mounted = false }
   }, [router])
 
+  const sobreLimite = morral.length > maxObjetos
+
   async function handleConfirm() {
-    if (!selectedDate || !selectedBlock || morral.length === 0) return
+    if (!selectedDate || !selectedBlock || morral.length === 0 || sobreLimite) return
     setSubmitting(true)
     setError(null)
     const block = BLOCKS.find((b) => b.id === selectedBlock)
@@ -105,6 +113,22 @@ export default function CheckoutPage() {
       setSubmitting(false)
       return
     }
+
+    // Correo de cita agendada (no bloquea el flujo si falla)
+    try {
+      const { data: { session } } = await supabase.auth.getSession()
+      if (session?.access_token) {
+        fetch('/api/emails/cita', {
+          method: 'POST',
+          headers: {
+            Authorization: `Bearer ${session.access_token}`,
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({ visitAt: visitAt.toISOString() }),
+        }).catch(() => {})
+      }
+    } catch {}
+
     router.push('/mi-tlacuilo')
   }
 
@@ -156,8 +180,14 @@ export default function CheckoutPage() {
 
         <div className="mb-12">
           <h2 className="font-mono uppercase tracking-wide text-[clamp(16px,1.6vw,22px)] text-text-bright mb-4">
-            Llevas {morral.length} {morral.length === 1 ? 'libro' : 'libros'}
+            Llevas {morral.length} de {maxObjetos} {maxObjetos === 1 ? 'objeto' : 'objetos'}
           </h2>
+          {sobreLimite && (
+            <p className="text-loan font-mono text-xs uppercase tracking-wider mb-4">
+              &gt; el límite por visita es {maxObjetos}. quita {morral.length - maxObjetos}{' '}
+              {morral.length - maxObjetos === 1 ? 'objeto' : 'objetos'} de tu morral para continuar.
+            </p>
+          )}
           <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-5">
             {morral.map((p) => (
               <div key={p.id} className="flex flex-col gap-2">
@@ -240,7 +270,7 @@ export default function CheckoutPage() {
           <div className="flex items-center gap-4">
             <button
               onClick={handleConfirm}
-              disabled={!selectedDate || !selectedBlock || submitting}
+              disabled={!selectedDate || !selectedBlock || submitting || sobreLimite}
               className="font-mono text-sm lowercase tracking-wider bg-invert-bg text-invert-fg px-6 py-3 hover:opacity-90 disabled:opacity-40 disabled:cursor-not-allowed transition-opacity"
             >
               {submitting ? <>confirmando<span className="animate-pulse">_</span></> : <>confirmar visita →</>}
