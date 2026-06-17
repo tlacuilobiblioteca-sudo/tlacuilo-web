@@ -1,7 +1,12 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
 import { Resend } from 'resend'
-import { emailCitaAgendada, type LibroEmail } from '@/lib/emails/templates'
+import {
+  emailCitaAgendada,
+  emailNuevaReservaEquipo,
+  EMAILS_EQUIPO,
+  type LibroEmail,
+} from '@/lib/emails/templates'
 
 /**
  * POST /api/emails/cita
@@ -57,6 +62,8 @@ export async function POST(req: NextRequest) {
   })
 
   const resend = new Resend(process.env.RESEND_API_KEY)
+
+  // 1) Correo al lector (confirmación de su visita).
   const { error: sendErr } = await resend.emails.send({
     from: 'Tlacuilo <hola@tlacuilo.org>',
     to: user.email,
@@ -65,8 +72,24 @@ export async function POST(req: NextRequest) {
     text,
   })
 
-  if (sendErr) {
-    return NextResponse.json({ error: sendErr.message }, { status: 502 })
-  }
-  return NextResponse.json({ ok: true })
+  // 2) Aviso al equipo (no debe bloquear ni romper si falla).
+  const equipoMail = emailNuevaReservaEquipo({
+    handle: perfil?.handle ?? 'lector',
+    correoLector: user.email,
+    libros,
+    visitAt,
+  })
+  const { error: equipoErr } = await resend.emails.send({
+    from: 'Tlacuilo <hola@tlacuilo.org>',
+    to: EMAILS_EQUIPO,
+    subject: equipoMail.subject,
+    html: equipoMail.html,
+    text: equipoMail.text,
+  })
+
+  return NextResponse.json({
+    ok: !sendErr,
+    lector: sendErr ? sendErr.message : 'enviado',
+    equipo: equipoErr ? equipoErr.message : 'enviado',
+  })
 }

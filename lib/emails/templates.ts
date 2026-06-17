@@ -374,6 +374,81 @@ hola@tlacuilo.org
 }
 
 // ============================================
+// AVISO INTERNO: NUEVA RESERVA (al equipo)
+// dispara cuando un lector confirma checkout (status: morral → apartado)
+// va a la biblioteca, no al lector
+// ============================================
+export const EMAILS_EQUIPO = [
+  'tlacuilo.biblioteca@gmail.com',
+  'sammantha.lucia@gmail.com',
+  'marinaorracal@gmail.com',
+]
+
+export function emailNuevaReservaEquipo(params: {
+  handle: string
+  correoLector: string
+  libros: LibroEmail[]
+  visitAt: string | Date
+}): EmailContent {
+  const { handle, correoLector, libros, visitAt } = params
+  const fechaTexto = formatFecha(visitAt)
+  const bloque = bloqueDeVisita(visitAt)
+  const cuantos = libros.length === 1 ? '1 objeto' : `${libros.length} objetos`
+
+  const subject = `nueva reserva · @${handle} · ${fechaTexto}`
+
+  const text = `
+nueva reserva en tlacuilo.
+
+lector: @${handle} (${correoLector})
+${cuantos}:
+
+${librosToText(libros)}
+
+viene: ${fechaTexto}
+bloque: ${bloque}
+dónde: ${DIRECCION_BIBLIOTECA}
+
+revisa y gestiona en tlacuilo.org/admin/prestamos
+`.trim()
+
+  const body = `
+    <h1 style="margin: 0 0 8px 0; font-size: 22px; color: #e8e8f0; font-weight: 500;">
+      nueva reserva
+    </h1>
+    <p style="margin: 0 0 20px 0; font-size: 14px; color: #c5c5e8;">
+      <span style="color: #9091c4; font-weight: 500;">@${escapeHtml(handle)}</span>
+      <span style="color: #888;"> · ${escapeHtml(correoLector)}</span><br>
+      apartó ${cuantos}:
+    </p>
+    <ul style="margin: 0 0 24px 0; padding-left: 20px; list-style: '· ';">
+      ${librosToHtml(libros)}
+    </ul>
+    <p style="margin: 0 0 6px 0; font-size: 14px;">
+      <span style="color: #888;">viene</span><br>
+      <span style="color: #9091c4; font-weight: 500; font-size: 16px;">${escapeHtml(fechaTexto)}</span>
+    </p>
+    <p style="margin: 0 0 6px 0; font-size: 14px;">
+      <span style="color: #888;">bloque</span><br>
+      <span style="color: #e8e8f0;">${escapeHtml(bloque)}</span>
+    </p>
+    <p style="margin: 0 0 12px 0; font-size: 14px;">
+      <span style="color: #888;">dónde</span><br>
+      <span style="color: #e8e8f0;">${escapeHtml(DIRECCION_BIBLIOTECA)}</span>
+    </p>
+  `
+
+  return {
+    subject,
+    html: shell('nueva reserva', body, {
+      label: 'ver en el panel',
+      href: 'https://www.tlacuilo.org/admin/prestamos',
+    }),
+    text,
+  }
+}
+
+// ============================================
 // EMAIL 0.5: RECORDATORIO DE CITA (12 horas antes)
 // dispara via cron · botones asistiré / no asistiré (sin reply)
 // ============================================

@@ -7,6 +7,8 @@ export function proxy(request: NextRequest) {
 
   const esPublico =
     pathname.startsWith("/acceso") ||
+    pathname.startsWith("/auth") ||
+    pathname.startsWith("/recuperar") ||
     pathname.startsWith("/_next") ||
     pathname === "/favicon.ico" ||
     pathname === "/manifest.webmanifest" ||

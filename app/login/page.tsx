@@ -1,9 +1,10 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { supabase } from '@/lib/supabase'
 import Header from '@/components/Header'
+import GoogleButton from '@/components/GoogleButton'
 
 export default function LoginPage() {
   const router = useRouter()
@@ -12,6 +13,14 @@ export default function LoginPage() {
   const [showPwd, setShowPwd] = useState(false)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
+
+  // Aviso si el retorno de Google falló (lo manda /auth/callback).
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search)
+    if (params.get('error') === 'oauth') {
+      setError('no se pudo entrar con google. intenta de nuevo.')
+    }
+  }, [])
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -46,6 +55,15 @@ export default function LoginPage() {
         <p className="mb-10 text-[clamp(13px,1vw,16px)]">
           &gt; identifícate.
         </p>
+
+        <div className="mb-8">
+          <GoogleButton />
+          <div className="flex items-center gap-3 mt-8 opacity-40 text-[clamp(10px,0.8vw,12px)]">
+            <span className="flex-1 border-b border-[#9091c4]/30" />
+            <span>o con tu correo</span>
+            <span className="flex-1 border-b border-[#9091c4]/30" />
+          </div>
+        </div>
 
         <form onSubmit={handleSubmit} className="space-y-7 text-[clamp(13px,1vw,16px)]">
           <div>
@@ -104,7 +122,14 @@ export default function LoginPage() {
           </button>
         </form>
 
-        <div className="mt-16 pt-6 border-t border-[#9091c4]/20 opacity-70 text-[clamp(11px,0.85vw,13px)]">
+        <div className="mt-10 opacity-70 text-[clamp(11px,0.85vw,13px)]">
+          &gt; olvidaste tu contraseña?{' '}
+          <a href="/recuperar" className="underline hover:no-underline">
+            recupérala
+          </a>
+        </div>
+
+        <div className="mt-6 pt-6 border-t border-[#9091c4]/20 opacity-70 text-[clamp(11px,0.85vw,13px)]">
           &gt; primera vez aquí?{' '}
           <a href="/registro" className="underline hover:no-underline">
             solicita acceso

@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react'
 import { supabase } from '@/lib/supabase'
 import Header from '@/components/Header'
+import GoogleButton from '@/components/GoogleButton'
 
 type AliasStatus = 'idle' | 'checking' | 'available' | 'taken' | 'invalid'
 
@@ -61,6 +62,7 @@ export default function RegistroPage() {
       password,
       options: {
         data: { handle: alias }, // El trigger lo lee para perfiles.handle
+        emailRedirectTo: `${window.location.origin}/auth/callback`,
       },
     })
 
@@ -139,6 +141,18 @@ export default function RegistroPage() {
         <p className="mb-10 text-[clamp(13px,1vw,16px)]">
           &gt; elige un alias y entra al acervo.
         </p>
+
+        <div className="mb-8">
+          <GoogleButton label="registrarme con google" />
+          <p className="mt-2 opacity-50 text-[clamp(10px,0.8vw,12px)]">
+            &gt; con google eliges tu alias después, dentro.
+          </p>
+          <div className="flex items-center gap-3 mt-7 opacity-40 text-[clamp(10px,0.8vw,12px)]">
+            <span className="flex-1 border-b border-[#9091c4]/30" />
+            <span>o con tu correo</span>
+            <span className="flex-1 border-b border-[#9091c4]/30" />
+          </div>
+        </div>
 
         <form onSubmit={handleSubmit} className="space-y-7 text-[clamp(13px,1vw,16px)]">
           {/* ALIAS */}

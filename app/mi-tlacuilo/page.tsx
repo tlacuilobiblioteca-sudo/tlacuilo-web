@@ -17,6 +17,8 @@ type Perfil = {
   avatar_url: string | null
 }
 
+type AliasStatus = 'idle' | 'checking' | 'available' | 'taken' | 'invalid'
+
 type Libro = {
   id: string
   titulo: string
@@ -56,6 +58,11 @@ export default function MiTlacuiloPage() {
 
   const [subiendoFoto, setSubiendoFoto] = useState(false)
   const [fotoMsg, setFotoMsg] = useState<string | null>(null)
+
+  const [aliasDraft, setAliasDraft] = useState('')
+  const [aliasStatus, setAliasStatus] = useState<AliasStatus>('idle')
+  const [savingAlias, setSavingAlias] = useState(false)
+  const [aliasMsg, setAliasMsg] = useState<string | null>(null)
 
   const handleFotoPerfil = async (file: File | null) => {
     if (!file || !perfil) return
@@ -130,6 +137,50 @@ export default function MiTlacuiloPage() {
     return () => { mounted = false }
   }, [router])
 
+  // Validación de formato + disponibilidad del alias (debounced).
+  useEffect(() => {
+    const actual = perfil?.handle ?? ''
+    if (!aliasDraft || aliasDraft === actual) {
+      setAliasStatus('idle')
+      return
+    }
+    const valido = /^[a-z0-9_-]{3,20}$/.test(aliasDraft)
+    if (!valido) {
+      setAliasStatus('invalid')
+      return
+    }
+    setAliasStatus('checking')
+    const timer = setTimeout(async () => {
+      const { data } = await supabase
+        .from('perfiles_publicos')
+        .select('handle')
+        .eq('handle', aliasDraft)
+        .maybeSingle()
+      setAliasStatus(data ? 'taken' : 'available')
+    }, 400)
+    return () => clearTimeout(timer)
+  }, [aliasDraft, perfil?.handle])
+
+  const handleSaveAlias = async () => {
+    if (!perfil || aliasStatus !== 'available') return
+    setSavingAlias(true)
+    setAliasMsg(null)
+    const { error } = await supabase
+      .from('perfiles')
+      .update({ handle: aliasDraft })
+      .eq('id', perfil.id)
+    setSavingAlias(false)
+    if (error) {
+      setAliasMsg('> error al guardar el alias')
+    } else {
+      setPerfil({ ...perfil, handle: aliasDraft })
+      setAliasDraft('')
+      setAliasStatus('idle')
+      setAliasMsg('> alias guardado ✓')
+      setTimeout(() => setAliasMsg(null), 2500)
+    }
+  }
+
   const handleLogout = async () => {
     await supabase.auth.signOut()
     router.push('/')
@@ -170,6 +221,21 @@ export default function MiTlacuiloPage() {
   const alias = perfil?.handle ?? 'sin-alias'
   const bioChanged = (bioDraft.trim() || null) !== (perfil?.bio ?? null)
 
+  const aliasInfo = (() => {
+    switch (aliasStatus) {
+      case 'checking':
+        return { txt: '> verificando...', cls: 'opacity-60' }
+      case 'available':
+        return { txt: '> disponible ✓', cls: 'text-available' }
+      case 'taken':
+        return { txt: '> ya está tomado', cls: 'text-loan' }
+      case 'invalid':
+        return { txt: '> 3-20 caracteres: a-z, 0-9, _ o -', cls: 'text-loan' }
+      default:
+        return { txt: '', cls: 'opacity-60' }
+    }
+  })()
+
   return (
     <TecaLayout>
       <section className="px-10 pt-10 pb-12 max-w-7xl mx-auto max-md:px-5">
@@ -207,12 +273,58 @@ export default function MiTlacuiloPage() {
         {fotoMsg && (
           <p className="font-mono text-xs text-text-dim mb-3">{fotoMsg}</p>
         )}
-        <p className="text-[clamp(13px,1vw,15px)] text-text-dim mb-10">
-          tu perfil público está en{' '}
-          <Link href={`/u/${alias}`} className="text-text underline hover:text-text-bright transition-colors">
-            tlacuilo.org/u/{alias}
-          </Link>
-        </p>
+        {perfil?.handle ? (
+          <p className="text-[clamp(13px,1vw,15px)] text-text-dim mb-10">
+            tu perfil público está en{' '}
+            <Link href={`/u/${alias}`} className="text-text underline hover:text-text-bright transition-colors">
+              tlacuilo.org/u/{alias}
+            </Link>
+          </p>
+        ) : (
+          <p className="text-[clamp(13px,1vw,15px)] text-text-dim mb-10">
+            elige un alias para tener tu perfil público.
+          </p>
+        )}
+
+        {/* ELEGIR / CAMBIAR ALIAS */}
+        <div className={`mb-12 border p-5 ${perfil?.handle ? 'border-rule bg-bg-soft' : 'border-acid bg-bg-soft'}`}>
+          <h2 className={`font-micro uppercase tracking-[0.12em] text-[11px] mb-2 ${perfil?.handle ? 'text-text-dim' : 'text-acid'}`}>
+            {perfil?.handle ? 'cambiar alias' : '· elige tu alias'}
+          </h2>
+          <p className="opacity-60 text-[10px] mb-4 font-mono">
+            {perfil?.handle
+              ? '> con esto te encuentran y firmas en el acervo.'
+              : '> entraste con google. aún no tienes alias: elígelo para identificarte.'}
+          </p>
+          <div className="flex items-center gap-2">
+            <span className="font-mono text-[clamp(12px,0.95vw,15px)] opacity-50 shrink-0">/u/</span>
+            <input
+              type="text"
+              value={aliasDraft}
+              onChange={(e) => setAliasDraft(e.target.value.toLowerCase().trim())}
+              autoComplete="username"
+              placeholder={perfil?.handle ?? 'tu_alias'}
+              className="flex-1 min-w-0 bg-transparent border-b border-rule focus:border-rule-strong focus:outline-none py-1 font-mono text-text-bright placeholder:opacity-30"
+            />
+            <button
+              onClick={handleSaveAlias}
+              disabled={savingAlias || aliasStatus !== 'available'}
+              className="shrink-0 font-mono text-[clamp(11px,0.9vw,14px)] uppercase tracking-wide hover:underline disabled:opacity-40 disabled:cursor-not-allowed"
+            >
+              {savingAlias ? <>&gt; guardando<span className="animate-pulse">_</span></> : <>&gt; guardar</>}
+            </button>
+          </div>
+          {aliasInfo.txt && (
+            <p className={`mt-2 font-mono text-[10px] uppercase tracking-wider ${aliasInfo.cls}`}>
+              {aliasInfo.txt}
+            </p>
+          )}
+          {aliasMsg && (
+            <p className={`mt-2 font-mono text-[10px] uppercase tracking-wider ${aliasMsg.includes('✓') ? 'text-available' : 'text-loan'}`}>
+              {aliasMsg}
+            </p>
+          )}
+        </div>
 
         {perfil?.rol === 'editor' && (
           <div className="mb-14">
