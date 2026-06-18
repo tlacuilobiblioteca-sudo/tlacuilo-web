@@ -101,6 +101,19 @@ body:not(.light-mode) img[src*="TLACUILOLOGONEGRO"] {
   filter: invert(1);
 }
 
+/* Wordmark del header: SVG enmascarado para teñirlo exacto por modo.
+   Dark mode -> lila tlacuilo. Light mode -> tinta sobre el fondo morado. */
+:root { --logo-color: #6E6BA0; }
+body.light-mode { --logo-color: #15151D; }
+.logo-wordmark {
+  display: block;
+  aspect-ratio: 320.08 / 89.95;
+  background-color: var(--logo-color);
+  -webkit-mask: url('/TLACUILOLOGONEGRO.svg') no-repeat center / contain;
+  mask: url('/TLACUILOLOGONEGRO.svg') no-repeat center / contain;
+  transition: background-color 0.25s ease;
+}
+
 /* ============ CLASES UTILITARIAS MÍNIMAS ============ */
 
 /* Highlight tipo bloque para énfasis (.pop) */

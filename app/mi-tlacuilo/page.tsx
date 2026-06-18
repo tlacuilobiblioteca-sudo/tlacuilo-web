@@ -7,6 +7,7 @@ import { supabase } from '@/lib/supabase'
 import { comprimirImagen } from '@/lib/imagen'
 import TecaLayout from '@/components/TecaLayout'
 import Cover from '@/components/Cover'
+import AdminNotifBadge from '@/components/AdminNotifBadge'
 
 type Perfil = {
   id: string
@@ -332,6 +333,7 @@ export default function MiTlacuiloPage() {
               · zona editora · administración tlacuilo
             </div>
             <div className="flex flex-wrap gap-2">
+              <AdminNotifBadge />
               <Link
                 href="/admin/libros"
                 className="inline-flex items-baseline gap-2 bg-tinta text-bone border border-tinta rounded-sm px-3 py-2 font-micro text-[11px] uppercase tracking-[0.08em] hover:bg-brillante hover:text-bone transition-colors"

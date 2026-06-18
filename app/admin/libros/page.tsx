@@ -38,6 +38,7 @@ export default function AdminLibrosPage() {
   const [page, setPage] = useState(0)
   const [total, setTotal] = useState(0)
   const [refreshKey, setRefreshKey] = useState(0)
+  const [wishlist, setWishlist] = useState<Record<string, number>>({})
 
   const [editingLibro, setEditingLibro] = useState<Libro | null>(null)
   const [uploadUrl, setUploadUrl] = useState('')
@@ -122,8 +123,25 @@ export default function AdminLibrosPage() {
     if (filtroNoDisponibles) q = q.eq('disponible', false)
     q = q.order('titulo').range(page * PAGE_SIZE, (page + 1) * PAGE_SIZE - 1)
     const { data, count } = await q
-    setLibros((data ?? []) as Libro[])
+    const rows = (data ?? []) as Libro[]
+    setLibros(rows)
     setTotal(count ?? 0)
+
+    // Conteo de wishlist (morral) para los libros visibles.
+    const ids = rows.map((l) => l.id)
+    if (ids.length > 0) {
+      const { data: wl } = await supabase
+        .from('libro_wishlist_counts')
+        .select('libro_id, n')
+        .in('libro_id', ids)
+      const map: Record<string, number> = {}
+      ;(wl ?? []).forEach((r: { libro_id: string; n: number }) => {
+        map[r.libro_id] = r.n
+      })
+      setWishlist(map)
+    } else {
+      setWishlist({})
+    }
   }, [isEditor, search, filtroSinPortada, filtroJoyas, filtroNoDisponibles, page, refreshKey])
 
   useEffect(() => {
@@ -521,6 +539,11 @@ export default function AdminLibrosPage() {
                   </div>
                   <p className="font-medium leading-tight text-[11px] line-clamp-2">{l.titulo}</p>
                   <p className="opacity-60 text-[10px] line-clamp-1">{l.autor ?? '—'}</p>
+                  {wishlist[l.id] ? (
+                    <span className="mt-0.5 font-micro text-[9px] uppercase tracking-[0.08em] text-acid">
+                      ♡ en {wishlist[l.id]} {wishlist[l.id] === 1 ? 'morral' : 'morrales'}
+                    </span>
+                  ) : null}
                   <span className="mt-1 font-micro text-[9px] uppercase tracking-[0.08em] text-acid opacity-0 group-hover:opacity-100 transition-opacity">
                     · editar →
                   </span>

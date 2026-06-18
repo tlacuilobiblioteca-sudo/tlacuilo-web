@@ -39,6 +39,15 @@ export default async function LibroPage({
     notFound()
   }
 
+  // Cuántas personas lo tienen en su morral (wishlist). Vista agregada,
+  // no expone quién. Si falla o es 0, simplemente no se muestra.
+  const { data: wl } = await supabase
+    .from('libro_wishlist_counts')
+    .select('n')
+    .eq('libro_id', id)
+    .maybeSingle()
+  const quieren: number = wl?.n ?? 0
+
   let relacionados: Libro[] = []
   if (libro.categorias && libro.categorias.length > 0) {
     const { data } = await supabase
@@ -103,6 +112,12 @@ export default async function LibroPage({
                   : 'En préstamo'}
             </span>
           </div>
+
+          {quieren > 0 && (
+            <p className="font-mono text-[clamp(11px,0.9vw,14px)] text-text-dim mb-5 -mt-2">
+              {quieren} {quieren === 1 ? 'persona lo tiene' : 'personas lo tienen'} en su morral
+            </p>
+          )}
 
           {/* Morral: el componente cliente maneja auth y estado */}
           {libro.disponible ? (

@@ -53,10 +53,10 @@ export default function Header({ slim = false }: HeaderProps) {
       {/* ============ BANDA 1 · LOGO + SEARCH + PERFIL + LUNA ============ */}
       <div className="flex items-center justify-between gap-6 px-10 py-5 max-md:flex-col max-md:items-start max-md:gap-4 max-md:px-5">
         <Link href="/" className="block shrink-0" aria-label="Inicio">
-          <img
-            src="/TLACUILOLOGONEGRO.svg"
-            alt="tlacuilo"
-            className="block h-[clamp(26px,2.8vw,40px)] w-auto"
+          <span
+            role="img"
+            aria-label="tlacuilo"
+            className="logo-wordmark h-[clamp(26px,2.8vw,40px)]"
           />
         </Link>
 
@@ -77,6 +77,26 @@ export default function Header({ slim = false }: HeaderProps) {
         </form>
 
         <div className="flex items-center gap-5 shrink-0">
+          <Link
+            href="/calendario"
+            aria-label="Calendario"
+            className="text-text hover:text-text-bright transition-colors inline-flex items-center"
+          >
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              fill="none"
+              viewBox="0 0 24 24"
+              strokeWidth="1.6"
+              stroke="currentColor"
+              className="w-[clamp(14px,1.2vw,18px)] h-[clamp(14px,1.2vw,18px)]"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                d="M6.75 3v2.25M17.25 3v2.25M3 18.75V7.5a2.25 2.25 0 0 1 2.25-2.25h13.5A2.25 2.25 0 0 1 21 7.5v11.25m-18 0A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75m-18 0V11.25A2.25 2.25 0 0 1 5.25 9h13.5A2.25 2.25 0 0 1 21 11.25v7.5"
+              />
+            </svg>
+          </Link>
           <ThemeToggle />
           <Link href={miTlacuiloHref} className="font-mono text-[clamp(11px,1.05vw,14px)] tracking-[0.12em] uppercase text-text hover:text-text-bright transition-colors">
             {user ? 'MI TLACUILO' : 'ENTRAR'}
@@ -93,7 +113,6 @@ export default function Header({ slim = false }: HeaderProps) {
             <a href="#" className={tecaLinkClass}>FONOTECA</a>
             <Link href="/videoteca" className={tecaLinkClass}>VIDEOTECA</Link>
             <Link href="/manifesto" className={tecaLinkClass}>MANIFIESTO</Link>
-            <Link href="/calendario" className={tecaLinkClass}>CALENDARIO</Link>
             <a href="#" className={tecaLinkClass}>EDITORIAL</a>
           </div>
         </nav>
