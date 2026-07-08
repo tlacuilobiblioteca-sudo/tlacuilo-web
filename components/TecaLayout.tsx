@@ -190,7 +190,7 @@ function SidebarContent({
     }`
 
   const labelClass =
-    'font-sans font-normal uppercase tracking-[0.14em] text-[12px] text-text-dim block mb-4'
+    'font-acacia uppercase tracking-[0.06em] text-[14px] text-text block mb-4'
 
   if (activeTeca === 'biblioteca' && categorias.length > 0) {
     return (
