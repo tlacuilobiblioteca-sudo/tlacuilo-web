@@ -320,20 +320,22 @@ export function emailCitaAgendada(params: {
   const bloque = bloqueDeVisita(visitAt)
   const cuantos = libros.length === 1 ? 'un objeto' : `${libros.length} objetos`
 
-  const subject = `tu visita quedó agendada · ${fechaTexto}`
+  const subject = `recibimos tu solicitud de préstamo · ${fechaTexto}`
 
   const text = `
 hola ${handle},
 
-tu morral está apartado. ${cuantos} te esperan en la biblioteca:
+recibimos tu solicitud de ${cuantos}:
 
 ${librosToText(libros)}
 
-cuándo: ${fechaTexto}
+visita propuesta: ${fechaTexto}
 bloque: ${bloque}
 dónde: ${DIRECCION_BIBLIOTECA}
 
-12 horas antes te mandamos un recordatorio para confirmar.
+la biblioteca va a preparar tus objetos y te mandamos OTRO correo
+cuando tu reserva quede confirmada. 12 horas antes de tu visita
+te llega además un recordatorio.
 
 tlacuilo. biblioteca pública en coyoacán.
 hola@tlacuilo.org
@@ -344,13 +346,13 @@ hola@tlacuilo.org
       hola ${escapeHtml(handle)},
     </h1>
     <p style="margin: 0 0 20px 0; font-size: 14px; color: #c5c5e8;">
-      tu morral está apartado. ${cuantos} te esperan en la biblioteca:
+      recibimos tu solicitud de ${cuantos}:
     </p>
     <ul style="margin: 0 0 24px 0; padding-left: 20px; list-style: '· ';">
       ${librosToHtml(libros)}
     </ul>
     <p style="margin: 0 0 6px 0; font-size: 14px;">
-      <span style="color: #888;">cuándo</span><br>
+      <span style="color: #888;">visita propuesta</span><br>
       <span style="color: #9091c4; font-weight: 500; font-size: 16px;">${escapeHtml(fechaTexto)}</span>
     </p>
     <p style="margin: 0 0 6px 0; font-size: 14px;">
@@ -362,13 +364,15 @@ hola@tlacuilo.org
       <span style="color: #e8e8f0;">${escapeHtml(DIRECCION_BIBLIOTECA)}</span>
     </p>
     <p style="margin: 16px 0 0 0; font-size: 13px; color: #888;">
-      12 horas antes te mandamos un recordatorio para confirmar tu visita.
+      la biblioteca va a preparar tus objetos y te mandamos otro correo
+      cuando tu reserva quede confirmada. 12 horas antes de tu visita
+      te llega además un recordatorio.
     </p>
   `
 
   return {
     subject,
-    html: shell('tu visita quedó agendada', body),
+    html: shell('recibimos tu solicitud', body),
     text,
   }
 }
