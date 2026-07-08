@@ -33,10 +33,25 @@ async function getTotalLibros(): Promise<number> {
   }
 }
 
+async function getTotalPrestamos(): Promise<number> {
+  // Préstamos concretados (no morral/apartado). Cuando se importen los
+  // históricos (Carrillo Gil + google docs pre-sistema) entran aquí también.
+  try {
+    const { count } = await supabase
+      .from('prestamos')
+      .select('id', { count: 'exact', head: true })
+      .in('status', ['recogido', 'devuelto'])
+    return count ?? 0
+  } catch {
+    return 0
+  }
+}
+
 export default async function Home() {
-  const [categorias, totalLibros] = await Promise.all([
+  const [categorias, totalLibros, totalPrestamos] = await Promise.all([
     getCategorias(),
     getTotalLibros(),
+    getTotalPrestamos(),
   ])
 
   return (
@@ -56,16 +71,16 @@ export default async function Home() {
                 {totalLibros.toLocaleString('es-MX')}
               </span>
               <span className="block font-micro text-[10px] uppercase tracking-[0.1em] accent-detail mt-0.5">
-                objetos en el acervo
+                objetos catalogados
               </span>
             </div>
           )}
           <div>
             <span className="font-sans font-light text-[clamp(26px,2.6vw,40px)] tabular-nums text-text">
-              $0
+              {totalPrestamos.toLocaleString('es-MX')}
             </span>
             <span className="block font-micro text-[10px] uppercase tracking-[0.1em] accent-detail mt-0.5">
-              costo del préstamo
+              préstamos
             </span>
           </div>
           <Link
