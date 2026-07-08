@@ -31,6 +31,7 @@ type Prestamo = {
   user_id: string
   asistencia: 'asistire' | 'no_asistire' | null
   foto_registro_url: string | null
+  foto_regreso_url: string | null
   libros: Libro
   perfiles_publicos: Perfil
 }
@@ -69,7 +70,7 @@ function isThisWeek(iso: string | null): boolean {
   return d >= today && d <= inWeek
 }
 
-type Filtro = 'todos' | 'hoy' | 'semana' | 'recogidos' | 'vencidos'
+type Filtro = 'todos' | 'hoy' | 'semana' | 'recogidos' | 'vencidos' | 'historial'
 
 export default function AdminPrestamosPage() {
   const router = useRouter()
@@ -84,12 +85,13 @@ export default function AdminPrestamosPage() {
   const [limiteMsg, setLimiteMsg] = useState<string | null>(null)
   const [subiendoFoto, setSubiendoFoto] = useState<string | null>(null)
 
-  async function subirFotoRegistro(p: Prestamo, file: File | null) {
+  async function subirFotoRegistro(p: Prestamo, file: File | null, momento: 'salida' | 'regreso' = 'salida') {
     if (!file) return
     setSubiendoFoto(p.id)
     try {
       const comprimida = await comprimirImagen(file, { maxDim: 1200, quality: 0.8 })
-      const path = `${p.id}.webp`
+      const path = momento === 'salida' ? `${p.id}.webp` : `${p.id}-regreso.webp`
+      const campo = momento === 'salida' ? 'foto_registro_url' : 'foto_regreso_url'
       const { error: upErr } = await supabase.storage
         .from('registro')
         .upload(path, comprimida, { upsert: true, contentType: comprimida.type })
@@ -98,10 +100,10 @@ export default function AdminPrestamosPage() {
       const url = `${pub.publicUrl}?v=${Date.now()}`
       const { error: updErr } = await supabase
         .from('prestamos')
-        .update({ foto_registro_url: url })
+        .update({ [campo]: url })
         .eq('id', p.id)
       if (updErr) throw new Error(updErr.message)
-      setPrestamos((prev) => prev.map((x) => (x.id === p.id ? { ...x, foto_registro_url: url } : x)))
+      setPrestamos((prev) => prev.map((x) => (x.id === p.id ? { ...x, [campo]: url } : x)))
     } catch (e) {
       console.error('foto registro:', e)
       alert('no se pudo subir la foto del ejemplar')
@@ -157,11 +159,11 @@ export default function AdminPrestamosPage() {
       .from('prestamos')
       .select(`
         id, status, added_at, visit_at, picked_up_at, returned_at, due_at, notes, confirmado_at, user_id,
-        asistencia, foto_registro_url,
+        asistencia, foto_registro_url, foto_regreso_url,
         libros (id, titulo, autor),
         perfiles_publicos!user_id (id, handle)
       `)
-      .in('status', ['apartado', 'recogido'])
+      .in('status', ['apartado', 'recogido', 'devuelto'])
       .order('visit_at', { ascending: true, nullsFirst: false })
     if (error) {
       console.error('error cargando préstamos:', error)
@@ -201,7 +203,13 @@ export default function AdminPrestamosPage() {
   }
 
   async function marcarRecogido(p: Prestamo) {
+    // Ficha de salida: sin foto del ejemplar no hay salida.
+    if (!p.foto_registro_url) {
+      alert('sube la foto de salida del ejemplar antes de confirmar')
+      return
+    }
     setWorking(p.id)
+    const { data: { user: editor } } = await supabase.auth.getUser()
     const pickedUp = new Date()
     const dueAt = new Date(pickedUp)
     dueAt.setDate(dueAt.getDate() + 30)
@@ -211,6 +219,7 @@ export default function AdminPrestamosPage() {
         status: 'recogido',
         picked_up_at: pickedUp.toISOString(),
         due_at: dueAt.toISOString(),
+        salida_por: editor?.id ?? null,
       })
       .eq('id', p.id)
     if (!error) {
@@ -225,12 +234,19 @@ export default function AdminPrestamosPage() {
   }
 
   async function marcarDevuelto(p: Prestamo) {
+    // Ficha de regreso: sin foto del ejemplar de vuelta no hay regreso.
+    if (!p.foto_regreso_url) {
+      alert('sube la foto de regreso del ejemplar antes de confirmar')
+      return
+    }
     setWorking(p.id)
+    const { data: { user: editor } } = await supabase.auth.getUser()
     const { error } = await supabase
       .from('prestamos')
       .update({
         status: 'devuelto',
         returned_at: new Date().toISOString(),
+        regreso_por: editor?.id ?? null,
       })
       .eq('id', p.id)
     if (!error) {
@@ -259,20 +275,22 @@ export default function AdminPrestamosPage() {
   if (!isEditor) return null
 
   const filtered = prestamos.filter((p) => {
-    if (filtro === 'todos') return true
+    if (filtro === 'todos') return p.status !== 'devuelto'
     if (filtro === 'hoy') return p.status === 'apartado' && isToday(p.visit_at)
     if (filtro === 'semana') return p.status === 'apartado' && isThisWeek(p.visit_at)
     if (filtro === 'recogidos') return p.status === 'recogido'
     if (filtro === 'vencidos') return p.status === 'recogido' && p.due_at && new Date(p.due_at) < new Date()
+    if (filtro === 'historial') return p.status === 'devuelto'
     return true
   })
 
   const counts = {
-    todos: prestamos.length,
+    todos: prestamos.filter((p) => p.status !== 'devuelto').length,
     hoy: prestamos.filter((p) => p.status === 'apartado' && isToday(p.visit_at)).length,
     semana: prestamos.filter((p) => p.status === 'apartado' && isThisWeek(p.visit_at)).length,
     recogidos: prestamos.filter((p) => p.status === 'recogido').length,
     vencidos: prestamos.filter((p) => p.status === 'recogido' && p.due_at && new Date(p.due_at) < new Date()).length,
+    historial: prestamos.filter((p) => p.status === 'devuelto').length,
   }
 
   return (
@@ -314,6 +332,7 @@ export default function AdminPrestamosPage() {
             ['semana', 'esta semana', counts.semana],
             ['recogidos', 'en préstamo', counts.recogidos],
             ['vencidos', '⚠ vencidos', counts.vencidos],
+            ['historial', 'historial', counts.historial],
           ] as [Filtro, string, number][]).map(([id, label, count]) => (
             <button
               key={id}
@@ -363,6 +382,12 @@ export default function AdminPrestamosPage() {
                             </span>
                           </span>
                         )}
+                        {p.status === 'devuelto' && (
+                          <span className="opacity-70">
+                            salió: {formatDueDate(p.picked_up_at)} · volvió:{' '}
+                            <span className="text-available">{formatDueDate(p.returned_at)}</span>
+                          </span>
+                        )}
                         <span className={`uppercase ${p.status === 'apartado' ? 'text-text-bright' : 'text-available'}`}>
                           · {p.status}
                         </span>
@@ -373,28 +398,53 @@ export default function AdminPrestamosPage() {
                           <span className="text-available">· ✓ reserva confirmada</span>
                         )}
                       </div>
-                      <div className="mt-3 flex items-center gap-3">
+                      <div className="mt-3 flex items-center gap-3 flex-wrap">
                         {p.foto_registro_url ? (
-                          <a href={p.foto_registro_url} target="_blank" rel="noreferrer" className="block w-12 h-16 overflow-hidden border border-rule shrink-0">
+                          <a href={p.foto_registro_url} target="_blank" rel="noreferrer" className="block w-12 h-16 overflow-hidden border border-rule shrink-0" title="foto de salida">
                             {/* eslint-disable-next-line @next/next/no-img-element */}
-                            <img src={p.foto_registro_url} alt="foto del ejemplar" className="w-full h-full object-cover" />
+                            <img src={p.foto_registro_url} alt="foto de salida" className="w-full h-full object-cover" />
                           </a>
                         ) : null}
-                        <label className="font-micro text-[10px] uppercase tracking-[0.08em] text-text-dim cursor-pointer border border-rule px-2 py-1.5 hover:text-text-bright hover:border-rule-strong transition-colors">
-                          {subiendoFoto === p.id
-                            ? '> subiendo...'
-                            : p.foto_registro_url
-                              ? 'cambiar foto del ejemplar'
-                              : '+ foto del ejemplar'}
-                          <input
-                            type="file"
-                            accept="image/*"
-                            capture="environment"
-                            className="hidden"
-                            disabled={subiendoFoto === p.id}
-                            onChange={(e) => subirFotoRegistro(p, e.target.files?.[0] ?? null)}
-                          />
-                        </label>
+                        {p.foto_regreso_url ? (
+                          <a href={p.foto_regreso_url} target="_blank" rel="noreferrer" className="block w-12 h-16 overflow-hidden border border-available shrink-0" title="foto de regreso">
+                            {/* eslint-disable-next-line @next/next/no-img-element */}
+                            <img src={p.foto_regreso_url} alt="foto de regreso" className="w-full h-full object-cover" />
+                          </a>
+                        ) : null}
+                        {p.status === 'apartado' && (
+                          <label className="font-micro text-[10px] uppercase tracking-[0.08em] text-text-dim cursor-pointer border border-rule px-2 py-1.5 hover:text-text-bright hover:border-rule-strong transition-colors">
+                            {subiendoFoto === p.id
+                              ? '> subiendo...'
+                              : p.foto_registro_url
+                                ? 'cambiar foto de salida'
+                                : '+ foto de salida (obligatoria)'}
+                            <input
+                              type="file"
+                              accept="image/*"
+                              capture="environment"
+                              className="hidden"
+                              disabled={subiendoFoto === p.id}
+                              onChange={(e) => subirFotoRegistro(p, e.target.files?.[0] ?? null, 'salida')}
+                            />
+                          </label>
+                        )}
+                        {p.status === 'recogido' && (
+                          <label className="font-micro text-[10px] uppercase tracking-[0.08em] text-text-dim cursor-pointer border border-rule px-2 py-1.5 hover:text-text-bright hover:border-rule-strong transition-colors">
+                            {subiendoFoto === p.id
+                              ? '> subiendo...'
+                              : p.foto_regreso_url
+                                ? 'cambiar foto de regreso'
+                                : '+ foto de regreso (obligatoria)'}
+                            <input
+                              type="file"
+                              accept="image/*"
+                              capture="environment"
+                              className="hidden"
+                              disabled={subiendoFoto === p.id}
+                              onChange={(e) => subirFotoRegistro(p, e.target.files?.[0] ?? null, 'regreso')}
+                            />
+                          </label>
+                        )}
                       </div>
                     </div>
 
@@ -411,19 +461,21 @@ export default function AdminPrestamosPage() {
                       {p.status === 'apartado' && (
                         <button
                           onClick={() => marcarRecogido(p)}
-                          disabled={working === p.id}
+                          disabled={working === p.id || !p.foto_registro_url}
+                          title={!p.foto_registro_url ? 'sube la foto de salida primero' : undefined}
                           className="px-3 py-2 bg-invert-bg text-invert-fg text-xs uppercase tracking-wider hover:opacity-90 disabled:opacity-40 whitespace-nowrap"
                         >
-                          {working === p.id ? '...' : '✓ recogido'}
+                          {working === p.id ? '...' : '✓ confirmar salida'}
                         </button>
                       )}
                       {p.status === 'recogido' && (
                         <button
                           onClick={() => marcarDevuelto(p)}
-                          disabled={working === p.id}
+                          disabled={working === p.id || !p.foto_regreso_url}
+                          title={!p.foto_regreso_url ? 'sube la foto de regreso primero' : undefined}
                           className="px-3 py-2 bg-invert-bg text-invert-fg text-xs uppercase tracking-wider hover:opacity-90 disabled:opacity-40 whitespace-nowrap"
                         >
-                          {working === p.id ? '...' : '↩ devuelto'}
+                          {working === p.id ? '...' : '↩ confirmar regreso'}
                         </button>
                       )}
                     </div>

@@ -34,7 +34,14 @@ type Prestamo = {
   status: 'morral' | 'apartado' | 'recogido' | 'devuelto'
   added_at: string
   visit_at: string | null
+  picked_up_at: string | null
+  returned_at: string | null
   libros: Libro
+}
+
+function formatFechaCorta(iso: string | null): string {
+  if (!iso) return '—'
+  return new Date(iso).toLocaleDateString('es-MX', { day: 'numeric', month: 'short', year: 'numeric' })
 }
 
 function formatVisita(iso: string): string {
@@ -52,6 +59,7 @@ export default function MiTlacuiloPage() {
 
   const [morral, setMorral] = useState<Prestamo[]>([])
   const [visitas, setVisitas] = useState<Prestamo[]>([])
+  const [historial, setHistorial] = useState<Prestamo[]>([])
 
   const [bioDraft, setBioDraft] = useState('')
   const [savingBio, setSavingBio] = useState(false)
@@ -112,9 +120,9 @@ export default function MiTlacuiloPage() {
           .single<Perfil>(),
         supabase
           .from('prestamos')
-          .select('id, status, added_at, visit_at, libros (id, titulo, autor, anio, portada_url, isbn)')
+          .select('id, status, added_at, visit_at, picked_up_at, returned_at, libros (id, titulo, autor, anio, portada_url, isbn)')
           .eq('user_id', user.id)
-          .in('status', ['morral', 'apartado', 'recogido'])
+          .in('status', ['morral', 'apartado', 'recogido', 'devuelto'])
           .order('added_at', { ascending: false }),
       ])
 
@@ -129,6 +137,7 @@ export default function MiTlacuiloPage() {
         const all = prestamosData as unknown as Prestamo[]
         setMorral(all.filter((p) => p.status === 'morral'))
         setVisitas(all.filter((p) => p.status === 'apartado' || p.status === 'recogido'))
+        setHistorial(all.filter((p) => p.status === 'devuelto'))
       }
 
       setLoading(false)
@@ -460,6 +469,35 @@ export default function MiTlacuiloPage() {
             </div>
           )}
         </div>
+
+        {/* ============ HISTORIAL · préstamos devueltos ============ */}
+        {historial.length > 0 && (
+          <div className="mb-14 border-t border-rule pt-8">
+            <div className="flex items-baseline justify-between mb-5">
+              <h2 className="font-sans font-light text-[clamp(22px,2.4vw,34px)] tracking-[-0.005em] text-text">
+                Historial
+              </h2>
+              <span className="font-micro text-[10px] uppercase tracking-[0.12em] text-acid">
+                {historial.length} {historial.length === 1 ? 'préstamo' : 'préstamos'}
+              </span>
+            </div>
+            <div className="flex flex-col divide-y divide-rule border-y border-rule">
+              {historial.map((p) => (
+                <Link
+                  key={p.id}
+                  href={`/biblioteca/${p.libros.id}`}
+                  className="flex flex-wrap items-baseline gap-x-4 gap-y-1 py-3 opacity-85 hover:opacity-100 transition-opacity"
+                >
+                  <span className="font-sans text-[clamp(13px,1vw,15px)] text-text">{p.libros.titulo}</span>
+                  <span className="font-sans font-light text-[12px] text-text-dim">{p.libros.autor ?? ''}</span>
+                  <span className="ml-auto font-micro text-[10px] uppercase tracking-[0.08em] text-text-dim">
+                    {formatFechaCorta(p.picked_up_at)} → {formatFechaCorta(p.returned_at)}
+                  </span>
+                </Link>
+              ))}
+            </div>
+          </div>
+        )}
 
         <div className="border-t border-rule pt-8 mt-4">
           <h2 className="font-micro uppercase tracking-[0.12em] text-[11px] text-text-dim mb-2">
