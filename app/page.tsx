@@ -18,10 +18,8 @@ async function getCategorias(): Promise<CategoriaConteo[]> {
   // estén siempre sincronizadas.
   const { data, error } = await supabase.rpc('distinct_categorias')
   if (error || !data) return []
-  // Orden alfabético (Marina 2026-07-08, de regreso desde orden por tamaño)
-  return (data as CategoriaConteo[]).sort((a, b) =>
-    a.categoria.localeCompare(b.categoria, 'es', { sensitivity: 'base' })
-  )
+  // Categorías por tamaño (mayor a menor); los LIBROS dentro van por autor
+  return (data as CategoriaConteo[]).sort((a, b) => b.libros_count - a.libros_count)
 }
 
 async function getTotalLibros(): Promise<number> {
