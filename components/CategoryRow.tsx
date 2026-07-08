@@ -21,6 +21,8 @@ type Props = {
   count: number
   /** cuántos libros por fila (default 14) */
   limit?: number
+  /** id de ancla para el riel de categorías */
+  anchorId?: string
 }
 
 /**
@@ -29,7 +31,7 @@ type Props = {
  * Si la categoría no tiene libros con portada, la fila se oculta sola.
  * Sin autoplay: el movimiento siempre viene del usuario (scroll/flechas).
  */
-export default function CategoryRow({ categoria, count, limit = 14 }: Props) {
+export default function CategoryRow({ categoria, count, limit = 14, anchorId }: Props) {
   const rootRef = useRef<HTMLElement>(null)
   const stripRef = useRef<HTMLDivElement>(null)
   const [libros, setLibros] = useState<Libro[] | null>(null)
@@ -75,7 +77,7 @@ export default function CategoryRow({ categoria, count, limit = 14 }: Props) {
   const catHref = `/biblioteca?categoria=${encodeURIComponent(categoria)}`
 
   return (
-    <section ref={rootRef} className="pt-8 pb-1">
+    <section ref={rootRef} id={anchorId} className="pt-8 pb-1 scroll-mt-12">
       {/* Cabeza de fila */}
       <div className="flex items-baseline gap-3.5 px-10 pb-3 max-md:px-5">
         <h2 className="font-mono font-medium uppercase text-[clamp(13px,1.15vw,16px)] tracking-[0.12em] text-text">

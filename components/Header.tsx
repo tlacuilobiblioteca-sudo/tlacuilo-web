@@ -11,6 +11,9 @@ type HeaderProps = {
   /** Si true, oculta la banda de 6 categorías. Útil para páginas interiores
       (biblioteca, buscar, etc.) que ya tienen sidebar propia. */
   slim?: boolean
+  /** Si false, el header scrollea con la página (el landing lo usa para
+      cederle el sticky al riel de categorías). */
+  sticky?: boolean
 }
 
 /**
@@ -22,7 +25,7 @@ type HeaderProps = {
  *
  * Con slim=true solo se muestra BANDA 1.
  */
-export default function Header({ slim = false }: HeaderProps) {
+export default function Header({ slim = false, sticky = true }: HeaderProps) {
   const [user, setUser] = useState<User | null>(null)
   const [q, setQ] = useState('')
   const [avisos, setAvisos] = useState<number>(0)
@@ -77,7 +80,7 @@ export default function Header({ slim = false }: HeaderProps) {
     'font-sans font-normal teca-link text-[clamp(12px,1.1vw,15px)] tracking-[0.14em] uppercase hover:opacity-60 transition-opacity'
 
   return (
-    <header className="sticky top-0 z-50 bg-bg">
+    <header className={`${sticky ? 'sticky top-0 z-50' : ''} bg-bg`}>
       {/* ============ BANDA 1 · LOGO + SEARCH + PERFIL + LUNA ============ */}
       <div className="flex items-center justify-between gap-6 px-10 py-5 max-md:flex-col max-md:items-start max-md:gap-4 max-md:px-5">
         <Link href="/" className="block shrink-0" aria-label="Inicio">

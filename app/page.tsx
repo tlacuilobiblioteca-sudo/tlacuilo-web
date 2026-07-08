@@ -2,6 +2,17 @@ import Link from 'next/link'
 import { supabase } from '@/lib/supabase'
 import Header from '@/components/Header'
 import CategoryRow from '@/components/CategoryRow'
+import CategoryRail from '@/components/CategoryRail'
+
+/** slug estable para anclas: sin acentos, sin símbolos */
+function slugify(s: string): string {
+  return s
+    .normalize('NFD')
+    .replace(/[̀-ͯ]/g, '')
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/(^-|-$)/g, '')
+}
 
 export const dynamic = 'force-dynamic'
 
@@ -52,9 +63,12 @@ export default async function Home() {
     getTotalPrestamos(),
   ])
 
+  const cats = categorias.map((c) => ({ ...c, slug: slugify(c.categoria) }))
+
   return (
     <>
-      <Header />
+      {/* el sticky se lo cede al riel de categorías */}
+      <Header sticky={false} />
 
       {/* ============ HERO · Acacia grande + counters + manifiesto ============ */}
       <section className="px-10 pt-13 pb-11 border-b border-rule max-md:px-5 max-md:pt-9 max-md:pb-7">
@@ -90,18 +104,22 @@ export default async function Home() {
         </div>
       </section>
 
+      {/* ============ RIEL DE CATEGORÍAS · sticky, navega sin recargar ============ */}
+      {cats.length > 0 && <CategoryRail categorias={cats} />}
+
       {/* ============ TODAS LAS CATEGORÍAS · filas streaming lazy ============ */}
       <main className="pt-1 pb-12">
-        {categorias.length === 0 ? (
+        {cats.length === 0 ? (
           <p className="font-mono text-sm text-text-dim lowercase py-20 text-center">
             sin categorías en el catálogo todavía.
           </p>
         ) : (
-          categorias.map((cat) => (
+          cats.map((cat) => (
             <CategoryRow
               key={cat.categoria}
               categoria={cat.categoria}
               count={cat.libros_count}
+              anchorId={`cat-${cat.slug}`}
             />
           ))
         )}
