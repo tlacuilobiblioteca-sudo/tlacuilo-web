@@ -537,3 +537,83 @@ tlacuilo. biblioteca pública en coyoacán.
     text,
   }
 }
+
+/* ============================================================
+   RESERVA CONFIRMADA (equipo → lector) · 2026-07-08
+   Se manda cuando un editor confirma la reserva desde el panel.
+   Incluye link para que el lector agregue la visita a su
+   Google Calendar en un click.
+   ============================================================ */
+
+function gcalFechas(visitAt: string): string {
+  const ini = new Date(visitAt)
+  const fin = new Date(ini)
+  fin.setMinutes(fin.getMinutes() + (ini.getHours() < 14 ? 270 : 180))
+  const f = (d: Date) => d.toISOString().replace(/[-:]/g, '').replace(/\.\d{3}Z$/, 'Z')
+  return `${f(ini)}/${f(fin)}`
+}
+
+export function linkGoogleCalendar(visitAt: string, libros: LibroEmail[]): string {
+  const params = new URLSearchParams({
+    action: 'TEMPLATE',
+    text: 'tlacuilo · recoger préstamo',
+    dates: gcalFechas(visitAt),
+    details: `recoges:\n${librosToText(libros)}\n\ntlacuilo · biblioteca pública · ${DIRECCION_BIBLIOTECA}`,
+    location: `${DIRECCION_BIBLIOTECA}, CDMX`,
+  })
+  return `https://calendar.google.com/calendar/render?${params.toString()}`
+}
+
+export function emailReservaConfirmada(params: {
+  handle: string
+  libros: LibroEmail[]
+  visitAt: string
+}): EmailContent {
+  const { handle, libros, visitAt } = params
+  const fecha = formatFecha(visitAt)
+  const bloque = bloqueDeVisita(visitAt)
+  const gcal = linkGoogleCalendar(visitAt, libros)
+  const n = libros.length
+
+  const subject = `tu reserva está confirmada · ${fecha}`
+
+  const body = `
+    <h1 style="margin: 0 0 16px 0; font-size: 26px; font-weight: 400; color: #e8e8f0; letter-spacing: 0.02em;">
+      tu reserva está confirmada
+    </h1>
+    <p style="margin: 0 0 20px 0; font-size: 14px; color: #c5c5e8;">
+      @${escapeHtml(handle)}, ya apartamos ${n === 1 ? 'tu objeto' : `tus ${n} objetos`}. te ${n === 1 ? 'lo' : 'los'} tenemos listos:
+    </p>
+    <ul style="margin: 0 0 24px 0; padding: 0 0 0 18px; font-size: 14px;">
+      ${librosToHtml(libros)}
+    </ul>
+    <p style="margin: 0 0 4px 0; font-size: 12px; color: #888; text-transform: uppercase; letter-spacing: 0.1em;">cuándo</p>
+    <p style="margin: 0 0 14px 0; font-size: 15px; color: #c5c5e8;">${escapeHtml(fecha)} · ${escapeHtml(bloque)}</p>
+    <p style="margin: 0 0 4px 0; font-size: 12px; color: #888; text-transform: uppercase; letter-spacing: 0.1em;">dónde</p>
+    <p style="margin: 0 0 8px 0; font-size: 15px; color: #c5c5e8;">${escapeHtml(DIRECCION_BIBLIOTECA)}</p>
+  `
+
+  const text = `tu reserva está confirmada
+
+@${handle}, ya apartamos ${n === 1 ? 'tu objeto' : `tus ${n} objetos`}:
+
+${librosToText(libros)}
+
+cuándo: ${fecha} · ${bloque}
+dónde: ${DIRECCION_BIBLIOTECA}
+
+agrégalo a tu google calendar:
+${gcal}
+
+tlacuilo · biblioteca pública · cdmx
+`
+
+  return {
+    subject,
+    html: shell('tu reserva está confirmada', body, {
+      label: 'agregar a mi google calendar →',
+      href: gcal,
+    }),
+    text,
+  }
+}

@@ -27,6 +27,7 @@ type Prestamo = {
   returned_at: string | null
   due_at: string | null
   notes: string | null
+  confirmado_at: string | null
   user_id: string
   asistencia: 'asistire' | 'no_asistire' | null
   foto_registro_url: string | null
@@ -155,7 +156,7 @@ export default function AdminPrestamosPage() {
     const { data, error } = await supabase
       .from('prestamos')
       .select(`
-        id, status, added_at, visit_at, picked_up_at, returned_at, due_at, notes, user_id,
+        id, status, added_at, visit_at, picked_up_at, returned_at, due_at, notes, confirmado_at, user_id,
         asistencia, foto_registro_url,
         libros (id, titulo, autor),
         perfiles_publicos!user_id (id, handle)
@@ -172,6 +173,32 @@ export default function AdminPrestamosPage() {
   useEffect(() => {
     loadPrestamos()
   }, [loadPrestamos])
+
+  async function confirmarReserva(p: Prestamo) {
+    if (!p.visit_at) return
+    setWorking(p.id)
+    try {
+      const { data: { session } } = await supabase.auth.getSession()
+      if (!session?.access_token) throw new Error('sin sesión')
+      const res = await fetch('/api/emails/confirmacion', {
+        method: 'POST',
+        headers: {
+          Authorization: `Bearer ${session.access_token}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ userId: p.user_id, visitAt: p.visit_at }),
+      })
+      const json = await res.json()
+      if (!res.ok) throw new Error(json.error ?? 'error confirmando')
+      if (json.correo !== 'enviado') {
+        alert('reserva confirmada, pero el correo falló: ' + json.correo)
+      }
+    } catch (e) {
+      alert('error: ' + (e instanceof Error ? e.message : String(e)))
+    }
+    setWorking(null)
+    setRefreshKey((k) => k + 1)
+  }
 
   async function marcarRecogido(p: Prestamo) {
     setWorking(p.id)
@@ -342,6 +369,9 @@ export default function AdminPrestamosPage() {
                         {p.status === 'apartado' && p.asistencia === 'asistire' && (
                           <span className="text-available">· ✓ confirmó asistencia</span>
                         )}
+                        {p.status === 'apartado' && p.confirmado_at && (
+                          <span className="text-available">· ✓ reserva confirmada</span>
+                        )}
                       </div>
                       <div className="mt-3 flex items-center gap-3">
                         {p.foto_registro_url ? (
@@ -369,6 +399,15 @@ export default function AdminPrestamosPage() {
                     </div>
 
                     <div className="flex gap-2 shrink-0">
+                      {p.status === 'apartado' && !p.confirmado_at && (
+                        <button
+                          onClick={() => confirmarReserva(p)}
+                          disabled={working === p.id}
+                          className="px-3 py-2 border border-rule-strong text-text text-xs uppercase tracking-wider hover:border-text-bright hover:text-text-bright disabled:opacity-40 whitespace-nowrap transition-colors"
+                        >
+                          {working === p.id ? '...' : '✉ confirmar reserva'}
+                        </button>
+                      )}
                       {p.status === 'apartado' && (
                         <button
                           onClick={() => marcarRecogido(p)}
