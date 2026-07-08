@@ -48,7 +48,8 @@ export default function CategoryRow({ categoria, count, limit = 14 }: Props) {
             .select('id, titulo, autor, portada_url, isbn, disponible')
             .contains('categorias', [categoria])
             .not('portada_url', 'is', null)
-            .order('id', { ascending: false })
+            .order('autor', { ascending: true, nullsFirst: false })
+            .order('titulo', { ascending: true, nullsFirst: false })
             .limit(limit)
           if (error || !data || data.length === 0) {
             setHidden(true)
