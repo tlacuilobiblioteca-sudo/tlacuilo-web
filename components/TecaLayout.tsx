@@ -30,11 +30,13 @@ type Props = {
 
 /**
  * Layout para páginas interiores (biblioteca, item detail, buscar, mi-tlacuilo, videoteca, artoteca, etc.)
- * - Header consistente arriba (Header slim, sin la banda de 6 categorías)
- * - Sidebar izquierdo con tecas + chips contextuales
+ * - Header COMPLETO arriba (banda de tecas en Jost siempre visible;
+ *   decisión Marina 2026-07-08: las tecas viven arriba, no en la sidebar)
+ * - Sidebar izquierdo SOLO con filtros contextuales de la teca activa
  *     · biblioteca → categorías
  *     · videoteca → décadas
  *     · artoteca → artistas
+ * - Sin teca activa (buscar, mi-tlacuilo, checkout) no hay sidebar
  * - Hamburguesa en mobile
  */
 export default function TecaLayout({ children, initialCategorias, initialDecadas, initialArtistas }: Props) {
@@ -72,43 +74,49 @@ export default function TecaLayout({ children, initialCategorias, initialDecadas
   const activeDecada = sp?.get('decada') ?? null
   const activeArtista = sp?.get('artista') ?? null
 
+  const hasSidebar = activeTeca !== null
+
   return (
     <div className="min-h-screen bg-bg text-text">
-      {/* ============ HEADER consistente con el landing (slim · sin banda de cats) ============ */}
-      <Header slim />
+      {/* ============ HEADER completo · tecas siempre arriba ============ */}
+      <Header />
 
-      {/* ============ LAYOUT GRID: sidebar fija + main ============ */}
+      {/* ============ LAYOUT GRID: sidebar de filtros + main ============ */}
       <div className="flex">
-        {/* SIDEBAR DESKTOP — siempre visible, carga server-side */}
-        <aside className="hidden md:block w-[260px] lg:w-[280px] shrink-0 border-r border-rule p-6 sticky top-0 self-start max-h-screen overflow-y-auto">
-          <SidebarContent
-            categorias={categorias}
-            decadas={decadas}
-            artistas={artistas}
-            activeTeca={activeTeca}
-            activeCategoria={activeCategoria}
-            activeDecada={activeDecada}
-            activeArtista={activeArtista}
-          />
-        </aside>
+        {/* SIDEBAR DESKTOP — solo filtros de la teca activa */}
+        {hasSidebar && (
+          <aside className="hidden md:block w-[260px] lg:w-[280px] shrink-0 border-r border-rule p-6 sticky top-0 self-start max-h-screen overflow-y-auto">
+            <SidebarContent
+              categorias={categorias}
+              decadas={decadas}
+              artistas={artistas}
+              activeTeca={activeTeca}
+              activeCategoria={activeCategoria}
+              activeDecada={activeDecada}
+              activeArtista={activeArtista}
+            />
+          </aside>
+        )}
 
         {/* HAMBURGER mobile · fuera del nav drawer para abrirlo */}
-        <button
-          onClick={() => setNavOpen(true)}
-          aria-label="Abrir menú de categorías"
-          className="md:hidden fixed bottom-5 right-5 z-40 bg-tinta text-bone border border-tinta rounded-full p-3 shadow-lg"
-        >
-          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth="2.5" stroke="currentColor" className="w-5 h-5">
-            <path strokeLinecap="round" strokeLinejoin="round" d="M3.75 6.75h16.5M3.75 12h16.5M3.75 17.25h16.5" />
-          </svg>
-        </button>
+        {hasSidebar && (
+          <button
+            onClick={() => setNavOpen(true)}
+            aria-label="Abrir menú de categorías"
+            className="md:hidden fixed bottom-5 right-5 z-40 bg-tinta text-bone border border-tinta rounded-full p-3 shadow-lg"
+          >
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth="2.5" stroke="currentColor" className="w-5 h-5">
+              <path strokeLinecap="round" strokeLinejoin="round" d="M3.75 6.75h16.5M3.75 12h16.5M3.75 17.25h16.5" />
+            </svg>
+          </button>
+        )}
 
         {/* MAIN */}
         <main className="flex-1 min-w-0">{children}</main>
       </div>
 
       {/* ============ MOBILE DRAWER ============ */}
-      {navOpen && (
+      {hasSidebar && navOpen && (
         <>
           <div
             onClick={() => setNavOpen(false)}
@@ -151,10 +159,8 @@ export default function TecaLayout({ children, initialCategorias, initialDecadas
 
 /* ============================================================
    SIDEBAR CONTENT (reusado en desktop y mobile)
-   - Tecas como labels grandes
-   - Biblioteca → chips de categorías
-   - Videoteca → chips de décadas
-   - Artoteca → chips de artistas
+   Solo filtros de la teca activa, en sus botoncitos de siempre.
+   Las tecas viven arriba en la banda del Header (Jost).
    ============================================================ */
 
 function SidebarContent({
@@ -183,119 +189,80 @@ function SidebarContent({
         : 'bg-tinta text-bone hover:bg-brillante hover:text-bone'
     }`
 
-  // Chips colapsables: abiertas por default, click en la teca activa las cierra
-  // (ruido visual). Estado por instancia (desktop y drawer móvil, independientes).
-  const [chipsAbiertas, setChipsAbiertas] = useState(true)
+  const labelClass =
+    'font-sans font-normal uppercase tracking-[0.14em] text-[12px] text-text-dim block mb-4'
 
-  return (
-    <nav className="flex flex-col gap-8">
-      {TECAS.map((teca) => {
-        const isActive = teca.slug === activeTeca
-        return (
-          <div key={teca.slug}>
-            {teca.enabled ? (
-              <Link
-                href={teca.href}
-                onClick={(e) => {
-                  if (isActive) {
-                    // Ya estás en esta teca: el click colapsa/expande sus chips
-                    e.preventDefault()
-                    setChipsAbiertas((v) => !v)
-                    return
-                  }
-                  onLinkClick?.()
-                }}
-                className={`font-costa uppercase tracking-[0.12em] text-[clamp(13px,1.1vw,16px)] block transition-colors ${
-                  isActive ? 'text-text-bright' : 'text-text hover:text-text-bright'
-                }`}
-              >
-                {teca.label}
-                {isActive && (
-                  <span className="font-micro text-[10px] tracking-normal ml-2 opacity-50">
-                    {chipsAbiertas ? '[−]' : '[+]'}
-                  </span>
-                )}
-              </Link>
-            ) : (
-              <span className="font-costa uppercase tracking-[0.12em] text-[clamp(13px,1.1vw,16px)] block text-text-faint cursor-not-allowed">
-                {teca.label} <span className="text-[10px] tracking-normal ml-1 normal-case">próx.</span>
-              </span>
-            )}
+  if (activeTeca === 'biblioteca' && categorias.length > 0) {
+    return (
+      <nav>
+        <span className={labelClass}>Categorías</span>
+        <div className="flex flex-wrap gap-1.5">
+          <Link href="/biblioteca" onClick={onLinkClick} className={chipClass(!activeCategoria)}>
+            todo
+          </Link>
+          {categorias.map((c) => (
+            <Link
+              key={c.categoria}
+              href={`/biblioteca?categoria=${encodeURIComponent(c.categoria)}`}
+              onClick={onLinkClick}
+              className={chipClass(activeCategoria === c.categoria)}
+            >
+              <span>{c.categoria}</span>
+              <span className="opacity-50 text-[9px]">{c.libros_count}</span>
+            </Link>
+          ))}
+        </div>
+      </nav>
+    )
+  }
 
-            {/* BIBLIOTECA → chips de categorías (solo si es la teca activa) */}
-            {teca.slug === 'biblioteca' && activeTeca === 'biblioteca' && chipsAbiertas && categorias.length > 0 && (
-              <div className="mt-4 flex flex-wrap gap-1.5">
-                <Link
-                  href="/biblioteca"
-                  onClick={onLinkClick}
-                  className={chipClass(!activeCategoria && activeTeca === 'biblioteca')}
-                >
-                  todo
-                </Link>
-                {categorias.map((c) => (
-                  <Link
-                    key={c.categoria}
-                    href={`/biblioteca?categoria=${encodeURIComponent(c.categoria)}`}
-                    onClick={onLinkClick}
-                    className={chipClass(activeCategoria === c.categoria)}
-                  >
-                    <span>{c.categoria}</span>
-                    <span className="opacity-50 text-[9px]">{c.libros_count}</span>
-                  </Link>
-                ))}
-              </div>
-            )}
+  if (activeTeca === 'videoteca' && decadas.length > 0) {
+    return (
+      <nav>
+        <span className={labelClass}>Décadas</span>
+        <div className="flex flex-wrap gap-1.5">
+          <Link href="/videoteca" onClick={onLinkClick} className={chipClass(!activeDecada)}>
+            todo
+          </Link>
+          {decadas.map((d) => (
+            <Link
+              key={d.decada}
+              href={`/videoteca?decada=${d.decada}`}
+              onClick={onLinkClick}
+              className={chipClass(activeDecada === String(d.decada))}
+            >
+              <span>{d.decada}s</span>
+              <span className="opacity-50 text-[9px]">{d.libros_count}</span>
+            </Link>
+          ))}
+        </div>
+      </nav>
+    )
+  }
 
-            {/* VIDEOTECA → chips de décadas (solo si es la teca activa) */}
-            {teca.slug === 'videoteca' && activeTeca === 'videoteca' && chipsAbiertas && decadas.length > 0 && (
-              <div className="mt-4 flex flex-wrap gap-1.5">
-                <Link
-                  href="/videoteca"
-                  onClick={onLinkClick}
-                  className={chipClass(!activeDecada && activeTeca === 'videoteca')}
-                >
-                  todo
-                </Link>
-                {decadas.map((d) => (
-                  <Link
-                    key={d.decada}
-                    href={`/videoteca?decada=${d.decada}`}
-                    onClick={onLinkClick}
-                    className={chipClass(activeDecada === String(d.decada))}
-                  >
-                    <span>{d.decada}s</span>
-                    <span className="opacity-50 text-[9px]">{d.libros_count}</span>
-                  </Link>
-                ))}
-              </div>
-            )}
+  if (activeTeca === 'artoteca' && artistas.length > 0) {
+    return (
+      <nav>
+        <span className={labelClass}>Artistas</span>
+        <div className="flex flex-wrap gap-1.5">
+          <Link href="/artoteca" onClick={onLinkClick} className={chipClass(!activeArtista)}>
+            todo
+          </Link>
+          {artistas.map((a) => (
+            <Link
+              key={a.artista}
+              href={`/artoteca?artista=${encodeURIComponent(a.artista)}`}
+              onClick={onLinkClick}
+              className={chipClass(activeArtista === a.artista)}
+            >
+              <span>{a.artista}</span>
+              <span className="opacity-50 text-[9px]">{a.libros_count}</span>
+            </Link>
+          ))}
+        </div>
+      </nav>
+    )
+  }
 
-            {/* ARTOTECA → chips de artistas (solo si es la teca activa) */}
-            {teca.slug === 'artoteca' && activeTeca === 'artoteca' && chipsAbiertas && artistas.length > 0 && (
-              <div className="mt-4 flex flex-wrap gap-1.5">
-                <Link
-                  href="/artoteca"
-                  onClick={onLinkClick}
-                  className={chipClass(!activeArtista && activeTeca === 'artoteca')}
-                >
-                  todo
-                </Link>
-                {artistas.map((a) => (
-                  <Link
-                    key={a.artista}
-                    href={`/artoteca?artista=${encodeURIComponent(a.artista)}`}
-                    onClick={onLinkClick}
-                    className={chipClass(activeArtista === a.artista)}
-                  >
-                    <span>{a.artista}</span>
-                    <span className="opacity-50 text-[9px]">{a.libros_count}</span>
-                  </Link>
-                ))}
-              </div>
-            )}
-          </div>
-        )
-      })}
-    </nav>
-  )
+  return null
 }
