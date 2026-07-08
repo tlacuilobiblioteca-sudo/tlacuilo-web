@@ -196,7 +196,7 @@ function SidebarContent({
     return (
       <nav>
         <span className={labelClass}>Categorías</span>
-        <div className="flex flex-wrap gap-1.5">
+        <div className="flex flex-col items-start gap-1.5">
           <Link href="/biblioteca" onClick={onLinkClick} className={chipClass(!activeCategoria)}>
             todo
           </Link>
@@ -220,7 +220,7 @@ function SidebarContent({
     return (
       <nav>
         <span className={labelClass}>Décadas</span>
-        <div className="flex flex-wrap gap-1.5">
+        <div className="flex flex-col items-start gap-1.5">
           <Link href="/videoteca" onClick={onLinkClick} className={chipClass(!activeDecada)}>
             todo
           </Link>
@@ -244,7 +244,7 @@ function SidebarContent({
     return (
       <nav>
         <span className={labelClass}>Artistas</span>
-        <div className="flex flex-wrap gap-1.5">
+        <div className="flex flex-col items-start gap-1.5">
           <Link href="/artoteca" onClick={onLinkClick} className={chipClass(!activeArtista)}>
             todo
           </Link>
