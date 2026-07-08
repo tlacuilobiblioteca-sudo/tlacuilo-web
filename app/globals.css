@@ -34,9 +34,12 @@
   --color-brillante: #5930CB;  /* morado brillante · hovers/highlights */
   --color-fosfo: #FF4D00;      /* naranja fosfo · no disponible */
 
-  /* Roles semánticos (DARK MODE default) */
+  /* Roles semánticos (DARK MODE default)
+     2026-07-08: dark se siente menos lila · bg-card en tono tinta,
+     el lila profundo queda solo en el footer (--color-footer) por ahora. */
   --color-bg: #15151D;
-  --color-bg-card: #2A2838;
+  --color-bg-card: #1E1E28;
+  --color-footer: #2A2838;
   --color-bg-soft: rgba(236, 234, 240, 0.06);
   --color-text: #ECEAF0;
   --color-text-bright: #F7F6FA;
@@ -54,7 +57,8 @@
   /* Fuentes (los var(--font-X) los expone next/font/google desde layout.tsx) */
   --font-sans: var(--font-jost), 'Jost', ui-sans-serif, system-ui, sans-serif;
   --font-mono: var(--font-jetbrains-mono), 'JetBrains Mono', ui-monospace, 'SF Mono', Menlo, monospace;
-  --font-micro: var(--font-dm-mono), 'DM Mono', 'JetBrains Mono', ui-monospace, Menlo, monospace;
+  /* micro/detalles: Space Mono desde 2026-07-08 (antes DM Mono, sigue cargada por si regresamos) */
+  --font-micro: var(--font-space-mono), 'Space Mono', var(--font-dm-mono), 'DM Mono', ui-monospace, Menlo, monospace;
 
   /* Fuentes display (booklet + tecas/acentos). Los var(--font-X-otf)
      los expone next/font/local desde layout.tsx (nombres distintos al
@@ -80,17 +84,21 @@ body {
    Activado por body.light-mode (manejado por ThemeToggle).
    Inversión total: morado tlacuilo es bg, tinta es texto. */
 body.light-mode {
-  --color-bg: #6E6BA0;          /* morado tlacuilo como fondo */
-  --color-bg-card: #9D9BC8;     /* periwinkle como surface */
-  --color-bg-soft: rgba(21, 21, 29, 0.06);
-  --color-text: #15151D;        /* tinta como texto */
-  --color-text-bright: #15151D;
-  --color-text-dim: rgba(21, 21, 29, 0.55);
-  --color-text-faint: rgba(21, 21, 29, 0.32);
-  --color-rule: rgba(21, 21, 29, 0.18);
-  --color-rule-strong: rgba(21, 21, 29, 0.32);
-  --color-invert-bg: #15151D;   /* highlight tinta sobre morado */
-  --color-invert-fg: #ECEAF0;
+  /* Light mode "sweet" (2026-07-08): bajo impacto, poco contraste.
+     Fondo = periwinkle (el lila de la cajita de tecas), texto = tinta
+     suavizada (#2A2838, nunca negro), el blanco sigue blanco. */
+  --color-bg: #9D9BC8;          /* periwinkle como fondo */
+  --color-bg-card: #B3B1D6;     /* lila tantito más claro como surface */
+  --color-footer: #8E8CBF;      /* lila tantito más profundo para cerrar */
+  --color-bg-soft: rgba(42, 40, 56, 0.06);
+  --color-text: #2A2838;        /* tinta suavizada, nunca negro */
+  --color-text-bright: #15151D; /* énfasis = tinta */
+  --color-text-dim: rgba(42, 40, 56, 0.6);
+  --color-text-faint: rgba(42, 40, 56, 0.35);
+  --color-rule: rgba(42, 40, 56, 0.22);
+  --color-rule-strong: rgba(42, 40, 56, 0.4);
+  --color-invert-bg: #ECEAF0;   /* el blanco sigue blanco (no se invierte) */
+  --color-invert-fg: #2A2838;
 }
 
 /* Logo swap entre modos */
@@ -104,7 +112,7 @@ body:not(.light-mode) img[src*="TLACUILOLOGONEGRO"] {
 /* Wordmark del header: SVG enmascarado para teñirlo exacto por modo.
    Dark mode -> lila tlacuilo. Light mode -> tinta sobre el fondo morado. */
 :root { --logo-color: #6E6BA0; }
-body.light-mode { --logo-color: #15151D; }
+body.light-mode { --logo-color: #2A2838; }
 .logo-wordmark {
   display: block;
   aspect-ratio: 320.08 / 89.95;
@@ -112,6 +120,74 @@ body.light-mode { --logo-color: #15151D; }
   -webkit-mask: url('/TLACUILOLOGONEGRO.svg') no-repeat center / contain;
   mask: url('/TLACUILOLOGONEGRO.svg') no-repeat center / contain;
   transition: background-color 0.25s ease;
+}
+
+/* ============ BANDA DE TECAS (landing v3, 2026-07-08) ============
+   Dark: sin cajita, solo líneas finas. Light: cajita periwinkle clásica. */
+.tecas-band {
+  background: transparent;
+  border-top: 1px solid var(--color-rule);
+  border-bottom: 1px solid var(--color-rule);
+}
+/* En light el fondo entero ES la cajita periwinkle, así que la banda
+   se disuelve en líneas igual que en dark (bajo impacto). */
+.teca-link { color: var(--color-text); }
+
+/* Detalle dirty yellow en dark · tinta suave discreta en light */
+.accent-detail { color: var(--color-dirty); }
+body.light-mode .accent-detail { color: var(--color-text); opacity: 0.65; }
+
+/* Ocultar scrollbar en strips horizontales */
+.no-scrollbar { scrollbar-width: none; }
+.no-scrollbar::-webkit-scrollbar { display: none; }
+
+/* ============ BOOKLET 3D · /manifesto (2026-07-08) ============
+   Libro pasa-páginas. Colores fijos de imprenta (no cambian por modo):
+   páginas lila, portada/contraportada tinta. Sin autoplay: gira por click. */
+.booklet-scene { perspective: 2600px; }
+.booklet { position: relative; transform-style: preserve-3d; }
+.booklet-sheet {
+  position: absolute; top: 0; right: 0; width: 50%; height: 100%;
+  transform-style: preserve-3d; transform-origin: left center;
+  transition: transform 0.85s cubic-bezier(0.36, 0.1, 0.22, 1);
+  cursor: pointer;
+}
+.booklet-sheet.flipped { transform: rotateY(-180deg); }
+.booklet-face {
+  position: absolute; inset: 0; backface-visibility: hidden; overflow: hidden;
+  background: #A9A7CF; color: #15151D;
+  border: 1px solid rgba(21, 21, 29, 0.3);
+  box-shadow: inset 12px 0 28px -18px rgba(21, 21, 29, 0.45);
+}
+.booklet-face.back {
+  transform: rotateY(180deg);
+  box-shadow: inset -12px 0 28px -18px rgba(21, 21, 29, 0.45);
+}
+.booklet-face.booklet-cover {
+  background: #15151D; color: #6E6BA0;
+  border: 1px solid rgba(157, 155, 200, 0.5);
+  box-shadow:
+    inset 14px 0 22px -16px rgba(157, 155, 200, 0.35),
+    5px 5px 0 -1px #201F2B,
+    9px 9px 0 -2px #1B1A24,
+    13px 13px 0 -3px #181722,
+    24px 28px 50px rgba(0, 0, 0, 0.55);
+}
+
+/* ============ TICKER MARQUEE · /manifesto (2026-07-08) ============
+   Excepción al no-autoplay pedida explícitamente por Marina.
+   Se pausa con anim-paused (tab oculta) y con prefers-reduced-motion. */
+@keyframes ticker-scroll {
+  from { transform: translateX(0); }
+  to   { transform: translateX(-50%); }
+}
+.ticker-track {
+  animation: ticker-scroll 40s linear infinite;
+  will-change: transform;
+}
+.ticker-track:hover { animation-play-state: paused; }
+@media (prefers-reduced-motion: reduce) {
+  .ticker-track { animation: none; }
 }
 
 /* ============ CLASES UTILITARIAS MÍNIMAS ============ */

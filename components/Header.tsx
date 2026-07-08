@@ -43,10 +43,9 @@ export default function Header({ slim = false }: HeaderProps) {
     if (trimmed) router.push(`/buscar?q=${encodeURIComponent(trimmed)}`)
   }
 
-  const navLinkBase =
-    'text-[clamp(11px,1.05vw,14px)] tracking-[0.12em] uppercase text-tinta hover:opacity-60 transition-opacity'
-  const navLinkClass = `font-mono ${navLinkBase}`
-  const tecaLinkClass = `font-costa ${navLinkBase}`
+  /* Tecas en Jost (2026-07-08, antes Costa) · color por modo via .teca-link */
+  const tecaLinkClass =
+    'font-sans font-normal teca-link text-[clamp(12px,1.1vw,15px)] tracking-[0.14em] uppercase hover:opacity-60 transition-opacity'
 
   return (
     <header className="sticky top-0 z-50 bg-bg">
@@ -104,9 +103,9 @@ export default function Header({ slim = false }: HeaderProps) {
         </div>
       </div>
 
-      {/* ============ BANDA 2 · 6 CATEGORÍAS CENTRADAS (periwinkle bg) ============ */}
+      {/* ============ BANDA 2 · TECAS · dark: líneas · light: periwinkle ============ */}
       {!slim && (
-        <nav className="bg-periwinkle border-y border-tinta py-3 px-10 max-md:px-5">
+        <nav className="tecas-band py-3 px-10 max-md:px-5">
           <div className="flex flex-wrap items-center justify-center gap-x-[clamp(20px,3.5vw,56px)] gap-y-2">
             <Link href="/biblioteca" className={tecaLinkClass}>BIBLIOTECA</Link>
             <Link href="/artoteca" className={tecaLinkClass}>ARTOTECA</Link>

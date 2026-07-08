@@ -4,28 +4,12 @@ import { useEffect, useRef, useState } from 'react'
 import Link from 'next/link'
 import Header from '@/components/Header'
 import Biblioticker from '@/components/Biblioticker'
+import BookletViewer from '@/components/BookletViewer'
 import { supabase } from '@/lib/supabase'
 
 /* ============================================================
    POOLS DE COPY — del booklet impreso de Tlacuilo
    ============================================================ */
-
-type HeroLema = { head: string; pop: string; tail: string }
-
-const HERO_POOL: HeroLema[] = [
-  { head: 'UNA BIBLIOTECA NO ES UN EDIFICIO. ES UNA', pop: 'CULTURA DE ACCESO', tail: '' },
-  { head: 'UNA BIBLIOTECA QUE NO PRESTA ES', pop: 'UNA CÁRCEL DE LIBROS', tail: '' },
-  { head: '', pop: 'MI COSA ES TU COSA', tail: '' },
-  { head: 'TLACUILO ES UNA', pop: 'ACCIÓN DIRECTA', tail: ' SOBRE LAS COSAS' },
-  { head: 'TLACUILO ES PARA', pop: 'HABLAR CON LOS MUERTOS', tail: '' },
-  { head: 'UN LIBRO QUE NUNCA ES LEÍDO', pop: 'ES UN LIBRO MUERTO', tail: '' },
-  { head: 'UN LIBRO DEBE', pop: 'ACOMPAÑARTE', tail: ' A TODAS PARTES' },
-  { head: 'TODOS SOMOS', pop: 'TLACUILOS', tail: '' },
-]
-
-function pickRandom<T>(arr: T[]): T {
-  return arr[Math.floor(Math.random() * arr.length)]
-}
 
 const STEPS = [
   { n: '01', t: 'Encuentra', d: <>explora el catálogo. busca por título, autor o categoría.</> },
@@ -42,13 +26,8 @@ const CTA_PRIMARY = 'font-mono text-[13px] lowercase tracking-[0.06em] px-[26px]
 const CTA_GHOST = 'font-mono text-[13px] lowercase tracking-[0.06em] px-[26px] py-3.5 bg-transparent text-text border border-rule-strong no-underline inline-block transition-all duration-200 hover:text-text-bright hover:border-text-bright hover:-translate-y-px cursor-pointer'
 
 export default function ManifestoPage() {
-  const [heroLema, setHeroLema] = useState<HeroLema>(HERO_POOL[0])
   const escalaRef = useRef<HTMLDivElement>(null)
   const [visitaHref, setVisitaHref] = useState('/login')
-
-  useEffect(() => {
-    setHeroLema(pickRandom(HERO_POOL))
-  }, [])
 
   useEffect(() => {
     supabase.auth.getUser().then(({ data: { user } }) => {
@@ -99,46 +78,12 @@ export default function ManifestoPage() {
     <>
       <Header />
 
-      {/* ============ HERO ============ */}
-      <section className="relative flex flex-col items-center justify-center text-center gap-7 min-h-[62vh] px-14 pt-[60px] pb-[100px] max-md:px-5">
-        <div className="font-mono text-xs text-text-dim tracking-[0.18em] lowercase">
-          activación de bibliotecas
-          <span className="inline-block w-1.5 h-1.5 bg-text mx-2.5 align-baseline animate-pulse-dot" />
-          cdmx
-        </div>
-
-        <h1 className="font-mono uppercase text-text text-[clamp(38px,5.6vw,84px)] leading-[1.02] tracking-[0.04em] max-w-[1080px]">
-          {heroLema.head && heroLema.head + ' '}
-          <span className="pop">{heroLema.pop}</span>
-          {heroLema.tail}
-        </h1>
-
-        <p className="font-sans font-medium text-text max-w-[600px] tracking-[0.02em] text-[clamp(15px,1.5vw,18px)] leading-[1.55]">
-          una biblioteca pública en tu bolsillo. préstamo gratis de libros,
-          vinilos, arte y objetos físicos — sin precio, sin candado, con confianza.
-        </p>
-
-        <div className="flex gap-3.5 flex-wrap justify-center mt-1.5">
-          <Link className={CTA_PRIMARY} href="/biblioteca">explorar la biblioteca</Link>
-          <a className={CTA_GHOST} href="https://instagram.com/tlacuilobiblioteca" target="_blank" rel="noreferrer">
-            @tlacuilobiblioteca
-          </a>
-        </div>
-
-        <div className="flex gap-3 flex-wrap justify-center mt-4 max-w-[640px]">
-          {['sin precio', 'sin candado', 'sin algoritmo', 'sin intermediario'].map((label) => (
-            <span
-              key={label}
-              className="inline-flex items-center gap-2 px-3 py-1.5 border border-rule-strong font-mono text-[11px] uppercase tracking-[0.08em] text-text-dim"
-            >
-              <span className="w-2 h-2 rounded-full bg-text-dim animate-pulse-dot" />
-              {label}
-            </span>
-          ))}
-        </div>
+      {/* ============ BOOKLET INTERACTIVO · sin copy, el libro es el hero ============ */}
+      <section className="px-14 pt-[70px] pb-[90px] max-md:px-5">
+        <BookletViewer />
       </section>
 
-      {/* ============ BIBLIOTICKER ============ */}
+      {/* ============ BIBLIOTICKER · entre el libro y la confianza ============ */}
       <Biblioticker />
 
       {/* ============ CÓMO FUNCIONA ============ */}
@@ -194,30 +139,6 @@ export default function ManifestoPage() {
           <Link className={CTA_GHOST} href="/">
             volver al landing
           </Link>
-        </div>
-      </section>
-
-      {/* ============ TODOS SOMOS TLACUILOS ============ */}
-      <section className="px-14 pt-[90px] pb-[100px] border-t border-rule max-md:px-5">
-        <p className="font-mono uppercase tracking-[0.2em] text-xs text-text-dim mb-3">
-          &gt; federación
-        </p>
-        <h2 className="font-mono uppercase text-text leading-none tracking-[0.04em] mb-[18px] text-[clamp(28px,3.8vw,56px)]">
-          no somos una.<br />somos muchas.
-        </h2>
-        <p className="font-sans text-[15px] text-text-dim leading-[1.6] max-w-[620px] mb-10">
-          tlacuilo es solo el comienzo. cualquiera podrá subir su biblioteca
-          personal y compartirla. cada casa una sucursal, cada lectora bibliotecaria.
-          una red distribuida, sin precio, sin intermediario.
-        </p>
-        <div className="flex gap-3.5 flex-wrap items-center">
-          <span className="inline-flex items-center gap-2 px-4 py-3 border border-rule bg-bg-soft font-mono text-[12px] uppercase tracking-[0.06em] text-text-dim">
-            <span className="w-2 h-2 rounded-full bg-loan animate-pulse-dot" />
-            próximamente · federación v0
-          </span>
-          <span className="font-mono text-[11px] text-text-faint lowercase tracking-wider">
-            (avísanos si quieres ser nodo)
-          </span>
         </div>
       </section>
 

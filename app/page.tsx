@@ -1,45 +1,17 @@
 import Link from 'next/link'
 import { supabase } from '@/lib/supabase'
 import Header from '@/components/Header'
-import Cover from '@/components/Cover'
-import QuickMorralButton from '@/components/QuickMorralButton'
-import AdminEditButton from '@/components/AdminEditButton'
+import CategoryRow from '@/components/CategoryRow'
 
 export const dynamic = 'force-dynamic'
 
 /* ============================================================
-   Tipos + Data
+   Landing v3 · filas streaming (2026-07-08)
+   Hero en Acacia + todas las categorías como filas con scroll
+   horizontal, lazy, jalando siempre de Supabase.
    ============================================================ */
 
-type Libro = {
-  id: string
-  titulo: string
-  autor: string | null
-  portada_url: string | null
-  isbn: string | null
-  disponible: boolean | null
-}
-
 type CategoriaConteo = { categoria: string; libros_count: number }
-
-type Counters = {
-  libros: number
-  prestamos: number
-}
-
-async function getLandingLibros(): Promise<Libro[]> {
-  // Mezclado tipo "remix": ordenamos por id (UUID) que es efectivamente aleatorio.
-  // Filtramos por has_portada para que el landing se sienta vivo (libros con cover).
-  const { data, error } = await supabase
-    .from('libros')
-    .select('id, titulo, autor, portada_url, isbn, disponible')
-    .order('has_portada', { ascending: false, nullsFirst: false })
-    .order('id', { ascending: false })
-    .limit(54)
-
-  if (error || !data) return []
-  return data as Libro[]
-}
 
 async function getCategorias(): Promise<CategoriaConteo[]> {
   // MISMA fuente que biblioteca sidebar (RPC distinct_categorias) para que
@@ -49,196 +21,80 @@ async function getCategorias(): Promise<CategoriaConteo[]> {
   return (data as CategoriaConteo[]).sort((a, b) => b.libros_count - a.libros_count)
 }
 
-async function getCounters(): Promise<Counters> {
-  let libros = 0
-  let prestamos = 0
-
+async function getTotalLibros(): Promise<number> {
   try {
     const { count } = await supabase
       .from('libros')
       .select('id', { count: 'exact', head: true })
-    libros = count ?? 0
+    return count ?? 0
   } catch {
-    libros = 0
+    return 0
   }
-
-  try {
-    const { count } = await supabase
-      .from('prestamos')
-      .select('id', { count: 'exact', head: true })
-    prestamos = count ?? 0
-  } catch {
-    prestamos = 0
-  }
-
-  return { libros, prestamos }
 }
-
-/* ============================================================
-   Util: fade opacity para los últimos items
-   ============================================================ */
-
-function fadeOpacity(i: number, total: number): number {
-  const tailStart = total - 12
-  if (i < tailStart) return 1
-  const step = Math.min(Math.floor((i - tailStart) / 3) + 1, 4)
-  const levels = [1, 0.72, 0.5, 0.32, 0.18]
-  return levels[step]
-}
-
-/* ============================================================
-   Landing
-   ============================================================ */
 
 export default async function Home() {
-  const [libros, categorias, counters] = await Promise.all([
-    getLandingLibros(),
+  const [categorias, totalLibros] = await Promise.all([
     getCategorias(),
-    getCounters(),
+    getTotalLibros(),
   ])
-  const total = libros.length
 
   return (
     <>
       <Header />
 
-      {/* ============ FRASE PUENTE · para quien llega sin contexto ============ */}
-      <section className="px-10 pt-6 pb-2 max-md:px-5">
-        <p className="font-mono text-[clamp(12px,1.2vw,16px)] leading-relaxed text-text text-center max-w-4xl mx-auto">
-          Una biblioteca pública en tu bolsillo. Préstamo gratis de libros,
-          vinilos, arte y objetos físicos. Sin precio, sin candado, con
-          confianza.
-        </p>
-      </section>
+      {/* ============ HERO · Acacia grande + counters + manifiesto ============ */}
+      <section className="px-10 pt-13 pb-11 border-b border-rule max-md:px-5 max-md:pt-9 max-md:pb-7">
+        <h1 className="font-acacia uppercase text-[clamp(34px,5.2vw,78px)] leading-[1.04] tracking-[0.01em] max-w-[16ch] text-text">
+          Préstamo gratis de libros, vinilos, arte y objetos físicos.
+        </h1>
 
-      {/* ============ CATÁLOGO HEADER · TÍTULO + COUNTERS · primero ============ */}
-      <section className="px-10 pt-8 pb-6 max-md:px-5">
-        <div className="flex items-baseline justify-between flex-wrap gap-4">
-          <h2 className="font-mono font-medium uppercase text-[clamp(11px,0.95vw,13px)] leading-none tracking-[0.12em] text-text">
-            Catálogo
-          </h2>
-          <p className="font-mono text-[clamp(11px,0.95vw,13px)] text-text-dim tabular-nums">
-            {counters.libros.toLocaleString('es-MX')}{' '}
-            <span className="text-acid uppercase tracking-[0.1em] text-[0.85em]">objetos</span>
-            <span className="mx-3 opacity-40">·</span>
-            {counters.prestamos.toLocaleString('es-MX')}{' '}
-            <span className="text-acid uppercase tracking-[0.1em] text-[0.85em]">préstamos</span>
-          </p>
+        <div className="flex flex-wrap items-baseline gap-x-8 gap-y-4 mt-9">
+          {totalLibros > 0 && (
+            <div>
+              <span className="font-sans font-light text-[clamp(26px,2.6vw,40px)] tabular-nums text-text">
+                {totalLibros.toLocaleString('es-MX')}
+              </span>
+              <span className="block font-micro text-[10px] uppercase tracking-[0.1em] accent-detail mt-0.5">
+                objetos en el acervo
+              </span>
+            </div>
+          )}
+          <div>
+            <span className="font-sans font-light text-[clamp(26px,2.6vw,40px)] tabular-nums text-text">
+              $0
+            </span>
+            <span className="block font-micro text-[10px] uppercase tracking-[0.1em] accent-detail mt-0.5">
+              costo del préstamo
+            </span>
+          </div>
+          <Link
+            href="/manifesto"
+            className="ml-auto font-micro uppercase tracking-[0.12em] text-[12px] bg-invert-bg text-invert-fg px-7 py-3.5 hover:opacity-90 transition-opacity max-md:ml-0"
+          >
+            manifiesto →
+          </Link>
         </div>
       </section>
 
-      {/* ============ RAYA DIVISORA entre Catálogo y Categorías ============ */}
-      <hr className="border-t border-rule mx-10 max-md:mx-5" />
-
-      {/* ============ CATEGORÍAS EN BOTONES CUADRITOS · después del catálogo ============ */}
-      {categorias.length > 0 && (
-        <section className="px-10 pt-10 pb-10 max-md:px-5">
-          <div className="flex flex-wrap gap-2">
-            {categorias.map((cat) => (
-              <Link
-                key={cat.categoria}
-                href={`/biblioteca?categoria=${encodeURIComponent(cat.categoria)}`}
-                className="inline-flex items-baseline gap-2 bg-tinta text-bone border border-tinta rounded-sm px-3 py-1.5 font-micro text-[10px] uppercase tracking-[0.08em] hover:bg-brillante hover:text-bone transition-colors"
-              >
-                <span>{cat.categoria}</span>
-                <span className="opacity-50 text-[9px]">{cat.libros_count}</span>
-              </Link>
-            ))}
-          </div>
-        </section>
-      )}
-
-      {/* ============ RAYA DIVISORA full width · separa metadata del catálogo visual ============ */}
-      <hr className="border-t border-rule mx-10 max-md:mx-5" />
-
-      {/* ============ GRID DE 54 LIBROS · Utrecht-style · 4 cols más grandes ============ */}
-      <section className="relative max-w-6xl mx-auto px-5 pt-20 pb-0 max-md:pt-12">
-        {total === 0 ? (
+      {/* ============ TODAS LAS CATEGORÍAS · filas streaming lazy ============ */}
+      <main className="pt-1 pb-12">
+        {categorias.length === 0 ? (
           <p className="font-mono text-sm text-text-dim lowercase py-20 text-center">
-            sin libros en el catálogo todavía.
+            sin categorías en el catálogo todavía.
           </p>
         ) : (
-          <div className="grid grid-cols-3 gap-x-12 gap-y-20 max-md:grid-cols-2 max-md:gap-x-6 max-md:gap-y-12 max-[420px]:grid-cols-1">
-            {libros.map((libro, i) => {
-              const opacity = fadeOpacity(i, total)
-              return (
-                <article
-                  key={libro.id}
-                  className="group flex flex-col gap-3 transition-opacity hover:!opacity-100 relative"
-                  style={{ opacity }}
-                >
-                  {/* Botón editar · solo visible para admins */}
-                  <div className="absolute top-2 right-2 z-10 opacity-0 group-hover:opacity-100 transition-opacity">
-                    <AdminEditButton libroId={libro.id} />
-                  </div>
-
-                  <Link
-                    href={`/biblioteca/${libro.id}`}
-                    className="aspect-[2/3] bg-bg-card flex items-center justify-center text-text-dim text-[10px] overflow-hidden p-2 text-center hover:opacity-90 transition-opacity"
-                  >
-                    <Cover
-                      titulo={libro.titulo}
-                      portada_url={libro.portada_url}
-                      isbn={libro.isbn}
-                      autor={libro.autor}
-                    />
-                  </Link>
-
-                  {/* TÍTULO · siempre 2 líneas reservadas */}
-                  <div className="min-h-[2.6em]">
-                    <Link
-                      href={`/biblioteca/${libro.id}`}
-                      className="font-sans font-medium text-[19px] leading-snug text-text hover:text-text-bright transition-colors line-clamp-2"
-                    >
-                      {libro.titulo}
-                    </Link>
-                  </div>
-
-                  {/* AUTOR · siempre 1 línea reservada */}
-                  <div className="min-h-[1.3em]">
-                    {libro.autor && (
-                      <span className="font-sans font-light text-[16px] leading-snug text-text-dim line-clamp-1 block">
-                        {libro.autor}
-                      </span>
-                    )}
-                  </div>
-
-                  {/* QUICK ADD MORRAL · siempre 1 línea reservada */}
-                  <div className="min-h-[1.3em]">
-                    {libro.disponible && <QuickMorralButton libroId={libro.id} />}
-                  </div>
-                </article>
-              )
-            })}
-          </div>
+          categorias.map((cat) => (
+            <CategoryRow
+              key={cat.categoria}
+              categoria={cat.categoria}
+              count={cat.libros_count}
+            />
+          ))
         )}
-
-        {/* Overlay gradient al fondo refuerza el fade */}
-        {total > 0 && (
-          <div
-            aria-hidden="true"
-            className="absolute bottom-0 left-0 right-0 h-40 pointer-events-none"
-            style={{
-              background:
-                'linear-gradient(to bottom, transparent 0%, var(--color-bg) 100%)',
-            }}
-          />
-        )}
-      </section>
-
-      {/* ============ BOTÓN IR AL CATÁLOGO ============ */}
-      <section className="max-w-6xl mx-auto px-5 py-14 flex justify-center">
-        <Link
-          href="/biblioteca"
-          className="inline-flex items-center gap-3 bg-invert-bg text-invert-fg font-mono uppercase tracking-[0.12em] text-[12px] px-8 py-4 hover:opacity-90 transition-opacity"
-        >
-          Ir al catálogo completo
-          <span aria-hidden="true">→</span>
-        </Link>
-      </section>
+      </main>
 
       {/* ============ FOOTER full width · estilo colofón ============ */}
-      <footer className="border-t border-rule bg-bg-card mt-10 px-10 py-8 max-md:px-5 font-micro text-[10px] uppercase tracking-[0.08em] leading-relaxed text-text">
+      <footer className="border-t border-rule bg-footer mt-6 px-10 py-8 max-md:px-5 font-micro text-[10px] uppercase tracking-[0.08em] leading-relaxed text-text">
         <div className="flex flex-wrap justify-between items-start gap-x-10 gap-y-6">
 
           {/* Columna 1 · Identidad y lugar */}
@@ -287,10 +143,10 @@ export default async function Home() {
             <div>diseño + código · marina</div>
             <div>curaduría · marina · pedro reyes · samm</div>
             <div className="mt-2">
-              fuentes · jost light · jetbrains mono · dm mono
+              fuentes · jost light · acacia · jetbrains mono · space mono
             </div>
             <div>
-              paleta v2 · #6E6BA0 · #9D9BC8 · #15151D · #ECEAF0 · #FF4D00
+              paleta v2 · #6E6BA0 · #9D9BC8 · #15151D · #ECEAF0
             </div>
             <div className="mt-2">
               <span className="text-text">mi cosa es tu cosa.</span>

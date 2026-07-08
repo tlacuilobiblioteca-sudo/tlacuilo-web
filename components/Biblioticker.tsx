@@ -6,8 +6,9 @@ import { useEffect, useState } from 'react'
  * Biblioticker — 1 hilera de letanías del booklet impreso.
  * Pool aleatorio por carga. Sin Supabase: data hardcoded.
  *
- * Sin auto-scroll (decisión Marina 2026-05-25: cero auto-movimiento).
- * El usuario puede arrastrar/scroll horizontal con trackpad si quiere ver todo.
+ * Marquee animado (Marina lo pidió explícitamente 2026-07-08; excepción
+ * al no-autoplay). Se pausa al hover, con tab oculta (anim-paused) y
+ * con prefers-reduced-motion.
  */
 
 const POOLS: string[][] = [
@@ -36,16 +37,27 @@ export default function Biblioticker() {
     setItems(POOLS[Math.floor(Math.random() * POOLS.length)])
   }, [])
 
+  // Contenido duplicado para loop continuo (el keyframe recorre -50%)
+  const renderItems = (ariaHidden: boolean) => (
+    <div
+      aria-hidden={ariaHidden || undefined}
+      className="flex gap-10 whitespace-nowrap font-mono text-[clamp(13px,1.4vw,18px)] text-text uppercase tracking-[0.1em] pr-10"
+    >
+      {items.map((item, i) => (
+        <span key={i} className="inline-flex items-center gap-10">
+          <span>{item}</span>
+          <span className="text-text-dim">·</span>
+        </span>
+      ))}
+    </div>
+  )
+
   return (
-    <section className="border-y border-rule bg-bg-soft">
-      <div className="flex items-center h-[clamp(96px,11vw,140px)] overflow-x-auto overflow-y-hidden scrollbar-thin">
-        <div className="flex gap-14 whitespace-nowrap font-mono font-bold text-[clamp(24px,3vw,44px)] text-text uppercase tracking-[0.08em] px-8">
-          {items.map((item, i) => (
-            <span key={i} className="inline-flex items-center gap-14">
-              <span>{item}</span>
-              <span className="text-text-dim">·</span>
-            </span>
-          ))}
+    <section className="border-y border-rule bg-bg-soft overflow-hidden">
+      <div className="flex items-center h-[clamp(44px,5vw,60px)]">
+        <div className="ticker-track flex shrink-0">
+          {renderItems(false)}
+          {renderItems(true)}
         </div>
       </div>
     </section>

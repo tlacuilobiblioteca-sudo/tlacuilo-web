@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { Jost, JetBrains_Mono, DM_Mono } from "next/font/google";
+import { Jost, JetBrains_Mono, DM_Mono, Space_Mono } from "next/font/google";
 import localFont from "next/font/local";
 import "./globals.css";
 
@@ -23,6 +23,14 @@ const dmMono = DM_Mono({
   variable: "--font-dm-mono",
   subsets: ["latin"],
   weight: ["400", "500"],
+  display: "swap",
+});
+
+/* Space Mono · detalles/micro-labels (landing v3, 2026-07-08) */
+const spaceMono = Space_Mono({
+  variable: "--font-space-mono",
+  subsets: ["latin"],
+  weight: ["400", "700"],
   display: "swap",
 });
 
@@ -76,7 +84,7 @@ export default function RootLayout({
   return (
     <html
       lang="es"
-      className={`${jost.variable} ${jetbrainsMono.variable} ${dmMono.variable} ${acacia.variable} ${costa.variable} ${oaxacaPrickly.variable} h-full antialiased`}
+      className={`${jost.variable} ${jetbrainsMono.variable} ${dmMono.variable} ${spaceMono.variable} ${acacia.variable} ${costa.variable} ${oaxacaPrickly.variable} h-full antialiased`}
     >
       <body className="min-h-full flex flex-col">{children}</body>
     </html>

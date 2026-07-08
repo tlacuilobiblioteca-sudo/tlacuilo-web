@@ -39,3 +39,10 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# working files del pipeline de portadas/sync (no van al repo)
+backup-libros-*.json
+portadas-huerfanas.csv
+portadas-progreso.json
+sync-reporte-*.json
+scripts/catalogo_limpio_*.json
