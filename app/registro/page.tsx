@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react'
 import { supabase } from '@/lib/supabase'
 import Header from '@/components/Header'
 import GoogleButton from '@/components/GoogleButton'
+import Ojito from '@/components/Ojito'
 
 type AliasStatus = 'idle' | 'checking' | 'available' | 'taken' | 'invalid'
 
@@ -211,7 +212,7 @@ export default function RegistroPage() {
                 aria-label={showPwd ? 'ocultar contraseña' : 'ver contraseña'}
                 className="absolute right-0 top-1/2 -translate-y-1/2 font-mono text-[clamp(10px,0.8vw,12px)] opacity-60 hover:opacity-100"
               >
-                {showPwd ? '[ocultar]' : '[ver]'}
+                <Ojito abierto={showPwd} />
               </button>
             </div>
             <p className="mt-1 text-[clamp(10px,0.8vw,12px)] uppercase tracking-wider opacity-60">

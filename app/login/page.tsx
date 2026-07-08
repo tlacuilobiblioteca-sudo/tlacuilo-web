@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation'
 import { supabase } from '@/lib/supabase'
 import Header from '@/components/Header'
 import GoogleButton from '@/components/GoogleButton'
+import Ojito from '@/components/Ojito'
 
 export default function LoginPage() {
   const router = useRouter()
@@ -98,7 +99,7 @@ export default function LoginPage() {
                 aria-label={showPwd ? 'ocultar contraseña' : 'ver contraseña'}
                 className="absolute right-0 top-1/2 -translate-y-1/2 font-mono text-[clamp(10px,0.8vw,12px)] opacity-60 hover:opacity-100"
               >
-                {showPwd ? '[ocultar]' : '[ver]'}
+                <Ojito abierto={showPwd} />
               </button>
             </div>
           </div>

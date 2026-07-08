@@ -25,6 +25,7 @@ type HeaderProps = {
 export default function Header({ slim = false }: HeaderProps) {
   const [user, setUser] = useState<User | null>(null)
   const [q, setQ] = useState('')
+  const [avisos, setAvisos] = useState<number>(0)
   const router = useRouter()
 
   useEffect(() => {
@@ -34,6 +35,34 @@ export default function Header({ slim = false }: HeaderProps) {
     })
     return () => sub.subscription.unsubscribe()
   }, [])
+
+  // Badge de avisos para editores: reservas apartadas con visita de hoy en adelante.
+  // In-app, no depende de correos: si trabajas en tlacuilo, lo ves en todas las páginas.
+  useEffect(() => {
+    if (!user) {
+      setAvisos(0)
+      return
+    }
+    let mounted = true
+    const load = async () => {
+      const { data: perfil } = await supabase
+        .from('perfiles')
+        .select('rol')
+        .eq('id', user.id)
+        .single()
+      if (!mounted || perfil?.rol !== 'editor') return
+      const hoy = new Date()
+      hoy.setHours(0, 0, 0, 0)
+      const { count } = await supabase
+        .from('prestamos')
+        .select('id', { count: 'exact', head: true })
+        .eq('status', 'apartado')
+        .gte('visit_at', hoy.toISOString())
+      if (mounted) setAvisos(count ?? 0)
+    }
+    load()
+    return () => { mounted = false }
+  }, [user])
 
   const miTlacuiloHref = user ? '/mi-tlacuilo' : '/login'
 
@@ -97,6 +126,14 @@ export default function Header({ slim = false }: HeaderProps) {
             </svg>
           </Link>
           <ThemeToggle />
+          {avisos > 0 && (
+            <Link
+              href="/admin/notificaciones"
+              className="font-mono text-[clamp(11px,1.05vw,14px)] tracking-[0.12em] uppercase text-text hover:text-text-bright transition-colors"
+            >
+              AVISOS <span className="accent-detail">[{avisos}]</span>
+            </Link>
+          )}
           <Link href={miTlacuiloHref} className="font-mono text-[clamp(11px,1.05vw,14px)] tracking-[0.12em] uppercase text-text hover:text-text-bright transition-colors">
             {user ? 'MI TLACUILO' : 'ENTRAR'}
           </Link>
