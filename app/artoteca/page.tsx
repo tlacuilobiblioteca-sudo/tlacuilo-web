@@ -33,6 +33,7 @@ export default async function ArtotecaPage({
     .select('id, titulo, autor, anio, portada_url, disponible, isbn, formato, descripcion', { count: 'exact' })
     .eq('teca', 'artoteca')
     .order('has_portada', { ascending: false, nullsFirst: false })
+    .order('autor_apellido', { ascending: true, nullsFirst: false })
     .order('autor', { ascending: true, nullsFirst: false })
     .order('anio', { ascending: true, nullsFirst: false })
     .order('titulo', { ascending: true, nullsFirst: false })

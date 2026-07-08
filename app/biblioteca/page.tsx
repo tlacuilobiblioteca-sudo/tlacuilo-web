@@ -32,6 +32,7 @@ export default async function BibliotecaPage({
     .select('id, titulo, autor, anio, portada_url, disponible, isbn', { count: 'exact' })
     .eq('teca', 'biblioteca')
     .order('has_portada', { ascending: false, nullsFirst: false })
+    .order('autor_apellido', { ascending: true, nullsFirst: false })
     .order('autor', { ascending: true, nullsFirst: false })
     .order('titulo', { ascending: true, nullsFirst: false })
     .range(from, to)
