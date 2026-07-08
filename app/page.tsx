@@ -34,14 +34,12 @@ async function getTotalLibros(): Promise<number> {
 }
 
 async function getTotalPrestamos(): Promise<number> {
-  // Préstamos concretados (no morral/apartado). Cuando se importen los
-  // históricos (Carrillo Gil + google docs pre-sistema) entran aquí también.
+  // RPC total_prestamos() = concretados en el sistema (recogido/devuelto)
+  // + históricos importados (google form pre-sistema, luego carrillo gil).
   try {
-    const { count } = await supabase
-      .from('prestamos')
-      .select('id', { count: 'exact', head: true })
-      .in('status', ['recogido', 'devuelto'])
-    return count ?? 0
+    const { data, error } = await supabase.rpc('total_prestamos')
+    if (error) return 0
+    return Number(data) || 0
   } catch {
     return 0
   }
