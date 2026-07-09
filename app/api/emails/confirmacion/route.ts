@@ -21,18 +21,27 @@ export async function POST(req: NextRequest) {
     process.env.SUPABASE_SERVICE_ROLE_KEY!
   )
 
-  // ¿Quién llama? Debe ser editor.
-  const { data: { user: editor }, error: editorErr } = await service.auth.getUser(token)
+  // ¿Quién llama? Debe ser editor. Se verifica con la sesión del propio
+  // usuario (mismo patrón que /api/emails/cita y el gate del panel).
+  const authed = createClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+    { global: { headers: { Authorization: `Bearer ${token}` } } }
+  )
+  const { data: { user: editor }, error: editorErr } = await authed.auth.getUser(token)
   if (editorErr || !editor) {
     return NextResponse.json({ error: 'sesión inválida' }, { status: 401 })
   }
-  const { data: perfilEditor } = await service
+  const { data: perfilEditor, error: perfilErr } = await authed
     .from('perfiles')
     .select('rol')
     .eq('id', editor.id)
     .single()
+  if (perfilErr) {
+    return NextResponse.json({ error: 'no pude leer tu perfil: ' + perfilErr.message }, { status: 500 })
+  }
   if (perfilEditor?.rol !== 'editor') {
-    return NextResponse.json({ error: 'solo editores' }, { status: 403 })
+    return NextResponse.json({ error: `solo editores (tu rol: ${perfilEditor?.rol ?? 'sin perfil'})` }, { status: 403 })
   }
 
   let userId: string
