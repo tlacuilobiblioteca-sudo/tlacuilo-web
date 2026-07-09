@@ -130,10 +130,7 @@ export default function AdminLibrosPage() {
     // Conteo de wishlist (morral) para los libros visibles.
     const ids = rows.map((l) => l.id)
     if (ids.length > 0) {
-      const { data: wl } = await supabase
-        .from('libro_wishlist_counts')
-        .select('libro_id, n')
-        .in('libro_id', ids)
+      const { data: wl } = await supabase.rpc('wishlist_counts', { libro_ids: ids })
       const map: Record<string, number> = {}
       ;(wl ?? []).forEach((r: { libro_id: string; n: number }) => {
         map[r.libro_id] = r.n

@@ -39,14 +39,10 @@ export default async function LibroPage({
     notFound()
   }
 
-  // Cuántas personas lo tienen en su morral (wishlist). Vista agregada,
+  // Cuántas personas lo tienen en su morral (wishlist). RPC agregado,
   // no expone quién. Si falla o es 0, simplemente no se muestra.
-  const { data: wl } = await supabase
-    .from('libro_wishlist_counts')
-    .select('n')
-    .eq('libro_id', id)
-    .maybeSingle()
-  const quieren: number = wl?.n ?? 0
+  const { data: wl } = await supabase.rpc('wishlist_counts', { libro_ids: [id] })
+  const quieren: number = (wl as { libro_id: string; n: number }[] | null)?.[0]?.n ?? 0
 
   let relacionados: Libro[] = []
   if (libro.categorias && libro.categorias.length > 0) {
