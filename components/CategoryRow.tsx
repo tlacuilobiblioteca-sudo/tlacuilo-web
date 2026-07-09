@@ -120,7 +120,7 @@ export default function CategoryRow({ categoria, count, limit = 14, anchorId }: 
             : libros.map((libro) => (
                 <article
                   key={libro.id}
-                  className="group relative shrink-0 w-[148px] max-md:w-[118px] flex flex-col gap-2"
+                  className="group relative shrink-0 grow-0 basis-[148px] w-[148px] max-w-[148px] min-w-0 max-md:basis-[118px] max-md:w-[118px] max-md:max-w-[118px] flex flex-col gap-2"
                 >
                   {/* Botón editar · solo visible para admins */}
                   <div className="absolute top-2 right-2 z-10 opacity-0 group-hover:opacity-100 transition-opacity">
@@ -129,7 +129,7 @@ export default function CategoryRow({ categoria, count, limit = 14, anchorId }: 
 
                   <Link
                     href={`/biblioteca/${libro.id}`}
-                    className="aspect-[2/3] bg-bg-card flex items-center justify-center text-text-dim text-[10px] overflow-hidden p-1.5 text-center outline outline-1 outline-transparent group-hover:outline-morado group-hover:-translate-y-1 transition-[transform,outline-color] duration-200"
+                    className="w-full min-w-0 aspect-[2/3] bg-bg-card flex items-center justify-center text-text-dim text-[10px] overflow-hidden p-1.5 text-center outline outline-1 outline-transparent group-hover:outline-morado group-hover:-translate-y-1 transition-[transform,outline-color] duration-200"
                   >
                     <Cover
                       titulo={libro.titulo}
