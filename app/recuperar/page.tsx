@@ -6,7 +6,28 @@ import { supabase } from '@/lib/supabase'
 import Header from '@/components/Header'
 import Ojito from '@/components/Ojito'
 
-type Modo = 'pedir' | 'nueva'
+type Modo = 'pedir' | 'verificando' | 'nueva'
+
+// Traduce los errores comunes de supabase al tono de la casa.
+function traducirError(msg: string): string {
+  const m = msg.toLowerCase()
+  if (m.includes('expired') || m.includes('invalid')) {
+    return 'el enlace ya expiró o ya se usó. pide uno nuevo.'
+  }
+  if (m.includes('session missing')) {
+    return 'el enlace no abrió sesión en este navegador. pide uno nuevo.'
+  }
+  if (m.includes('different from the old')) {
+    return 'la contraseña nueva no puede ser igual a la anterior.'
+  }
+  if (m.includes('password should be')) {
+    return 'la contraseña necesita mínimo 8 caracteres.'
+  }
+  if (m.includes('rate limit') || m.includes('security purposes')) {
+    return 'demasiados intentos seguidos. espera un minuto y vuelve a intentar.'
+  }
+  return m
+}
 
 export default function RecuperarPage() {
   const router = useRouter()
@@ -24,14 +45,35 @@ export default function RecuperarPage() {
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
-  // Si el usuario llega desde el enlace del correo, Supabase abre una
-  // sesión de recuperación y dispara PASSWORD_RECOVERY -> pasamos a "nueva".
   useEffect(() => {
+    const params = new URLSearchParams(window.location.search)
+    const tokenHash = params.get('token_hash')
+
+    // Flujo nuevo: el correo trae ?token_hash= y lo canjeamos aquí mismo.
+    // No depende de nada guardado en el navegador, así que funciona aunque
+    // el enlace se abra en otro navegador, otro dispositivo o modo privado.
+    if (tokenHash) {
+      setModo('verificando')
+      supabase.auth
+        .verifyOtp({ type: 'recovery', token_hash: tokenHash })
+        .then(({ error: otpError }) => {
+          if (otpError) {
+            setModo('pedir')
+            setError(traducirError(otpError.message))
+          } else {
+            setModo('nueva')
+          }
+        })
+      return
+    }
+
+    // Flujo viejo (?code=): el cliente de Supabase lo canjea solo
+    // (detectSessionInUrl) y dispara PASSWORD_RECOVERY, pero únicamente si
+    // estamos en el mismo navegador donde se pidió el enlace.
     const { data: sub } = supabase.auth.onAuthStateChange((event) => {
       if (event === 'PASSWORD_RECOVERY') setModo('nueva')
     })
-    // Por si el evento ya pasó antes de montar (code en la URL).
-    if (new URLSearchParams(window.location.search).get('code')) {
+    if (params.get('code')) {
       setModo('nueva')
     }
     return () => sub.subscription.unsubscribe()
@@ -46,7 +88,7 @@ export default function RecuperarPage() {
     })
     setLoading(false)
     if (resetError) {
-      setError(resetError.message.toLowerCase())
+      setError(traducirError(resetError.message))
     } else {
       setEnviado(true)
     }
@@ -59,7 +101,14 @@ export default function RecuperarPage() {
     const { error: updError } = await supabase.auth.updateUser({ password })
     setLoading(false)
     if (updError) {
-      setError(updError.message.toLowerCase())
+      // Sin sesión no hay forma de guardar: regresamos a pedir un enlace
+      // nuevo en lugar de dejar al usuario atorado en el formulario.
+      if (updError.message.toLowerCase().includes('session missing')) {
+        setModo('pedir')
+        setError('el enlace no abrió sesión en este navegador. pide uno nuevo.')
+      } else {
+        setError(traducirError(updError.message))
+      }
     } else {
       setActualizada(true)
       setTimeout(() => router.replace('/mi-tlacuilo'), 1800)
@@ -75,6 +124,13 @@ export default function RecuperarPage() {
           // tlacuilo.org · recuperar acceso
         </div>
         <div className="border-b border-[#9091c4]/30 mb-14" />
+
+        {/* ============ MODO: VERIFICANDO ENLACE ============ */}
+        {modo === 'verificando' && (
+          <p className="text-[clamp(13px,1vw,16px)]">
+            &gt; verificando enlace<span className="animate-pulse">_</span>
+          </p>
+        )}
 
         {/* ============ MODO: PEDIR ENLACE ============ */}
         {modo === 'pedir' && !enviado && (

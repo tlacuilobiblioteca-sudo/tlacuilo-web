@@ -14,12 +14,18 @@ export default function LoginPage() {
   const [showPwd, setShowPwd] = useState(false)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const [aviso, setAviso] = useState<string | null>(null)
 
-  // Aviso si el retorno de Google falló (lo manda /auth/callback).
+  // Avisos que mandan /auth/callback y los enlaces de correo.
   useEffect(() => {
     const params = new URLSearchParams(window.location.search)
     if (params.get('error') === 'oauth') {
       setError('no se pudo entrar con google. intenta de nuevo.')
+    }
+    if (params.get('msg') === 'enlace') {
+      setAviso(
+        'ese enlace ya se usó o expiró. si tu correo ya está confirmado, entra normal. si olvidaste tu contraseña, pide un enlace nuevo abajo.'
+      )
     }
   }, [])
 
@@ -36,7 +42,14 @@ export default function LoginPage() {
     setLoading(false)
 
     if (signInError) {
-      setError(signInError.message)
+      const msg = signInError.message.toLowerCase()
+      if (msg.includes('invalid login credentials')) {
+        setError('correo o contraseña incorrectos. si no la recuerdas, recupérala abajo.')
+      } else if (msg.includes('email not confirmed')) {
+        setError('tu correo aún no está confirmado. busca el enlace en tu bandeja o spam.')
+      } else {
+        setError(signInError.message)
+      }
     } else {
       router.push('/mi-tlacuilo')
       router.refresh()
@@ -56,6 +69,12 @@ export default function LoginPage() {
         <p className="mb-10 text-[clamp(13px,1vw,16px)]">
           &gt; identifícate.
         </p>
+
+        {aviso && (
+          <p className="mb-10 text-[#c5c4f5] leading-relaxed text-[clamp(11px,0.85vw,13px)]">
+            &gt; {aviso}
+          </p>
+        )}
 
         <div className="mb-8">
           <GoogleButton />
