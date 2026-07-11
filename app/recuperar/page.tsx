@@ -45,6 +45,9 @@ export default function RecuperarPage() {
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
+  // Aviso guía (lila, no rojo): explica qué pasó con el enlace y qué hacer.
+  const [aviso, setAviso] = useState<string | null>(null)
+
   useEffect(() => {
     const params = new URLSearchParams(window.location.search)
     const tokenHash = params.get('token_hash')
@@ -59,7 +62,9 @@ export default function RecuperarPage() {
         .then(({ error: otpError }) => {
           if (otpError) {
             setModo('pedir')
-            setError(traducirError(otpError.message))
+            setAviso(
+              'este enlace ya caducó: los enlaces del correo son de un solo uso, y cada enlace nuevo cancela los anteriores.'
+            )
           } else {
             setModo('nueva')
           }
@@ -90,6 +95,7 @@ export default function RecuperarPage() {
     if (resetError) {
       setError(traducirError(resetError.message))
     } else {
+      setAviso(null)
       setEnviado(true)
     }
   }
@@ -105,7 +111,7 @@ export default function RecuperarPage() {
       // nuevo en lugar de dejar al usuario atorado en el formulario.
       if (updError.message.toLowerCase().includes('session missing')) {
         setModo('pedir')
-        setError('el enlace no abrió sesión en este navegador. pide uno nuevo.')
+        setAviso('el enlace no abrió sesión en este navegador.')
       } else {
         setError(traducirError(updError.message))
       }
@@ -135,8 +141,15 @@ export default function RecuperarPage() {
         {/* ============ MODO: PEDIR ENLACE ============ */}
         {modo === 'pedir' && !enviado && (
           <>
+            {aviso && (
+              <p className="mb-6 text-[#c5c4f5] leading-relaxed text-[clamp(12px,0.95vw,15px)]">
+                &gt; {aviso}
+              </p>
+            )}
             <p className="mb-10 text-[clamp(13px,1vw,16px)]">
-              &gt; te enviamos un enlace para restablecerla.
+              {aviso
+                ? '> pide un enlace nuevo aquí abajo, y abre solo el correo más reciente que te llegue.'
+                : '> te enviamos un enlace para restablecerla.'}
             </p>
             <form onSubmit={pedirEnlace} className="space-y-7 text-[clamp(13px,1vw,16px)]">
               <div>
@@ -167,7 +180,7 @@ export default function RecuperarPage() {
                 {loading ? (
                   <>&gt; enviando<span className="animate-pulse">_</span></>
                 ) : (
-                  <>&gt; enviar enlace<span className="ml-1 animate-pulse">▮</span></>
+                  <>&gt; {aviso ? 'enviar enlace nuevo' : 'enviar enlace'}<span className="ml-1 animate-pulse">▮</span></>
                 )}
               </button>
             </form>

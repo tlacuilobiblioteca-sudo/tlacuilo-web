@@ -7,6 +7,10 @@ import { supabase } from '@/lib/supabase'
  * Botón "continuar con Google".
  * Lanza el flujo OAuth de Supabase y vuelve a /auth/callback,
  * que recoge la sesión y manda a /mi-tlacuilo.
+ *
+ * Nunca falla en silencio: si el navegador bloquea el brinco a Google
+ * (content blockers, filtros, modo privado restrictivo), lo decimos
+ * y sugerimos el camino del correo.
  */
 export default function GoogleButton({
   label = 'continuar con google',
@@ -19,16 +23,33 @@ export default function GoogleButton({
   const handleGoogle = async () => {
     setLoading(true)
     setError(null)
-    const { error: oauthError } = await supabase.auth.signInWithOAuth({
-      provider: 'google',
-      options: {
-        redirectTo: `${window.location.origin}/auth/callback`,
-        queryParams: { prompt: 'select_account' },
-      },
-    })
-    // Si no hay error, el navegador ya se fue a Google.
-    if (oauthError) {
-      setError(oauthError.message.toLowerCase())
+    try {
+      const { error: oauthError } = await supabase.auth.signInWithOAuth({
+        provider: 'google',
+        options: {
+          redirectTo: `${window.location.origin}/auth/callback`,
+          queryParams: { prompt: 'select_account' },
+        },
+      })
+      // Si no hay error, el navegador ya se fue a Google.
+      if (oauthError) {
+        setError(oauthError.message.toLowerCase())
+        setLoading(false)
+        return
+      }
+      // Red de seguridad: si en 4s seguimos aquí, el navegador bloqueó
+      // la redirección (filtros/extensiones). Lo hacemos visible.
+      setTimeout(() => {
+        setError(
+          'tu navegador bloqueó la conexión con google. intenta en otro navegador, o entra con tu correo y contraseña.'
+        )
+        setLoading(false)
+      }, 4000)
+    } catch {
+      // Excepciones (storage bloqueado, red cortada por filtros, etc.)
+      setError(
+        'tu navegador bloqueó la conexión con google. intenta en otro navegador, o entra con tu correo y contraseña.'
+      )
       setLoading(false)
     }
   }

@@ -1,6 +1,7 @@
 import Link from 'next/link'
 import { supabase } from '@/lib/supabase'
 import Header from '@/components/Header'
+import ListaEventos from './ListaEventos'
 
 export const dynamic = 'force-dynamic'
 
@@ -88,25 +89,6 @@ function generarMatrizMes(year: number, month: number): (number | null)[][] {
     filas.push(celdas.slice(i, i + 7))
   }
   return filas
-}
-
-function formatFechaCorta(iso: string): string {
-  const d = new Date(iso)
-  return d.toLocaleDateString('es-MX', { day: 'numeric', month: 'short' })
-}
-
-function formatFechaLarga(iso: string): string {
-  const d = new Date(iso)
-  return d.toLocaleDateString('es-MX', {
-    weekday: 'long',
-    day: 'numeric',
-    month: 'long',
-  })
-}
-
-function formatHora(iso: string): string {
-  const d = new Date(iso)
-  return d.toLocaleTimeString('es-MX', { hour: '2-digit', minute: '2-digit' })
 }
 
 /* ============================================================
@@ -225,61 +207,8 @@ export default async function CalendarioPage({
 
       <hr className="border-t border-rule mx-10 max-md:mx-5" />
 
-      {/* ============ LISTA DE EVENTOS DEL AÑO ============ */}
-      <section className="px-10 pt-10 pb-16 max-md:px-5">
-        <h2 className="font-sans font-light text-[clamp(22px,2.4vw,34px)] tracking-[-0.005em] text-text mb-6">
-          Eventos del año
-        </h2>
-
-        {eventos.length === 0 ? (
-          <p className="font-mono text-sm text-text-dim lowercase">
-            sin eventos registrados en {year}.
-          </p>
-        ) : (
-          <ul className="flex flex-col gap-8 max-w-4xl">
-            {eventos.map((e) => (
-              <li key={e.id} className="border-t border-rule pt-6">
-                <div className="font-micro text-[11px] uppercase tracking-[0.12em] text-acid mb-2">
-                  {formatFechaLarga(e.fecha_inicio)}
-                  {e.fecha_fin && (
-                    <span className="text-text-dim">
-                      {' '}— {formatFechaCorta(e.fecha_fin)}
-                    </span>
-                  )}
-                  <span className="text-text-dim"> · {formatHora(e.fecha_inicio)}</span>
-                </div>
-
-                <h3 className="font-sans font-medium text-[clamp(18px,2vw,24px)] leading-tight text-text mb-2">
-                  {e.titulo}
-                </h3>
-
-                {e.ubicacion && (
-                  <div className="font-mono text-[12px] text-text-dim mb-2">
-                    {e.ubicacion}
-                  </div>
-                )}
-
-                {e.descripcion && (
-                  <p className="font-sans text-[14px] text-text leading-relaxed max-w-[640px] mb-2">
-                    {e.descripcion}
-                  </p>
-                )}
-
-                {e.url && (
-                  <a
-                    href={e.url}
-                    target="_blank"
-                    rel="noreferrer"
-                    className="inline-block font-micro text-[11px] uppercase tracking-[0.12em] text-text hover:text-text-bright underline"
-                  >
-                    más info →
-                  </a>
-                )}
-              </li>
-            ))}
-          </ul>
-        )}
-      </section>
+      {/* ============ LISTA DE EVENTOS DEL AÑO (+ edición inline para editores) ============ */}
+      <ListaEventos eventos={eventos} year={year} />
       </main>
     </div>
   )
