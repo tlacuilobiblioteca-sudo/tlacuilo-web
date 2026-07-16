@@ -132,10 +132,10 @@ export default function Header({ slim = false, sticky = true }: HeaderProps) {
           <div className="flex flex-wrap items-center justify-center gap-x-[clamp(20px,3.5vw,56px)] gap-y-2">
             <Link href="/biblioteca" className={tecaLinkClass}>BIBLIOTECA</Link>
             <Link href="/artoteca" className={tecaLinkClass}>ARTOTECA</Link>
-            <a href="#" className={tecaLinkClass}>FONOTECA</a>
+            <Link href="/proximamente" className={tecaLinkClass}>FONOTECA</Link>
             <Link href="/videoteca" className={tecaLinkClass}>VIDEOTECA</Link>
             <Link href="/manifesto" className={tecaLinkClass}>MANIFIESTO</Link>
-            <a href="#" className={tecaLinkClass}>EDITORIAL</a>
+            <Link href="/proximamente" className={tecaLinkClass}>EDITORIAL</Link>
           </div>
         </nav>
       )}

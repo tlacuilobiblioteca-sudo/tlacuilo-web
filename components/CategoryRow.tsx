@@ -114,13 +114,13 @@ export default function CategoryRow({ categoria, count, limit = 50, anchorId }: 
             ? Array.from({ length: 8 }, (_, i) => (
                 <div
                   key={i}
-                  className="shrink-0 w-[148px] max-md:w-[118px] aspect-[2/3] bg-bg-card opacity-45"
+                  className="shrink-0 w-[calc((100vw-206px)/8)] max-md:w-[118px] aspect-[2/3] bg-bg-card opacity-45"
                 />
               ))
             : libros.map((libro) => (
                 <article
                   key={libro.id}
-                  className="group relative shrink-0 grow-0 basis-[148px] w-[148px] max-w-[148px] min-w-0 max-md:basis-[118px] max-md:w-[118px] max-md:max-w-[118px] flex flex-col gap-2"
+                  className="group relative shrink-0 grow-0 basis-[calc((100vw-206px)/8)] w-[calc((100vw-206px)/8)] max-w-[calc((100vw-206px)/8)] min-w-0 max-md:basis-[118px] max-md:w-[118px] max-md:max-w-[118px] flex flex-col gap-2"
                 >
                   {/* Botón editar · solo visible para admins */}
                   <div className="absolute top-2 right-2 z-10 opacity-0 group-hover:opacity-100 transition-opacity">

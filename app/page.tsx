@@ -182,12 +182,12 @@ export default async function Home() {
             <Link href="/manifesto" className="hover:text-text-bright transition-colors">
               → manifiesto
             </Link>
-            <a href="#" className="hover:text-text-bright transition-colors">
+            <Link href="/proximamente" className="hover:text-text-bright transition-colors">
               → newsletter
-            </a>
-            <a href="#" className="hover:text-text-bright transition-colors">
-              → booklet (pdf)
-            </a>
+            </Link>
+            <Link href="/manifesto" className="hover:text-text-bright transition-colors">
+              → booklet
+            </Link>
             <a
               href="mailto:hola@tlacuilo.org"
               className="hover:text-text-bright transition-colors"
@@ -198,15 +198,7 @@ export default async function Home() {
 
           {/* Columna 3 · Créditos */}
           <div className="flex flex-col gap-1 min-w-[180px] text-text-dim">
-            <div>diseño + código · marina</div>
-            <div>curaduría · marina · pedro reyes · samm</div>
-            <div className="mt-2">
-              fuentes · jost light · acacia · jetbrains mono · space mono
-            </div>
             <div>
-              paleta v2 · #6E6BA0 · #9D9BC8 · #15151D · #ECEAF0
-            </div>
-            <div className="mt-2">
               <span className="text-text">mi cosa es tu cosa.</span>
             </div>
           </div>
