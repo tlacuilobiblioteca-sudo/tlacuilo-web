@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { supabase } from '@/lib/supabase'
+import MiniCalendario from '@/components/MiniCalendario'
 import { comprimirImagen } from '@/lib/imagen'
 import TecaLayout from '@/components/TecaLayout'
 import Cover from '@/components/Cover'
@@ -60,10 +61,6 @@ export default function MiTlacuiloPage() {
   const [morral, setMorral] = useState<Prestamo[]>([])
   const [visitas, setVisitas] = useState<Prestamo[]>([])
   const [historial, setHistorial] = useState<Prestamo[]>([])
-
-  const [bioDraft, setBioDraft] = useState('')
-  const [savingBio, setSavingBio] = useState(false)
-  const [bioMsg, setBioMsg] = useState<string | null>(null)
 
   const [subiendoFoto, setSubiendoFoto] = useState(false)
   const [fotoMsg, setFotoMsg] = useState<string | null>(null)
@@ -130,7 +127,6 @@ export default function MiTlacuiloPage() {
 
       if (perfilData) {
         setPerfil(perfilData)
-        setBioDraft(perfilData.bio ?? '')
       }
 
       if (prestamosData) {
@@ -196,21 +192,6 @@ export default function MiTlacuiloPage() {
     router.push('/')
   }
 
-  const handleSaveBio = async () => {
-    if (!perfil) return
-    setSavingBio(true)
-    setBioMsg(null)
-    const { error } = await supabase.from('perfiles').update({ bio: bioDraft.trim() || null }).eq('id', perfil.id)
-    setSavingBio(false)
-    if (error) {
-      setBioMsg('> error al guardar')
-    } else {
-      setPerfil({ ...perfil, bio: bioDraft.trim() || null })
-      setBioMsg('> guardado ✓')
-      setTimeout(() => setBioMsg(null), 2500)
-    }
-  }
-
   const handleRemoveFromMorral = async (prestamoId: string) => {
     const { error } = await supabase.from('prestamos').delete().eq('id', prestamoId)
     if (!error) setMorral((m) => m.filter((p) => p.id !== prestamoId))
@@ -229,7 +210,7 @@ export default function MiTlacuiloPage() {
   }
 
   const alias = perfil?.handle ?? 'sin-alias'
-  const bioChanged = (bioDraft.trim() || null) !== (perfil?.bio ?? null)
+  const rentas = visitas.filter((p) => p.status === 'recogido').length + historial.length
 
   const aliasInfo = (() => {
     switch (aliasStatus) {
@@ -499,36 +480,21 @@ export default function MiTlacuiloPage() {
           </div>
         )}
 
-        <div className="border-t border-rule pt-8 mt-4">
-          <h2 className="font-micro uppercase tracking-[0.12em] text-[11px] text-text-dim mb-2">
-            tu bio · la ven los demás
+       <div className="border-t border-rule pt-8 mt-4">
+          <h2 className="font-micro uppercase tracking-[0.12em] text-[11px] text-text-dim mb-4">
+            tu calendario
           </h2>
-          <p className="opacity-50 text-[10px] mb-3">
-            &gt; máx. 280 caracteres · una línea, una frase, lo que quieras decir.
-          </p>
-          <textarea
-            value={bioDraft}
-            onChange={(e) => setBioDraft(e.target.value.slice(0, 280))}
-            placeholder="ej: lectora de novela latinoamericana del XX, devuelvo a tiempo."
-            rows={3}
-            className="w-full bg-bg-soft border border-rule focus:border-rule-strong focus:outline-none p-3 font-mono text-[clamp(12px,0.95vw,15px)] text-text-bright placeholder:opacity-30 resize-none"
-          />
-          <div className="flex items-center gap-4 mt-2">
-            <button
-              onClick={handleSaveBio}
-              disabled={savingBio || !bioChanged}
-              className="uppercase tracking-wide hover:underline disabled:opacity-40 disabled:cursor-not-allowed text-[clamp(11px,0.9vw,14px)]"
-            >
-              {savingBio ? <>&gt; guardando<span className="animate-pulse">_</span></> : <>&gt; guardar bio</>}
-            </button>
-            <span className="opacity-50 text-[10px]">{bioDraft.length}/280</span>
-            {bioMsg && (
-              <span className={`text-[10px] uppercase tracking-wider ${bioMsg.includes('✓') ? 'text-available' : 'text-loan'}`}>
-                {bioMsg}
-              </span>
-            )}
-          </div>
+          <MiniCalendario />
         </div>
+
+        {rentas > 0 && (
+          <div className="border-t border-rule pt-8 mt-4">
+            <h2 className="font-micro uppercase tracking-[0.12em] text-[11px] text-text-dim mb-2">
+              libros rentados
+            </h2>
+            <p className="font-mono text-[clamp(22px,2.2vw,34px)] text-text-bright">{rentas}</p>
+          </div>
+        )}
 
         <div className="border-t border-rule pt-8 mt-12">
           <h2 className="font-micro uppercase tracking-[0.12em] text-[11px] text-text-dim mb-4">

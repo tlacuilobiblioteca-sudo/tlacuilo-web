@@ -14,6 +14,10 @@ function slugify(s: string): string {
     .replace(/(^-|-$)/g, '')
 }
 
+function fmtEvento(iso: string): string {
+  return new Date(iso).toLocaleDateString('es-MX', { day: 'numeric', month: 'short' })
+}
+
 export const dynamic = 'force-dynamic'
 
 /* ============================================================
@@ -57,6 +61,15 @@ async function getTotalPrestamos(): Promise<number> {
 }
 
 export default async function Home() {
+  // Próximos eventos · vitrina pública (2026-07-17, /calendario se retiró)
+  const { data: eventosData } = await supabase
+    .from('eventos')
+    .select('id, titulo, fecha_inicio, ubicacion')
+    .gte('fecha_inicio', new Date().toISOString())
+    .order('fecha_inicio', { ascending: true })
+    .limit(3)
+  const eventos = eventosData ?? []
+
   const [categorias, totalLibros, totalPrestamos] = await Promise.all([
     getCategorias(),
     getTotalLibros(),
@@ -125,6 +138,22 @@ export default async function Home() {
         )}
       </main>
 
+      {/* ============ PRÓXIMOS EVENTOS · vitrina pública ============ */}
+      {eventos.length > 0 && (
+        <section className="border-t border-rule px-10 py-8 max-md:px-5">
+          <h2 className="font-micro uppercase tracking-[0.18em] text-[11px] text-text-dim mb-4">&gt; próximos eventos</h2>
+          <div className="flex flex-wrap gap-x-12 gap-y-4">
+            {eventos.map((ev) => (
+              <div key={ev.id} className="font-mono text-[clamp(12px,1vw,15px)]">
+                <span className="accent-detail">{fmtEvento(ev.fecha_inicio)}</span>{' '}
+                <span className="uppercase tracking-[0.06em] text-text-bright">{ev.titulo}</span>
+                {ev.ubicacion && <span className="text-text-dim lowercase"> · {ev.ubicacion}</span>}
+              </div>
+            ))}
+          </div>
+        </section>
+      )}
+
       {/* ============ FOOTER full width · estilo colofón ============ */}
       <footer className="border-t border-rule bg-footer mt-6 px-10 py-8 max-md:px-5 font-micro text-[10px] uppercase tracking-[0.08em] leading-relaxed text-text">
         <div className="flex flex-wrap justify-between items-start gap-x-10 gap-y-6">
@@ -152,9 +181,6 @@ export default async function Home() {
             </a>
             <Link href="/manifesto" className="hover:text-text-bright transition-colors">
               → manifiesto
-            </Link>
-            <Link href="/calendario" className="hover:text-text-bright transition-colors">
-              → calendario
             </Link>
             <a href="#" className="hover:text-text-bright transition-colors">
               → newsletter

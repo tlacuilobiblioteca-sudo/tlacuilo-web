@@ -24,7 +24,7 @@ type HeaderProps = {
  *    diseño; el light mode morado queda dormido en globals.css— y el icono
  *    de calendario, que ahora vive como link en la banda de tecas)
  * BANDA 2 (nav): categorías centradas
- *   BIBLIOTECA / ARTOTECA / FONOTECA / VIDEOTECA / MANIFIESTO / CALENDARIO / EDITORIAL
+ *   BIBLIOTECA / ARTOTECA / FONOTECA / VIDEOTECA / MANIFIESTO / EDITORIAL
  *
  * Con slim=true solo se muestra BANDA 1.
  */
@@ -135,7 +135,6 @@ export default function Header({ slim = false, sticky = true }: HeaderProps) {
             <a href="#" className={tecaLinkClass}>FONOTECA</a>
             <Link href="/videoteca" className={tecaLinkClass}>VIDEOTECA</Link>
             <Link href="/manifesto" className={tecaLinkClass}>MANIFIESTO</Link>
-            <Link href="/calendario" className={tecaLinkClass}>CALENDARIO</Link>
             <a href="#" className={tecaLinkClass}>EDITORIAL</a>
           </div>
         </nav>

@@ -34,6 +34,9 @@ export default async function PerfilPublicoPage({
     notFound()
   }
 
+  // Contador publico de rentas (RPC de solo agregados; cuenta recogidos + devueltos)
+  const { data: rentas } = await supabase.rpc('rentas_count', { p_handle: alias })
+
   const fechaRegistro = new Date(perfil.created_at).toLocaleDateString('es-MX', {
     year: 'numeric',
     month: 'long',
@@ -67,20 +70,19 @@ export default async function PerfilPublicoPage({
           </h1>
         </div>
 
-        {perfil.bio && (
-          <div className="mb-10 max-w-[60ch]">
-            <p className="text-[clamp(14px,1.1vw,18px)] leading-relaxed opacity-90 whitespace-pre-wrap">
-              {perfil.bio}
-            </p>
-          </div>
-        )}
-
         <div className="border-t border-[#9091c4]/15 pt-6 mt-6 grid grid-cols-1 sm:grid-cols-2 gap-4 font-mono-tl text-[clamp(10px,0.85vw,13px)] uppercase tracking-wide opacity-70">
           <div>
             <span className="opacity-60">&gt; en tlacuilo desde</span>
             <br />
             <span className="opacity-100">{fechaRegistro}</span>
           </div>
+          {(rentas ?? 0) > 0 && (
+            <div>
+              <span className="opacity-60">&gt; libros rentados</span>
+              <br />
+              <span className="opacity-100">{rentas}</span>
+            </div>
+          )}
           {perfil.rol && perfil.rol !== 'lector' && (
             <div>
               <span className="opacity-60">&gt; rol</span>
