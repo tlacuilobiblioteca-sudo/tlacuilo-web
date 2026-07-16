@@ -56,7 +56,7 @@ export default function BookletViewer() {
       className="flex flex-col items-center gap-7 outline-none"
       tabIndex={0}
       onKeyDown={(e) => {
-        if (e.key === 'ArrowRight') go(pos + 1)
+        if (e.key === 'ArrowRight') go(pos === N ? 0 : pos + 1)
         if (e.key === 'ArrowLeft') go(pos - 1)
       }}
     >
@@ -70,7 +70,8 @@ export default function BookletViewer() {
               key={i}
               className={`bk-sheet ${i < pos ? 'bk-flipped' : ''}`}
               style={{
-                zIndex: i < pos ? i + 1 : N - i + 1,
+                // la hoja que esta girando va hasta arriba; al asentarse recupera su z normal
+                zIndex: pos !== settledPos && i === Math.min(pos, settledPos) ? N + 2 : i < pos ? i + 1 : N - i + 1,
                 visibility: keep.has(i) ? 'visible' : 'hidden',
               }}
               onClick={() => (i < pos ? go(i) : go(i + 1))}
@@ -106,9 +107,8 @@ export default function BookletViewer() {
         </div>
         <button
           type="button"
-          aria-label="página siguiente"
-          disabled={pos === N}
-          onClick={() => go(pos + 1)}
+          aria-label={pos === N ? 'volver a la portada' : 'página siguiente'}
+          onClick={() => go(pos === N ? 0 : pos + 1)}
           className="font-micro text-[13px] px-4 py-2 border border-rule-strong text-text hover:border-text-bright disabled:opacity-25 transition-colors cursor-pointer disabled:cursor-default"
         >
           →
