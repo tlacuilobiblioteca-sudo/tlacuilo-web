@@ -2,7 +2,6 @@
 
 import { useState, useEffect } from 'react'
 import { supabase } from '@/lib/supabase'
-import { getMaxObjetosCheckout } from '@/lib/config'
 
 type MorralButtonProps = {
   libroId: string
@@ -16,7 +15,19 @@ type PrestamoStatus = 'morral' | 'apartado' | 'recogido' | 'devuelto'
  * - Si ya está en su morral: muestra "✓ en tu morral · quitar"
  * - Si ya está apartado/recogido: muestra estado actual (no se puede borrar)
  * - Si no: botón "+ a mi morral"
+ *
+ * 2026-07-17 · El morral es también la wishlist: puedes juntar lo que te
+ * interese (tope sano de 50) y el límite real por visita se aplica en el
+ * checkout, donde escoges cuáles te llevas. Dispara 'tl:morral' para que
+ * el contador del header se actualice.
  */
+
+const MAX_MORRAL = 50
+
+const notifyMorral = () => {
+  if (typeof window !== 'undefined') window.dispatchEvent(new Event('tl:morral'))
+}
+
 export default function MorralButton({ libroId }: MorralButtonProps) {
   const [loading, setLoading] = useState(true)
   const [working, setWorking] = useState(false)
@@ -65,17 +76,14 @@ export default function MorralButton({ libroId }: MorralButtonProps) {
     setWorking(true)
     setError(null)
 
-    // Límite global de objetos por checkout
-    const [{ count }, max] = await Promise.all([
-      supabase
-        .from('prestamos')
-        .select('id', { count: 'exact', head: true })
-        .eq('user_id', userId)
-        .eq('status', 'morral'),
-      getMaxObjetosCheckout(),
-    ])
-    if ((count ?? 0) >= max) {
-      setError(`tu morral está lleno (límite: ${max} objetos por visita)`)
+    // Tope sano del morral (el límite por visita vive en el checkout)
+    const { count } = await supabase
+      .from('prestamos')
+      .select('id', { count: 'exact', head: true })
+      .eq('user_id', userId)
+      .eq('status', 'morral')
+    if ((count ?? 0) >= MAX_MORRAL) {
+      setError(`tu morral ya trae ${MAX_MORRAL} cosas; agenda una visita o suelta algo`)
       setWorking(false)
       return
     }
@@ -91,6 +99,7 @@ export default function MorralButton({ libroId }: MorralButtonProps) {
     } else if (data) {
       setPrestamoId(data.id)
       setStatus('morral')
+      notifyMorral()
     }
     setWorking(false)
   }
@@ -110,6 +119,7 @@ export default function MorralButton({ libroId }: MorralButtonProps) {
     } else {
       setPrestamoId(null)
       setStatus(null)
+      notifyMorral()
     }
     setWorking(false)
   }

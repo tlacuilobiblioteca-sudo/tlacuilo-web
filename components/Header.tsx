@@ -5,7 +5,7 @@ import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { supabase } from '@/lib/supabase'
 import type { User } from '@supabase/supabase-js'
-import ThemeToggle from './ThemeToggle'
+import MorralHeader from './MorralHeader'
 
 type HeaderProps = {
   /** Si true, oculta la banda de 6 categorías. Útil para páginas interiores
@@ -19,8 +19,11 @@ type HeaderProps = {
 /**
  * Header de Tlacuilo · 2 bandas (sticky)
  *
- * BANDA 1 (top): logo + search bar input + MI TLACUILO + ThemeToggle
- * BANDA 2 (nav, periwinkle bg): 6 categorías centradas
+ * BANDA 1 (top): logo + search bar input + morral + MI TLACUILO
+ *   (2026-07-17: se retiraron el ThemeToggle —Tlacuilo es dark-only por
+ *    diseño; el light mode morado queda dormido en globals.css— y el icono
+ *    de calendario, que ahora vive como link en la banda de tecas)
+ * BANDA 2 (nav): categorías centradas
  *   BIBLIOTECA / ARTOTECA / FONOTECA / VIDEOTECA / MANIFIESTO / CALENDARIO / EDITORIAL
  *
  * Con slim=true solo se muestra BANDA 1.
@@ -81,7 +84,7 @@ export default function Header({ slim = false, sticky = true }: HeaderProps) {
 
   return (
     <header className={`${sticky ? 'sticky top-0 z-50' : ''} bg-bg`}>
-      {/* ============ BANDA 1 · LOGO + SEARCH + PERFIL + LUNA ============ */}
+      {/* ============ BANDA 1 · LOGO + SEARCH + MORRAL + PERFIL ============ */}
       <div className="flex items-center justify-between gap-6 px-10 py-5 max-md:flex-col max-md:items-start max-md:gap-4 max-md:px-5">
         <Link href="/" className="block shrink-0" aria-label="Inicio">
           <span
@@ -108,27 +111,7 @@ export default function Header({ slim = false, sticky = true }: HeaderProps) {
         </form>
 
         <div className="flex items-center gap-5 shrink-0">
-          <Link
-            href="/calendario"
-            aria-label="Calendario"
-            className="text-text hover:text-text-bright transition-colors inline-flex items-center"
-          >
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              fill="none"
-              viewBox="0 0 24 24"
-              strokeWidth="1.6"
-              stroke="currentColor"
-              className="w-[clamp(14px,1.2vw,18px)] h-[clamp(14px,1.2vw,18px)]"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                d="M6.75 3v2.25M17.25 3v2.25M3 18.75V7.5a2.25 2.25 0 0 1 2.25-2.25h13.5A2.25 2.25 0 0 1 21 7.5v11.25m-18 0A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75m-18 0V11.25A2.25 2.25 0 0 1 5.25 9h13.5A2.25 2.25 0 0 1 21 11.25v7.5"
-              />
-            </svg>
-          </Link>
-          <ThemeToggle />
+          <MorralHeader />
           {avisos > 0 && (
             <Link
               href="/admin/notificaciones"
@@ -143,7 +126,7 @@ export default function Header({ slim = false, sticky = true }: HeaderProps) {
         </div>
       </div>
 
-      {/* ============ BANDA 2 · TECAS · dark: líneas · light: periwinkle ============ */}
+      {/* ============ BANDA 2 · TECAS ============ */}
       {!slim && (
         <nav className="tecas-band py-3 px-10 max-md:px-5">
           <div className="flex flex-wrap items-center justify-center gap-x-[clamp(20px,3.5vw,56px)] gap-y-2">
@@ -152,6 +135,7 @@ export default function Header({ slim = false, sticky = true }: HeaderProps) {
             <a href="#" className={tecaLinkClass}>FONOTECA</a>
             <Link href="/videoteca" className={tecaLinkClass}>VIDEOTECA</Link>
             <Link href="/manifesto" className={tecaLinkClass}>MANIFIESTO</Link>
+            <Link href="/calendario" className={tecaLinkClass}>CALENDARIO</Link>
             <a href="#" className={tecaLinkClass}>EDITORIAL</a>
           </div>
         </nav>

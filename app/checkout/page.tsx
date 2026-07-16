@@ -53,11 +53,20 @@ function dayFull(d: Date): string {
   return `${DIAS[d.getDay()]} ${d.getDate()} de ${MESES[d.getMonth()]}`
 }
 
+/**
+ * Checkout con selección (2026-07-17).
+ *
+ * El morral es también la wishlist: aquí escoges CUÁLES objetos te llevas
+ * en esta visita (hasta el límite de tu escala de confianza) y el resto se
+ * queda tranquilo en tu morral para la próxima. Antes el checkout se
+ * llevaba todo el morral y te obligaba a borrar si traías de más.
+ */
 export default function CheckoutPage() {
   const router = useRouter()
   const [loading, setLoading] = useState(true)
   const [submitting, setSubmitting] = useState(false)
   const [morral, setMorral] = useState<Prestamo[]>([])
+  const [seleccion, setSeleccion] = useState<Set<string>>(new Set())
   const [selectedDate, setSelectedDate] = useState<Date | null>(null)
   const [selectedBlock, setSelectedBlock] = useState<BlockId | null>(null)
   const [error, setError] = useState<string | null>(null)
@@ -85,7 +94,12 @@ export default function CheckoutPage() {
       ])
       if (!mounted) return
       if (err) setError(err.message)
-      else if (data) setMorral(data as unknown as Prestamo[])
+      else if (data) {
+        const items = data as unknown as Prestamo[]
+        setMorral(items)
+        // Si caben todos, vienen preseleccionados; si no, escoges tú.
+        if (items.length <= max) setSeleccion(new Set(items.map((p) => p.id)))
+      }
       setMaxObjetos(max)
       setLoading(false)
     }
@@ -93,17 +107,27 @@ export default function CheckoutPage() {
     return () => { mounted = false }
   }, [router])
 
-  const sobreLimite = morral.length > maxObjetos
+  const toggle = (id: string) => {
+    setSeleccion((prev) => {
+      const next = new Set(prev)
+      if (next.has(id)) next.delete(id)
+      else if (next.size < maxObjetos) next.add(id)
+      return next
+    })
+  }
+
+  const enLimite = seleccion.size >= maxObjetos
+  const quedanEnMorral = morral.length - seleccion.size
 
   async function handleConfirm() {
-    if (!selectedDate || !selectedBlock || morral.length === 0 || sobreLimite) return
+    if (!selectedDate || !selectedBlock || seleccion.size === 0 || seleccion.size > maxObjetos) return
     setSubmitting(true)
     setError(null)
     const block = BLOCKS.find((b) => b.id === selectedBlock)
     if (!block) return
     const visitAt = new Date(selectedDate)
     visitAt.setHours(block.startHour, 0, 0, 0)
-    const ids = morral.map((p) => p.id)
+    const ids = [...seleccion]
     const { error: upErr } = await supabase
       .from('prestamos')
       .update({ status: 'apartado', visit_at: visitAt.toISOString() })
@@ -113,6 +137,9 @@ export default function CheckoutPage() {
       setSubmitting(false)
       return
     }
+
+    // El contador del header baja: los seleccionados dejaron el morral
+    window.dispatchEvent(new Event('tl:morral'))
 
     // Correo de cita agendada (no bloquea el flujo si falla)
     try {
@@ -179,25 +206,50 @@ export default function CheckoutPage() {
         </p>
 
         <div className="mb-12">
-          <h2 className="font-mono uppercase tracking-wide text-[clamp(16px,1.6vw,22px)] text-text-bright mb-4">
-            Llevas {morral.length} de {maxObjetos} {maxObjetos === 1 ? 'objeto' : 'objetos'}
+          <h2 className="font-mono uppercase tracking-wide text-[clamp(16px,1.6vw,22px)] text-text-bright mb-2">
+            Escoge qué te llevas · {seleccion.size} de {maxObjetos}
           </h2>
-          {sobreLimite && (
-            <p className="text-loan font-mono text-xs uppercase tracking-wider mb-4">
-              &gt; el límite por visita es {maxObjetos}. quita {morral.length - maxObjetos}{' '}
-              {morral.length - maxObjetos === 1 ? 'objeto' : 'objetos'} de tu morral para continuar.
+          <p className="opacity-70 font-mono text-xs lowercase tracking-wider mb-4">
+            {morral.length > maxObjetos
+              ? `> tu morral trae ${morral.length}; pica las portadas para escoger hasta ${maxObjetos} de esta visita`
+              : '> pica una portada para quitarla de esta visita'}
+            {quedanEnMorral > 0 && seleccion.size > 0 && (
+              <> · {quedanEnMorral} se {quedanEnMorral === 1 ? 'queda' : 'quedan'} en tu morral para la próxima</>
+            )}
+          </p>
+          {enLimite && morral.length > maxObjetos && (
+            <p className="font-mono text-xs lowercase tracking-wider mb-4 accent-detail">
+              &gt; ya tienes tus {maxObjetos}; deselecciona uno si quieres cambiar
             </p>
           )}
           <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-5">
-            {morral.map((p) => (
-              <div key={p.id} className="flex flex-col gap-2">
-                <div className="aspect-[2/3] bg-bg-soft flex items-center justify-center text-text-dim p-2 text-center overflow-hidden text-[10px] mb-2">
-                  <Cover titulo={p.libros.titulo} portada_url={p.libros.portada_url} isbn={p.libros.isbn} autor={p.libros.autor} />
-                </div>
-                <p className="font-medium leading-tight text-[clamp(11px,0.9vw,14px)] line-clamp-2">{p.libros.titulo}</p>
-                <p className="opacity-70 text-[10px] line-clamp-1">{p.libros.autor ?? '—'}</p>
-              </div>
-            ))}
+            {morral.map((p) => {
+              const activo = seleccion.has(p.id)
+              return (
+                <button
+                  type="button"
+                  key={p.id}
+                  onClick={() => toggle(p.id)}
+                  aria-pressed={activo}
+                  className={`relative flex flex-col gap-2 text-left cursor-pointer transition-opacity ${
+                    activo ? '' : 'opacity-40 hover:opacity-70'
+                  }`}
+                >
+                  <div className={`aspect-[2/3] bg-bg-soft flex items-center justify-center text-text-dim p-2 text-center overflow-hidden text-[10px] mb-2 border ${
+                    activo ? 'border-invert-bg' : 'border-transparent'
+                  }`}>
+                    <Cover titulo={p.libros.titulo} portada_url={p.libros.portada_url} isbn={p.libros.isbn} autor={p.libros.autor} />
+                  </div>
+                  {activo && (
+                    <span className="absolute top-2 right-2 w-5 h-5 bg-invert-bg text-invert-fg font-mono text-[11px] leading-5 text-center">
+                      ✓
+                    </span>
+                  )}
+                  <p className="font-medium leading-tight text-[clamp(11px,0.9vw,14px)] line-clamp-2">{p.libros.titulo}</p>
+                  <p className="opacity-70 text-[10px] line-clamp-1">{p.libros.autor ?? '—'}</p>
+                </button>
+              )
+            })}
           </div>
         </div>
 
@@ -249,15 +301,16 @@ export default function CheckoutPage() {
         </div>
 
         <div className="border-t border-rule pt-8 font-mono">
-          {selectedDate && selectedBlock ? (
+          {selectedDate && selectedBlock && seleccion.size > 0 ? (
             <p className="text-[clamp(12px,0.95vw,15px)] mb-4 opacity-90">
               &gt; vienes el <span className="text-text-bright">{dayFull(selectedDate)}</span>,{' '}
               bloque <span className="text-text-bright">{BLOCKS.find((b) => b.id === selectedBlock)?.label}</span>{' '}
-              ({BLOCKS.find((b) => b.id === selectedBlock)?.range})
+              ({BLOCKS.find((b) => b.id === selectedBlock)?.range}) por{' '}
+              <span className="text-text-bright">{seleccion.size} {seleccion.size === 1 ? 'objeto' : 'objetos'}</span>
             </p>
           ) : (
             <p className="text-[clamp(12px,0.95vw,15px)] mb-4 opacity-60">
-              &gt; escoge día y bloque
+              {seleccion.size === 0 ? '> escoge al menos un objeto, y día y bloque' : '> escoge día y bloque'}
             </p>
           )}
 
@@ -270,7 +323,7 @@ export default function CheckoutPage() {
           <div className="flex items-center gap-4">
             <button
               onClick={handleConfirm}
-              disabled={!selectedDate || !selectedBlock || submitting || sobreLimite}
+              disabled={!selectedDate || !selectedBlock || submitting || seleccion.size === 0}
               className="font-mono text-sm lowercase tracking-wider bg-invert-bg text-invert-fg px-6 py-3 hover:opacity-90 disabled:opacity-40 disabled:cursor-not-allowed transition-opacity"
             >
               {submitting ? <>confirmando<span className="animate-pulse">_</span></> : <>confirmar visita →</>}

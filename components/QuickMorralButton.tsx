@@ -15,7 +15,18 @@ type Props = {
  * - Apartado/recogido: oculto (no debe poder quitarse desde aquí)
  *
  * Importante: hace e.preventDefault() para no disparar el link del card al picotear.
+ *
+ * 2026-07-17 · El morral es también la wishlist (tope sano de 50; el límite
+ * por visita vive en el checkout). Dispara 'tl:morral' para el contador
+ * del header.
  */
+
+const MAX_MORRAL = 50
+
+const notifyMorral = () => {
+  if (typeof window !== 'undefined') window.dispatchEvent(new Event('tl:morral'))
+}
+
 export default function QuickMorralButton({ libroId }: Props) {
   const [loading, setLoading] = useState(true)
   const [working, setWorking] = useState(false)
@@ -23,6 +34,7 @@ export default function QuickMorralButton({ libroId }: Props) {
   const [inMorral, setInMorral] = useState(false)
   const [otherState, setOtherState] = useState(false)
   const [prestamoId, setPrestamoId] = useState<string | null>(null)
+  const [full, setFull] = useState(false)
 
   useEffect(() => {
     let mounted = true
@@ -60,13 +72,26 @@ export default function QuickMorralButton({ libroId }: Props) {
     e.stopPropagation()
     if (!userId || working) return
     setWorking(true)
+    setFull(false)
     if (inMorral && prestamoId) {
       const { error } = await supabase.from('prestamos').delete().eq('id', prestamoId)
       if (!error) {
         setInMorral(false)
         setPrestamoId(null)
+        notifyMorral()
       }
     } else {
+      // Tope sano del morral (el límite por visita vive en el checkout)
+      const { count } = await supabase
+        .from('prestamos')
+        .select('id', { count: 'exact', head: true })
+        .eq('user_id', userId)
+        .eq('status', 'morral')
+      if ((count ?? 0) >= MAX_MORRAL) {
+        setFull(true)
+        setWorking(false)
+        return
+      }
       const { data, error } = await supabase
         .from('prestamos')
         .insert({ user_id: userId, libro_id: libroId, status: 'morral' })
@@ -75,6 +100,7 @@ export default function QuickMorralButton({ libroId }: Props) {
       if (!error && data) {
         setInMorral(true)
         setPrestamoId(data.id)
+        notifyMorral()
       }
     }
     setWorking(false)
@@ -93,7 +119,7 @@ export default function QuickMorralButton({ libroId }: Props) {
           : 'text-text-dim hover:text-text-bright'
       }`}
     >
-      {working ? '...' : inMorral ? '✓ en morral · quitar' : '+ morral'}
+      {working ? '...' : full ? 'morral lleno (50)' : inMorral ? '✓ en morral · quitar' : '+ morral'}
     </button>
   )
 }
