@@ -63,7 +63,7 @@ export default function RecuperarPage() {
           if (otpError) {
             setModo('pedir')
             setAviso(
-              'este enlace ya caducó: los enlaces del correo son de un solo uso, y cada enlace nuevo cancela los anteriores.'
+              'este enlace ya no sirve. los enlaces del correo son de un solo uso y expiran rápido por seguridad.'
             )
           } else {
             setModo('nueva')

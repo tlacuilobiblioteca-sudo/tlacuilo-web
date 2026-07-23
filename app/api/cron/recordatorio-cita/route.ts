@@ -87,7 +87,7 @@ export async function GET(req: NextRequest) {
     })
 
     const { error: sendErr } = await resend.emails.send({
-      from: 'Tlacuilo <hola@tlacuilo.org>',
+      from: 'Tlacuilo <tlacuilo@tlacuilo.org>',
       to: email,
       subject,
       html,

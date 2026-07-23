@@ -65,7 +65,7 @@ export async function POST(req: NextRequest) {
 
   // 1) Correo al lector (confirmación de su visita).
   const { error: sendErr } = await resend.emails.send({
-    from: 'Tlacuilo <hola@tlacuilo.org>',
+    from: 'Tlacuilo <tlacuilo@tlacuilo.org>',
     to: user.email,
     subject,
     html,
@@ -80,7 +80,7 @@ export async function POST(req: NextRequest) {
     visitAt,
   })
   const { error: equipoErr } = await resend.emails.send({
-    from: 'Tlacuilo <hola@tlacuilo.org>',
+    from: 'Tlacuilo <tlacuilo@tlacuilo.org>',
     to: EMAILS_EQUIPO,
     subject: equipoMail.subject,
     html: equipoMail.html,
