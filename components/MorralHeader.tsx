@@ -69,7 +69,7 @@ export default function MorralHeader() {
     <Link
       href="/mi-tlacuilo"
       aria-label={count === 1 ? 'Tu morral: 1 objeto' : `Tu morral: ${count} objetos`}
-      className="relative text-text hover:text-text-bright transition-colors inline-flex items-center"
+      className="relative text-text hover:text-text-bright transition-colors inline-flex items-end self-end pb-[2px]"
     >
       <style
         dangerouslySetInnerHTML={{
@@ -77,34 +77,36 @@ export default function MorralHeader() {
             '@keyframes tl-bump{0%{transform:scale(1)}40%{transform:scale(1.35)}100%{transform:scale(1)}}.tl-bump{animation:tl-bump .35s ease}',
         }}
       />
-      {/* morral · icono custom de tlacuilo (cuerpo cuadrado + flecos + asa con loop)
-          diseño marina · path del file de figma tR9uFoPn7WOcdrjuYcZAiC */}
+      {/* morral · icono custom de tlacuilo (variante C: outline + línea top + flecos verticales)
+          diseño marina · path del file figma tR9uFoPn7WOcdrjuYcZAiC */}
       <svg
         xmlns="http://www.w3.org/2000/svg"
         fill="none"
-        viewBox="0 0 170 326"
-        strokeWidth="12"
+        viewBox="0 0 165 318"
+        strokeWidth="6"
         stroke="currentColor"
         strokeLinecap="round"
         strokeLinejoin="round"
-        className="w-[clamp(18px,1.6vw,24px)] h-auto"
+        className="w-[clamp(14px,1.2vw,18px)] h-auto block"
         aria-hidden="true"
       >
         {/* cuerpo cuadrado */}
-        <path d="M4.98909 125V285H164.989V125H4.98909Z" />
-        {/* 6 flecos */}
-        <path d="M31.9891 285L25.9891 320" />
-        <path d="M39.9891 285V323" />
-        <path d="M47.9891 285L51.9891 320" />
-        <path d="M121.989 285L117.989 320" />
-        <path d="M129.989 285V323" />
-        <path d="M137.989 285L141.989 320" />
-        {/* asa: sale de ambas esquinas, sube, loop del lado derecho, baja */}
-        <path d="M6.16709 123C-8.83291 58 31.1671 3 86.1671 3C141.167 3 161.167 43 141.167 63C121.167 78 101.167 58 116.167 43C131.167 33 156.167 38 166.167 123" />
+        <path d="M163.676 120.5H3.67615V280.5H163.676V120.5Z" />
+        {/* línea horizontal de refuerzo top */}
+        <path d="M3.67615 135.5H163.676" />
+        {/* 6 flecos verticales */}
+        <path d="M3.67615 281.5V311.5" />
+        <path d="M15.6761 281.5V317.5" />
+        <path d="M27.6761 281.5V311.5" />
+        <path d="M139.676 281.5V311.5" />
+        <path d="M151.676 281.5V317.5" />
+        <path d="M163.676 281.5V311.5" />
+        {/* asa con loop derecho */}
+        <path d="M3.67617 120.5C-11.3238 55.5 28.6762 0.5 83.6762 0.5C138.676 0.5 158.676 40.5 138.676 60.5C118.676 75.5 98.6762 55.5 113.676 40.5C128.676 30.5 153.676 35.5 163.676 120.5" />
       </svg>
       {count > 0 && (
         <span
-          className={`absolute top-[35%] -right-2 min-w-[15px] h-[15px] px-[3px] rounded-full bg-morado text-bone font-mono text-[9px] leading-[15px] text-center ${bump ? 'tl-bump' : ''}`}
+          className={`absolute top-[30%] -right-2 min-w-[15px] h-[15px] px-[3px] rounded-full bg-morado text-bone font-mono text-[9px] leading-[15px] text-center ${bump ? 'tl-bump' : ''}`}
         >
           {count > 99 ? '99' : count}
         </span>
