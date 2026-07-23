@@ -1,15 +1,15 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 165 318" fill="none" stroke="currentColor" stroke-width="6" stroke-linecap="round" stroke-linejoin="round">
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 10 19" fill="none" stroke="currentColor" stroke-width="0.5" stroke-linecap="round" stroke-linejoin="round">
   <!-- cuerpo cuadrado -->
-  <path d="M163.676 120.5H3.67615V280.5H163.676V120.5Z"/>
+  <path d="M9.58697 7.11694H0.431152V16.2728H9.58697V7.11694Z"/>
   <!-- línea horizontal de refuerzo top -->
-  <path d="M3.67615 135.5H163.676"/>
+  <path d="M0.431152 7.97522H9.58697"/>
   <!-- 6 flecos verticales -->
-  <path d="M3.67615 281.5V311.5"/>
-  <path d="M15.6761 281.5V317.5"/>
-  <path d="M27.6761 281.5V311.5"/>
-  <path d="M139.676 281.5V311.5"/>
-  <path d="M151.676 281.5V317.5"/>
-  <path d="M163.676 281.5V311.5"/>
+  <path d="M0.431152 16.33V18.0467"/>
+  <path d="M1.11768 16.33V18.39"/>
+  <path d="M1.8042 16.33V18.0467"/>
+  <path d="M8.21338 16.33V18.0467"/>
+  <path d="M8.90039 16.33V18.39"/>
+  <path d="M9.58691 16.33V18.0467"/>
   <!-- asa con loop derecho -->
-  <path d="M3.67617 120.5C-11.3238 55.5 28.6762 0.5 83.6762 0.5C138.676 0.5 158.676 40.5 138.676 60.5C118.676 75.5 98.6762 55.5 113.676 40.5C128.676 30.5 153.676 35.5 163.676 120.5"/>
+  <path d="M0.430881 7.11686C-0.427477 3.39731 1.86148 0.25 5.00879 0.25C8.1561 0.25 9.30058 2.53895 8.1561 3.68343C7.01162 4.54179 5.86715 3.39731 6.7255 2.53895C7.58386 1.96672 9.01446 2.25283 9.5867 7.11686"/>
 </svg>
