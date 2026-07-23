@@ -77,24 +77,34 @@ export default function MorralHeader() {
             '@keyframes tl-bump{0%{transform:scale(1)}40%{transform:scale(1.35)}100%{transform:scale(1)}}.tl-bump{animation:tl-bump .35s ease}',
         }}
       />
-      {/* morral (bolsa) · mismo trazo 1.6 que el icono de calendario */}
+      {/* morral · icono custom de tlacuilo (cuerpo cuadrado + flecos + asa con loop)
+          diseño marina · path del file de figma tR9uFoPn7WOcdrjuYcZAiC */}
       <svg
         xmlns="http://www.w3.org/2000/svg"
         fill="none"
-        viewBox="0 0 24 24"
-        strokeWidth="1.6"
+        viewBox="0 0 170 326"
+        strokeWidth="12"
         stroke="currentColor"
-        className="w-[clamp(14px,1.2vw,18px)] h-[clamp(14px,1.2vw,18px)]"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        className="w-[clamp(18px,1.6vw,24px)] h-auto"
+        aria-hidden="true"
       >
-        <path
-          strokeLinecap="round"
-          strokeLinejoin="round"
-          d="M15.75 10.5V6a3.75 3.75 0 1 0-7.5 0v4.5m11.356-1.993 1.263 12c.07.665-.45 1.243-1.119 1.243H4.25a1.125 1.125 0 0 1-1.12-1.243l1.264-12A1.125 1.125 0 0 1 5.513 7.5h12.974c.576 0 1.059.435 1.119 1.007Z"
-        />
+        {/* cuerpo cuadrado */}
+        <path d="M4.98909 125V285H164.989V125H4.98909Z" />
+        {/* 6 flecos */}
+        <path d="M31.9891 285L25.9891 320" />
+        <path d="M39.9891 285V323" />
+        <path d="M47.9891 285L51.9891 320" />
+        <path d="M121.989 285L117.989 320" />
+        <path d="M129.989 285V323" />
+        <path d="M137.989 285L141.989 320" />
+        {/* asa: sale de ambas esquinas, sube, loop del lado derecho, baja */}
+        <path d="M6.16709 123C-8.83291 58 31.1671 3 86.1671 3C141.167 3 161.167 43 141.167 63C121.167 78 101.167 58 116.167 43C131.167 33 156.167 38 166.167 123" />
       </svg>
       {count > 0 && (
         <span
-          className={`absolute -top-1.5 -right-2.5 min-w-[15px] h-[15px] px-[3px] rounded-full bg-morado text-bone font-mono text-[9px] leading-[15px] text-center ${bump ? 'tl-bump' : ''}`}
+          className={`absolute top-[35%] -right-2 min-w-[15px] h-[15px] px-[3px] rounded-full bg-morado text-bone font-mono text-[9px] leading-[15px] text-center ${bump ? 'tl-bump' : ''}`}
         >
           {count > 99 ? '99' : count}
         </span>

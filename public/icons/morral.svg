@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 170 326" fill="none" stroke="currentColor" stroke-width="12" stroke-linecap="round" stroke-linejoin="round">
+  <!-- cuerpo cuadrado -->
+  <path d="M4.98909 125V285H164.989V125H4.98909Z"/>
+  <!-- 6 flecos abajo -->
+  <path d="M31.9891 285L25.9891 320"/>
+  <path d="M39.9891 285V323"/>
+  <path d="M47.9891 285L51.9891 320"/>
+  <path d="M121.989 285L117.989 320"/>
+  <path d="M129.989 285V323"/>
+  <path d="M137.989 285L141.989 320"/>
+  <!-- asa: sale de ambas esquinas, sube, hace loop del lado derecho, baja al otro -->
+  <path d="M6.16709 123C-8.83291 58 31.1671 3 86.1671 3C141.167 3 161.167 43 141.167 63C121.167 78 101.167 58 116.167 43C131.167 33 156.167 38 166.167 123"/>
+</svg>
