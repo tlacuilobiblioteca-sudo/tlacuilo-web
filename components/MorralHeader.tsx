@@ -23,7 +23,10 @@ export default function MorralHeader() {
   // (o cuando el usuario hace hover). Después se desvanece.
   const [badgeVisible, setBadgeVisible] = useState(false)
   const prev = useRef(0)
-  const firstLoad = useRef(true)
+  // Solo TRUE cuando el próximo cambio del count viene de una interacción
+  // del usuario (agregar/quitar). Fetch inicial y navegación entre pages
+  // NO activan el badge.
+  const nextChangeByUser = useRef(false)
   const hideTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
 
   useEffect(() => {
@@ -49,7 +52,13 @@ export default function MorralHeader() {
       if (mounted) setCount(n ?? 0)
     }
     load()
-    const onChange = () => load()
+    // Cuando otro componente dispara 'tl:morral' (usuario agregó/quitó),
+    // marcamos que el siguiente cambio del count es por acción del usuario
+    // para que el badge aparezca.
+    const onChange = () => {
+      nextChangeByUser.current = true
+      load()
+    }
     window.addEventListener('tl:morral', onChange)
     return () => {
       mounted = false
@@ -57,18 +66,11 @@ export default function MorralHeader() {
     }
   }, [userId])
 
-  // Cuando cambia el contador:
-  //  · si es la primera carga (viene de la DB) → no mostrar badge (nada de notif permanente)
-  //  · si es una interacción del usuario → mostrar badge por 2.5s con bump y luego apagar
+  // Badge solo aparece si el cambio del count viene de una acción del
+  // usuario (evento 'tl:morral'). Navegación entre pages, mount o fetch
+  // inicial NO lo muestran, aunque el count cambie de 0 a N.
   useEffect(() => {
-    // Skip la primera carga (viene de fetch inicial)
-    if (firstLoad.current) {
-      firstLoad.current = false
-      prev.current = count
-      return
-    }
-
-    if (count !== prev.current && count > 0) {
+    if (nextChangeByUser.current && count > 0) {
       setBadgeVisible(true)
       if (count > prev.current) setBump(true)
       if (hideTimer.current) clearTimeout(hideTimer.current)
@@ -76,6 +78,7 @@ export default function MorralHeader() {
         setBadgeVisible(false)
         setBump(false)
       }, 2500)
+      nextChangeByUser.current = false
     } else if (count === 0) {
       setBadgeVisible(false)
       setBump(false)
@@ -105,7 +108,7 @@ export default function MorralHeader() {
       onMouseLeave={hideBadgeSoon}
       onFocus={showBadge}
       onBlur={hideBadgeSoon}
-      className="relative text-text hover:text-text-bright transition-colors inline-flex items-end self-end pb-[2px]"
+      className="relative text-text hover:text-text-bright transition-colors inline-flex items-end self-end pb-0 -mb-[3px]"
     >
       <style
         dangerouslySetInnerHTML={{
@@ -123,7 +126,7 @@ export default function MorralHeader() {
         stroke="currentColor"
         strokeLinecap="round"
         strokeLinejoin="round"
-        className="w-[clamp(14px,1.2vw,18px)] h-auto block"
+        className="w-[clamp(11px,0.9vw,14px)] h-auto block"
         aria-hidden="true"
       >
         {/* cuerpo cuadrado */}
