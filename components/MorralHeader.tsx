@@ -19,7 +19,12 @@ export default function MorralHeader() {
   const [userId, setUserId] = useState<string | null>(null)
   const [count, setCount] = useState(0)
   const [bump, setBump] = useState(false)
+  // El badge NO es permanente. Solo aparece cuando cambia el contador
+  // (o cuando el usuario hace hover). Después se desvanece.
+  const [badgeVisible, setBadgeVisible] = useState(false)
   const prev = useRef(0)
+  const firstLoad = useRef(true)
+  const hideTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
 
   useEffect(() => {
     supabase.auth.getUser().then(({ data: { user } }) => setUserId(user?.id ?? null))
@@ -52,16 +57,43 @@ export default function MorralHeader() {
     }
   }, [userId])
 
-  // brinquito cuando el contador sube (respuesta directa a la acción del usuario)
+  // Cuando cambia el contador:
+  //  · si es la primera carga (viene de la DB) → no mostrar badge (nada de notif permanente)
+  //  · si es una interacción del usuario → mostrar badge por 2.5s con bump y luego apagar
   useEffect(() => {
-    if (count > prev.current) {
-      setBump(true)
-      const t = setTimeout(() => setBump(false), 400)
+    // Skip la primera carga (viene de fetch inicial)
+    if (firstLoad.current) {
+      firstLoad.current = false
       prev.current = count
-      return () => clearTimeout(t)
+      return
+    }
+
+    if (count !== prev.current && count > 0) {
+      setBadgeVisible(true)
+      if (count > prev.current) setBump(true)
+      if (hideTimer.current) clearTimeout(hideTimer.current)
+      hideTimer.current = setTimeout(() => {
+        setBadgeVisible(false)
+        setBump(false)
+      }, 2500)
+    } else if (count === 0) {
+      setBadgeVisible(false)
+      setBump(false)
     }
     prev.current = count
   }, [count])
+
+  // Hover: si tienes cosas, mostrar badge. Al salir, apagar después de 700ms
+  const showBadge = () => {
+    if (count === 0) return
+    if (hideTimer.current) clearTimeout(hideTimer.current)
+    setBadgeVisible(true)
+  }
+  const hideBadgeSoon = () => {
+    if (count === 0) return
+    if (hideTimer.current) clearTimeout(hideTimer.current)
+    hideTimer.current = setTimeout(() => setBadgeVisible(false), 700)
+  }
 
   if (!userId) return null
 
@@ -69,6 +101,10 @@ export default function MorralHeader() {
     <Link
       href="/mi-tlacuilo"
       aria-label={count === 1 ? 'Tu morral: 1 objeto' : `Tu morral: ${count} objetos`}
+      onMouseEnter={showBadge}
+      onMouseLeave={hideBadgeSoon}
+      onFocus={showBadge}
+      onBlur={hideBadgeSoon}
       className="relative text-text hover:text-text-bright transition-colors inline-flex items-end self-end pb-[2px]"
     >
       <style
@@ -106,7 +142,10 @@ export default function MorralHeader() {
       </svg>
       {count > 0 && (
         <span
-          className={`absolute top-[30%] -right-2 min-w-[15px] h-[15px] px-[3px] rounded-full bg-morado text-bone font-mono text-[9px] leading-[15px] text-center ${bump ? 'tl-bump' : ''}`}
+          aria-hidden={!badgeVisible}
+          className={`absolute top-[30%] -right-2 min-w-[15px] h-[15px] px-[3px] rounded-full bg-morado text-bone font-mono text-[9px] leading-[15px] text-center transition-opacity duration-300 pointer-events-none ${
+            badgeVisible ? 'opacity-100' : 'opacity-0'
+          } ${bump ? 'tl-bump' : ''}`}
         >
           {count > 99 ? '99' : count}
         </span>
