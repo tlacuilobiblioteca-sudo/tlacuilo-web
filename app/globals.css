@@ -1,8 +1,14 @@
-@import "tailwindcss";
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
 
 /* ============================================================
-   TLACUILO · Tailwind v4 + tokens canon v2
+   TLACUILO · Tailwind v3 + tokens canon v2
    ============================================================
+   Migrado de v4 el 2026-07-11 para soportar navegadores viejos
+   (Safari < 16.4, iOS 14-15). Los tokens viven aquí como CSS
+   custom properties y el config de Tailwind los mapea a clases.
+
    Paleta v2 confirmada 2026-05-26:
    - morado tlacuilo #6E6BA0 (light bg primario)
    - periwinkle    #9D9BC8 (hover/disabled, bg-card alterno)
@@ -18,8 +24,8 @@
    - DM Mono → micro-labels, datos crudos (font-micro)
    ============================================================ */
 
-/* ---------- Tokens ---------- */
-@theme {
+/* ---------- Tokens (DARK MODE default) ---------- */
+:root {
   /* Brand colors directos */
   --color-morado: #6E6BA0;
   --color-periwinkle: #9D9BC8;
