@@ -60,6 +60,13 @@ export default function AdminCalendarioPage() {
   const [nNota, setNNota] = useState('')
   const [guardando, setGuardando] = useState(false)
 
+  function agregarEnDia(d: number, m: number) {
+    setNDia(String(d))
+    setNMes(String(m))
+    setMostrarNueva(true)
+    setTimeout(() => document.getElementById('form-nueva-ficha')?.scrollIntoView({ behavior: 'smooth', block: 'start' }), 50)
+  }
+
   async function crearFicha() {
     if (!nTitulo.trim() || !nContexto.trim() || !nGancho.trim() || !nPlan.trim()) {
       alert('título, contexto, gancho y plan de libros son obligatorios')
@@ -163,7 +170,7 @@ export default function AdminCalendarioPage() {
           </button>
 
           {mostrarNueva && (
-            <div className="border border-rule-strong bg-bg-soft p-5 mt-3 flex flex-col gap-3 font-mono">
+            <div id="form-nueva-ficha" className="border border-rule-strong bg-bg-soft p-5 mt-3 flex flex-col gap-3 font-mono">
               <div className="flex flex-wrap items-end gap-3">
                 <label className="flex flex-col gap-1">
                   <span className="text-[10px] uppercase tracking-wider text-text-dim">día (vacío si es fecha móvil)</span>
@@ -315,7 +322,7 @@ export default function AdminCalendarioPage() {
               <button type="button" onClick={mesSiguiente} disabled={esFin} aria-label="mes siguiente"
                 className="px-2 opacity-60 hover:opacity-100 disabled:opacity-20 cursor-pointer">→</button>
             </div>
-            <GridMes anio={cursor.anio} mes={cursor.mes} fichas={filtradas} hoy={hoy} />
+            <GridMes anio={cursor.anio} mes={cursor.mes} fichas={filtradas} hoy={hoy} onAgregar={agregarEnDia} />
           </div>
         )}
 
@@ -396,7 +403,7 @@ function Bannersito({ f }: { f: CalendarioFecha }) {
   )
 }
 
-function GridMes({ anio, mes, fichas, hoy }: { anio: number; mes: number; fichas: CalendarioFecha[]; hoy: Date }) {
+function GridMes({ anio, mes, fichas, hoy, onAgregar }: { anio: number; mes: number; fichas: CalendarioFecha[]; hoy: Date; onAgregar: (d: number, m: number) => void }) {
   const diasEnMes = new Date(anio, mes, 0).getDate()
   const primerDiaSemana = (new Date(anio, mes - 1, 1).getDay() + 6) % 7 // lunes = 0
   const porDia = new Map<number, CalendarioFecha[]>()
@@ -437,10 +444,14 @@ function GridMes({ anio, mes, fichas, hoy }: { anio: number; mes: number; fichas
           <div key={d} className="bg-bg px-2 py-1 font-mono text-[11px] text-center opacity-40">{d}</div>
         ))}
         {celdas.map((d, i) => (
-          <div key={i} className={`bg-bg min-h-[120px] p-1.5 ${d === null ? 'opacity-30' : ''} ${d !== null && yaPaso(d) ? 'opacity-50' : ''}`}>
+          <div key={i} className={`group bg-bg min-h-[120px] p-1.5 ${d === null ? 'opacity-30' : ''} ${d !== null && yaPaso(d) ? 'opacity-50' : ''}`}>
             {d !== null && (
               <>
-                <p className={`font-mono text-[11px] mb-1 px-0.5 ${esHoy(d) ? 'text-acid' : 'text-text-dim'}`}>{d}{esHoy(d) ? ' · hoy' : ''}</p>
+                <div className="flex items-center justify-between mb-1 px-0.5">
+                  <p className={`font-mono text-[11px] ${esHoy(d) ? 'text-acid' : 'text-text-dim'}`}>{d}{esHoy(d) ? ' · hoy' : ''}</p>
+                  <button type="button" onClick={() => onAgregar(d, mes)} title={`agregar ocasión el ${d} de ${MESES[mes - 1]}`}
+                    className="font-mono text-[12px] leading-none text-text-dim opacity-0 group-hover:opacity-100 hover:text-acid transition-opacity cursor-pointer">+</button>
+                </div>
                 {(porDia.get(d) ?? []).map((f) => <Bannersito key={f.id} f={f} />)}
               </>
             )}
@@ -451,13 +462,16 @@ function GridMes({ anio, mes, fichas, hoy }: { anio: number; mes: number; fichas
       <div className="md:hidden flex flex-col gap-2">
         {Array.from({ length: diasEnMes }, (_, k) => k + 1).map((d) => (
           <div key={d} className={`border border-rule p-2 ${yaPaso(d) ? 'opacity-50' : ''} ${(porDia.get(d) ?? []).length === 0 ? 'py-1' : 'bg-bg-soft'}`}>
-            <p className={`font-mono text-[11px] mb-1 ${esHoy(d) ? 'text-acid' : 'text-text-dim'}`}>{d} de {MESES[mes - 1]}{esHoy(d) ? ' · hoy' : ''}</p>
+            <div className="flex items-center justify-between mb-1">
+              <p className={`font-mono text-[11px] ${esHoy(d) ? 'text-acid' : 'text-text-dim'}`}>{d} de {MESES[mes - 1]}{esHoy(d) ? ' · hoy' : ''}</p>
+              <button type="button" onClick={() => onAgregar(d, mes)} className="font-mono text-[14px] leading-none text-text-dim hover:text-acid px-1">+</button>
+            </div>
             {(porDia.get(d) ?? []).map((f) => <Bannersito key={f.id} f={f} />)}
           </div>
         ))}
       </div>
       <p className="font-mono text-[10px] text-text-dim mt-3">
-        ✓ = libros ya confirmados en catálogo · borde punteado = falta verificar · naranja = hueco de acervo · ! = requiere cuidado · pasa el cursor para ver la categoría
+        ✓ = libros ya confirmados en catálogo · borde punteado = falta verificar · naranja = hueco de acervo · ! = requiere cuidado · pasa el cursor por un día y pica + para agregar una ocasión ahí
       </p>
     </div>
   )
