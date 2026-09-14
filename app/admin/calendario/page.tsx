@@ -307,18 +307,13 @@ export default function AdminCalendarioPage() {
         {/* ============ VISTA POR MES ============ */}
         {modo === 'mes' && !cargando && fechas.length > 0 && (
           <div className="mb-10">
-            <div className="flex items-center justify-between mb-4">
-              <button onClick={mesAnterior} disabled={esInicio}
-                className="font-micro text-[11px] uppercase tracking-[0.08em] px-3 py-1.5 border border-rule text-text-dim hover:text-text-bright disabled:opacity-30">
-                ← anterior
-              </button>
-              <p className="font-sans font-light text-[clamp(22px,2.6vw,32px)] text-text-bright capitalize">
-                {MESES[cursor.mes - 1]} {cursor.anio}
-              </p>
-              <button onClick={mesSiguiente} disabled={esFin}
-                className="font-micro text-[11px] uppercase tracking-[0.08em] px-3 py-1.5 border border-rule text-text-dim hover:text-text-bright disabled:opacity-30">
-                siguiente →
-              </button>
+            {/* misma cabecera que el mini calendario de mi tlacuilo */}
+            <div className="flex items-center justify-between mb-3 font-mono text-[12px] tracking-wider">
+              <button type="button" onClick={mesAnterior} disabled={esInicio} aria-label="mes anterior"
+                className="px-2 opacity-60 hover:opacity-100 disabled:opacity-20 cursor-pointer">←</button>
+              <span className="uppercase tracking-[0.14em] text-text-bright">{MESES[cursor.mes - 1]} {cursor.anio}</span>
+              <button type="button" onClick={mesSiguiente} disabled={esFin} aria-label="mes siguiente"
+                className="px-2 opacity-60 hover:opacity-100 disabled:opacity-20 cursor-pointer">→</button>
             </div>
             <GridMes anio={cursor.anio} mes={cursor.mes} fichas={filtradas} hoy={hoy} />
           </div>
@@ -375,7 +370,7 @@ export default function AdminCalendarioPage() {
    verificar se quedan (sin palomita, borde punteado) para que siempre se
    vea que hay algo que postear. Las fechas sin día fijo van arriba.
    ============================================================ */
-const DIAS_SEMANA = ['lun', 'mar', 'mié', 'jue', 'vie', 'sáb', 'dom']
+const DIAS_SEMANA = ['l', 'm', 'x', 'j', 'v', 's', 'd'] // como el mini calendario de mi tlacuilo
 
 function terceroJueves(anio: number, mes: number): number {
   const primero = new Date(anio, mes - 1, 1).getDay() // 0 dom .. 6 sab
@@ -439,7 +434,7 @@ function GridMes({ anio, mes, fichas, hoy }: { anio: number; mes: number; fichas
       )}
       <div className="grid grid-cols-7 gap-px bg-rule border border-rule max-md:hidden">
         {DIAS_SEMANA.map((d) => (
-          <div key={d} className="bg-bg px-2 py-1 font-micro text-[10px] uppercase tracking-wider text-text-dim">{d}</div>
+          <div key={d} className="bg-bg px-2 py-1 font-mono text-[11px] text-center opacity-40">{d}</div>
         ))}
         {celdas.map((d, i) => (
           <div key={i} className={`bg-bg min-h-[120px] p-1.5 ${d === null ? 'opacity-30' : ''} ${d !== null && yaPaso(d) ? 'opacity-50' : ''}`}>
