@@ -140,7 +140,7 @@ export default function AdminCalendarioPage() {
   return (
     <TecaLayout>
       <AdminNav />
-      <section className="px-10 pt-10 pb-16 max-w-5xl mx-auto max-md:px-5">
+      <section className="px-10 pt-10 pb-16 max-w-7xl mx-auto max-md:px-5">
         <p className="font-micro uppercase tracking-[0.12em] text-[11px] text-acid mb-3">
           admin · calendario de contenido
         </p>
@@ -444,7 +444,7 @@ function GridMes({ anio, mes, fichas, hoy, onAgregar }: { anio: number; mes: num
           <div key={d} className="bg-bg px-2 py-1 font-mono text-[11px] text-center opacity-40">{d}</div>
         ))}
         {celdas.map((d, i) => (
-          <div key={i} className={`group bg-bg min-h-[120px] p-1.5 ${d === null ? 'opacity-30' : ''} ${d !== null && yaPaso(d) ? 'opacity-50' : ''}`}>
+          <div key={i} className={`group bg-bg min-h-[150px] p-1.5 ${d === null ? 'opacity-30' : ''} ${d !== null && yaPaso(d) ? 'opacity-50' : ''}`}>
             {d !== null && (
               <>
                 <div className="flex items-center justify-between mb-1 px-0.5">
