@@ -34,10 +34,10 @@ export default function AdminCalendarioPage() {
   const [busqueda, setBusqueda] = useState('')
   const router = useRouter()
 
-  // Vista por mes: de hoy a enero 2028, las fechas se repiten cada año
+  // Vista por mes: de hoy a enero 2030, las fechas se repiten cada año
   const hoy = new Date()
   const INICIO = { anio: hoy.getFullYear(), mes: hoy.getMonth() + 1 }
-  const FIN = { anio: 2028, mes: 1 }
+  const FIN = { anio: 2030, mes: 1 }
   const [modo, setModo] = useState<'mes' | 'lista'>('mes')
   const [cursor, setCursor] = useState(INICIO)
   const esInicio = cursor.anio === INICIO.anio && cursor.mes === INICIO.mes
