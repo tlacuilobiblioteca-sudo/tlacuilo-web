@@ -31,6 +31,11 @@ const COSAS = [
     titulo: 'Eventos',
     texto: 'lo que aparece en el calendario',
   },
+  {
+    href: '/admin/calendario',
+    titulo: 'Calendario de contenido',
+    texto: 'fechas evergreen para planear posts, con que libros del catalogo aplican',
+  },
 ] as const
 
 export default function AdminAjustesPage() {
