@@ -369,89 +369,83 @@ export default function AdminCalendarioPage() {
 }
 
 /* ============================================================
-   Grid del mes: las fichas (día/mes, sin año) proyectadas sobre
-   el mes real que se está viendo. Las fechas sin día (móviles o
-   solo-mes) van en una fila aparte arriba del grid.
+   Cuadritos del mes: una tarjeta por ocasión, en orden de día. Las que ya
+   tienen libros confirmados en catálogo llevan palomita y van primero; las
+   que faltan de verificar (o son hueco) van al final, sin palomita, para
+   que siempre se vea que hay algo que postear. Si el mes tiene pocas
+   ocasiones, cada tarjeta muestra su contenido completo.
    ============================================================ */
-const DIAS_SEMANA = ['lun', 'mar', 'mié', 'jue', 'vie', 'sáb', 'dom']
-
 function terceroJueves(anio: number, mes: number): number {
-  // mes 1-12; devuelve el día del tercer jueves
   const primero = new Date(anio, mes - 1, 1).getDay() // 0 dom .. 6 sab
   const offset = (4 - primero + 7) % 7 // 4 = jueves
   return 1 + offset + 14
 }
 
 function GridMes({ anio, mes, fichas, hoy }: { anio: number; mes: number; fichas: CalendarioFecha[]; hoy: Date }) {
-  const diasEnMes = new Date(anio, mes, 0).getDate()
-  const primerDiaSemana = (new Date(anio, mes - 1, 1).getDay() + 6) % 7 // lunes = 0
-  const porDia = new Map<number, CalendarioFecha[]>()
-  const sinDia: CalendarioFecha[] = []
-  for (const f of fichas) {
+  const conDia = fichas.map((f) => {
     let d = f.dia
     if (d === null && /filosof/i.test(f.titulo) && mes === 11) d = terceroJueves(anio, mes)
-    if (d === null) { sinDia.push(f); continue }
-    if (!porDia.has(d)) porDia.set(d, [])
-    porDia.get(d)!.push(f)
+    return { f, d }
+  })
+  const orden = (x: { f: CalendarioFecha; d: number | null }) =>
+    (x.f.estado_acervo === 'confirmado' ? 0 : 1) * 100 + (x.d ?? 99)
+  const lista = [...conDia].sort((a, b) => orden(a) - orden(b))
+  const pocas = lista.length <= 6
+  const yaPaso = (d: number | null) =>
+    d !== null && new Date(anio, mes - 1, d) < new Date(hoy.getFullYear(), hoy.getMonth(), hoy.getDate())
+  const esHoy = (d: number | null) =>
+    d !== null && hoy.getFullYear() === anio && hoy.getMonth() + 1 === mes && hoy.getDate() === d
+  const confirmadas = lista.filter((x) => x.f.estado_acervo === 'confirmado').length
+
+  if (lista.length === 0) {
+    return <p className="font-mono text-sm text-text-dim lowercase">nada en este mes con estos filtros.</p>
   }
-  const celdas: (number | null)[] = []
-  for (let i = 0; i < primerDiaSemana; i++) celdas.push(null)
-  for (let d = 1; d <= diasEnMes; d++) celdas.push(d)
-  while (celdas.length % 7 !== 0) celdas.push(null)
-  const esHoy = (d: number) => hoy.getFullYear() === anio && hoy.getMonth() + 1 === mes && hoy.getDate() === d
-  const yaPaso = (d: number) => new Date(anio, mes - 1, d) < new Date(hoy.getFullYear(), hoy.getMonth(), hoy.getDate())
 
   return (
     <div>
-      {sinDia.length > 0 && (
-        <div className="border border-rule bg-bg-soft p-3 mb-3 font-mono text-xs">
-          <p className="text-[10px] uppercase tracking-wider text-text-dim mb-1">este mes, sin día fijo</p>
-          {sinDia.map((f) => (
-            <Link key={f.id} href={`/admin/calendario/${f.id}`} className="block text-text-bright hover:text-acid truncate">
-              {f.titulo}
+      <p className="font-mono text-[11px] text-text-dim mb-3">
+        {lista.length} ocasiones · {confirmadas} con libros ya confirmados en catálogo
+        {lista.length - confirmadas > 0 ? ` · ${lista.length - confirmadas} por verificar (al final, sin palomita)` : ''}
+      </p>
+      <div className={`grid gap-3 ${pocas ? 'grid-cols-2 max-md:grid-cols-1' : 'grid-cols-3 max-lg:grid-cols-2 max-md:grid-cols-1'}`}>
+        {lista.map(({ f, d }) => {
+          const ok = f.estado_acervo === 'confirmado'
+          return (
+            <Link
+              key={f.id}
+              href={`/admin/calendario/${f.id}`}
+              className={`border p-4 flex flex-col gap-2 hover:border-rule-strong transition-colors ${
+                ok ? 'border-rule bg-bg-soft' : 'border-dashed border-rule bg-transparent'
+              } ${yaPaso(d) ? 'opacity-50' : ''}`}
+            >
+              <div className="flex items-start justify-between gap-2">
+                <p className={`font-mono text-[11px] uppercase tracking-wider ${esHoy(d) ? 'text-acid' : 'text-text-dim'}`}>
+                  {d !== null ? `${d} de ${MESES[mes - 1]}` : `${MESES[mes - 1]} · sin día fijo`}
+                  {esHoy(d) ? ' · hoy' : ''}
+                </p>
+                {ok && <span className="font-mono text-acid text-[13px] leading-none" title="libros confirmados en catálogo">✓</span>}
+                {f.estado_acervo === 'hueco' && <span className="font-micro text-[9px] uppercase tracking-wider text-loan">hueco</span>}
+              </div>
+              <p className="font-mono text-[10px] uppercase tracking-wider text-text-dim">{labelCategoria(f.categoria)}</p>
+              <p className="text-text-bright text-[15px] leading-snug">
+                {f.tono === 'requiere_cuidado' && <span className="text-loan mr-1" title="requiere cuidado">!</span>}
+                {f.titulo}
+              </p>
+              {pocas ? (
+                <div className="font-mono text-[12px] text-text-dim leading-relaxed flex flex-col gap-2 mt-1">
+                  <p><span className="text-text-bright">Qué se conmemora · </span>{f.contexto}</p>
+                  <p><span className="text-text-bright">Por qué interesa · </span>{f.gancho}</p>
+                  <p><span className="text-text-bright">Qué libros buscar · </span>{f.plan_de_libros}</p>
+                </div>
+              ) : (
+                <p className="font-mono text-[12px] text-text-dim leading-relaxed line-clamp-3">{f.gancho}</p>
+              )}
             </Link>
-          ))}
-        </div>
-      )}
-      <div className="grid grid-cols-7 gap-px bg-rule border border-rule max-md:hidden">
-        {DIAS_SEMANA.map((d) => (
-          <div key={d} className="bg-bg px-2 py-1 font-micro text-[10px] uppercase tracking-wider text-text-dim">{d}</div>
-        ))}
-        {celdas.map((d, i) => (
-          <div key={i} className={`bg-bg min-h-[110px] p-2 ${d === null ? 'opacity-30' : ''} ${d !== null && yaPaso(d) ? 'opacity-50' : ''}`}>
-            {d !== null && (
-              <>
-                <p className={`font-mono text-[11px] mb-1 ${esHoy(d) ? 'text-acid' : 'text-text-dim'}`}>{d}{esHoy(d) ? ' · hoy' : ''}</p>
-                {(porDia.get(d) ?? []).map((f) => (
-                  <Link key={f.id} href={`/admin/calendario/${f.id}`}
-                    className={`block font-mono text-[11px] leading-tight mb-1 truncate hover:text-acid ${
-                      f.estado_acervo === 'hueco' ? 'text-loan' : f.estado_acervo === 'confirmado' ? 'text-text-bright' : 'text-text-dim'
-                    }`}
-                    title={`${f.titulo} · ${labelCategoria(f.categoria)}${f.tono === 'requiere_cuidado' ? ' · requiere cuidado' : ''}`}
-                  >
-                    {f.tono === 'requiere_cuidado' ? '! ' : ''}{f.titulo}
-                  </Link>
-                ))}
-              </>
-            )}
-          </div>
-        ))}
-      </div>
-      {/* movil: lista del mes */}
-      <div className="md:hidden flex flex-col gap-2">
-        {Array.from(porDia.keys()).sort((a, b) => a - b).map((d) => (
-          <div key={d} className="border border-rule bg-bg-soft p-3">
-            <p className={`font-mono text-[11px] mb-1 ${esHoy(d) ? 'text-acid' : 'text-text-dim'}`}>{d} de {MESES[mes - 1]}</p>
-            {porDia.get(d)!.map((f) => (
-              <Link key={f.id} href={`/admin/calendario/${f.id}`} className="block font-mono text-[12px] text-text-bright hover:text-acid">
-                {f.tono === 'requiere_cuidado' ? '! ' : ''}{f.titulo}
-              </Link>
-            ))}
-          </div>
-        ))}
+          )
+        })}
       </div>
       <p className="font-mono text-[10px] text-text-dim mt-3">
-        claro = confirmado en catálogo · gris = verificar · naranja = hueco de acervo · ! = requiere cuidado
+        ✓ = libros ya confirmados en catálogo · borde punteado = falta verificar · ! = requiere cuidado
       </p>
     </div>
   )
