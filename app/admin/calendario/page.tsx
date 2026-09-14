@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import Link from 'next/link'
+import { useRouter } from 'next/navigation'
 import { supabase } from '@/lib/supabase'
 import TecaLayout from '@/components/TecaLayout'
 import AdminNav from '@/components/AdminNav'
@@ -31,6 +32,53 @@ export default function AdminCalendarioPage() {
   const [mes, setMes] = useState<number | null>(null)
   const [categoria, setCategoria] = useState<string | null>(null)
   const [busqueda, setBusqueda] = useState('')
+  const router = useRouter()
+
+  // Form de nueva ficha
+  const [mostrarNueva, setMostrarNueva] = useState(false)
+  const [nDia, setNDia] = useState('')
+  const [nMes, setNMes] = useState('1')
+  const [nCategoria, setNCategoria] = useState<string>(CATEGORIAS[0].slug)
+  const [nTitulo, setNTitulo] = useState('')
+  const [nContexto, setNContexto] = useState('')
+  const [nGancho, setNGancho] = useState('')
+  const [nPlan, setNPlan] = useState('')
+  const [nEstado, setNEstado] = useState('verificar')
+  const [nTono, setNTono] = useState('neutral')
+  const [nTonoNota, setNTonoNota] = useState('')
+  const [nNota, setNNota] = useState('')
+  const [guardando, setGuardando] = useState(false)
+
+  async function crearFicha() {
+    if (!nTitulo.trim() || !nContexto.trim() || !nGancho.trim() || !nPlan.trim()) {
+      alert('título, contexto, gancho y plan de libros son obligatorios')
+      return
+    }
+    setGuardando(true)
+    const { data, error } = await supabase
+      .from('calendario_fechas')
+      .insert({
+        mes: Number(nMes),
+        dia: nDia.trim() ? Number(nDia) : null,
+        categoria: nCategoria,
+        titulo: nTitulo.trim(),
+        contexto: nContexto.trim(),
+        gancho: nGancho.trim(),
+        plan_de_libros: nPlan.trim(),
+        estado_acervo: nEstado,
+        tono: nTono,
+        tono_nota: nTonoNota.trim() || null,
+        nota_interna: nNota.trim() || null,
+      })
+      .select('id')
+      .single()
+    setGuardando(false)
+    if (error || !data) {
+      alert('error: ' + (error?.message ?? 'sin respuesta'))
+      return
+    }
+    router.push(`/admin/calendario/${data.id}`)
+  }
 
   const cargar = useCallback(async () => {
     if (!isEditor) return
@@ -91,6 +139,82 @@ export default function AdminCalendarioPage() {
           <p>1. Reemplazo de 4 fechas cívicas débiles (Día de la Bandera 24 feb, Día del Ejército 19 feb, Día del Maestro 15 may, Día de las Madres 10 may). Candidatas con fecha verificada: Manuel Álvarez Bravo (nace 4 feb 1902), Tina Modotti (muere 5 ene 1942), &ldquo;El Corno Emplumado&rdquo; (fundación, enero 1962, solo mes), Festival de Avándaro (11-12 sep 1971), Manifiesto &ldquo;Actual No. 1&rdquo; / Estridentismo (diciembre 1921, sin día confirmado), Luis Barragán (nace 9 mar 1902 / muere 22 nov 1988). Ningún candidato con día exacto cae en mayo — falta decidir acomodo.</p>
           <p className="mt-1">2. Correcciones de fecha ya aplicadas, pendientes de confirmar: muerte de Hannah Arendt 4 dic 1975 (no 4 nov); fundación de la Bauhaus 1 abril 1919 (no 12 abril).</p>
           <p className="mt-1">3. Dato con una sola fuente no académica: exposición individual de Frida Kahlo, 13 abr 1953 — publicado con advertencia en su ficha.</p>
+        </div>
+
+        {/* ============ NUEVA FICHA ============ */}
+        <div className="mb-8">
+          <button
+            onClick={() => setMostrarNueva((v) => !v)}
+            className="inline-flex items-center bg-brillante text-bone border border-tinta rounded-sm px-4 py-2 font-micro text-[11px] uppercase tracking-[0.08em] hover:bg-tinta hover:text-acid transition-colors"
+          >
+            {mostrarNueva ? '× cerrar' : '+ nueva fecha'}
+          </button>
+
+          {mostrarNueva && (
+            <div className="border border-rule-strong bg-bg-soft p-5 mt-3 flex flex-col gap-3 font-mono">
+              <div className="flex flex-wrap items-end gap-3">
+                <label className="flex flex-col gap-1">
+                  <span className="text-[10px] uppercase tracking-wider text-text-dim">día (vacío si es fecha móvil)</span>
+                  <input type="number" min={1} max={31} value={nDia} onChange={(e) => setNDia(e.target.value)}
+                    className="bg-transparent border border-rule text-sm px-2 py-1.5 outline-none focus:border-text w-24" />
+                </label>
+                <label className="flex flex-col gap-1">
+                  <span className="text-[10px] uppercase tracking-wider text-text-dim">mes</span>
+                  <select value={nMes} onChange={(e) => setNMes(e.target.value)}
+                    className="bg-transparent border border-rule text-sm px-2 py-1.5 outline-none focus:border-text">
+                    {MESES.map((m, i) => <option key={m} value={i + 1} className="bg-tinta">{m}</option>)}
+                  </select>
+                </label>
+                <label className="flex flex-col gap-1 flex-1 min-w-[220px]">
+                  <span className="text-[10px] uppercase tracking-wider text-text-dim">categoría</span>
+                  <select value={nCategoria} onChange={(e) => setNCategoria(e.target.value)}
+                    className="bg-transparent border border-rule text-sm px-2 py-1.5 outline-none focus:border-text">
+                    {CATEGORIAS.map((c) => <option key={c.slug} value={c.slug} className="bg-tinta">{c.label}</option>)}
+                  </select>
+                </label>
+              </div>
+              <input value={nTitulo} onChange={(e) => setNTitulo(e.target.value)} placeholder="título *"
+                className="bg-transparent border-b border-rule text-sm py-2 outline-none focus:border-text" />
+              <textarea value={nContexto} onChange={(e) => setNContexto(e.target.value)} rows={4}
+                placeholder="contexto * (3-6 líneas, dato citable + fuente)"
+                className="bg-transparent border border-rule text-sm p-2 outline-none focus:border-text resize-y" />
+              <textarea value={nGancho} onChange={(e) => setNGancho(e.target.value)} rows={2}
+                placeholder="gancho * (ángulo de copy)"
+                className="bg-transparent border border-rule text-sm p-2 outline-none focus:border-text resize-y" />
+              <textarea value={nPlan} onChange={(e) => setNPlan(e.target.value)} rows={2}
+                placeholder="plan de libros * (qué buscar / mostrar del catálogo)"
+                className="bg-transparent border border-rule text-sm p-2 outline-none focus:border-text resize-y" />
+              <div className="grid grid-cols-2 gap-3 max-md:grid-cols-1">
+                <label className="flex flex-col gap-1">
+                  <span className="text-[10px] uppercase tracking-wider text-text-dim">estado de acervo</span>
+                  <select value={nEstado} onChange={(e) => setNEstado(e.target.value)}
+                    className="bg-transparent border border-rule text-sm px-2 py-1.5 outline-none focus:border-text">
+                    <option value="verificar" className="bg-tinta">verificar en catálogo</option>
+                    <option value="confirmado" className="bg-tinta">confirmado en catálogo</option>
+                    <option value="hueco" className="bg-tinta">hueco de acervo (no inventar)</option>
+                  </select>
+                </label>
+                <label className="flex flex-col gap-1">
+                  <span className="text-[10px] uppercase tracking-wider text-text-dim">tono</span>
+                  <select value={nTono} onChange={(e) => setNTono(e.target.value)}
+                    className="bg-transparent border border-rule text-sm px-2 py-1.5 outline-none focus:border-text">
+                    <option value="neutral" className="bg-tinta">neutral</option>
+                    <option value="requiere_cuidado" className="bg-tinta">requiere cuidado</option>
+                  </select>
+                </label>
+              </div>
+              {nTono === 'requiere_cuidado' && (
+                <input value={nTonoNota} onChange={(e) => setNTonoNota(e.target.value)} placeholder="qué cuidar"
+                  className="bg-transparent border-b border-loan/40 text-sm py-2 outline-none focus:border-text" />
+              )}
+              <input value={nNota} onChange={(e) => setNNota(e.target.value)} placeholder="nota interna (opcional, no va al post)"
+                className="bg-transparent border-b border-rule text-sm py-2 outline-none focus:border-text" />
+              <button onClick={crearFicha} disabled={guardando}
+                className="self-start inline-flex items-center bg-brillante text-bone border border-tinta rounded-sm px-4 py-2 font-micro text-[11px] uppercase tracking-[0.08em] disabled:opacity-30 hover:bg-tinta hover:text-acid transition-colors">
+                {guardando ? 'guardando...' : 'crear ficha'}
+              </button>
+            </div>
+          )}
         </div>
 
         {/* ============ FILTROS ============ */}

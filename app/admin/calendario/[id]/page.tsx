@@ -2,6 +2,7 @@
 
 import { use, useCallback, useEffect, useState } from 'react'
 import Link from 'next/link'
+import { useRouter } from 'next/navigation'
 import { supabase } from '@/lib/supabase'
 import TecaLayout from '@/components/TecaLayout'
 import AdminNav from '@/components/AdminNav'
@@ -31,6 +32,7 @@ type LibroResultado = {
 export default function AdminCalendarioFichaPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = use(params)
   const { loading, isEditor, editorId } = useEditorGate()
+  const router = useRouter()
 
   const [ficha, setFicha] = useState<CalendarioFecha | null>(null)
   const [vinculados, setVinculados] = useState<LibroVinculado[]>([])
@@ -102,6 +104,13 @@ export default function AdminCalendarioFichaPage({ params }: { params: Promise<{
     }
     setBusquedaLibro('')
     setRefreshKey((k) => k + 1)
+  }
+
+  async function borrarFicha() {
+    if (!ficha) return
+    if (!confirm(`¿Borrar la ficha "${ficha.titulo}"? No se puede deshacer.`)) return
+    await supabase.from('calendario_fechas').delete().eq('id', ficha.id)
+    router.push('/admin/calendario')
   }
 
   async function desvincular(libroId: string) {
@@ -312,6 +321,13 @@ export default function AdminCalendarioFichaPage({ params }: { params: Promise<{
             </div>
           )}
         </div>
+
+        <button
+          onClick={borrarFicha}
+          className="mt-10 inline-flex items-center border border-rule rounded-sm px-3 py-1.5 text-[10px] uppercase tracking-[0.08em] text-text-dim hover:bg-loan hover:text-bg hover:border-loan transition-colors"
+        >
+          × borrar esta ficha
+        </button>
       </section>
     </TecaLayout>
   )
