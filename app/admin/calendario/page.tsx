@@ -85,6 +85,14 @@ export default function AdminCalendarioPage() {
           nada inventado: lo que no tiene match confirmado se marca como hueco
         </p>
 
+        {/* ============ DECISIONES ABIERTAS (del documento fuente) ============ */}
+        <div className="border border-loan/40 bg-bg-soft p-4 mb-8 font-mono text-xs text-text-dim leading-relaxed">
+          <p className="font-micro uppercase tracking-[0.12em] text-[10px] text-loan mb-2">decisiones de contenido aún abiertas — el calendario no es final hasta que Marina decida</p>
+          <p>1. Reemplazo de 4 fechas cívicas débiles (Día de la Bandera 24 feb, Día del Ejército 19 feb, Día del Maestro 15 may, Día de las Madres 10 may). Candidatas con fecha verificada: Manuel Álvarez Bravo (nace 4 feb 1902), Tina Modotti (muere 5 ene 1942), &ldquo;El Corno Emplumado&rdquo; (fundación, enero 1962, solo mes), Festival de Avándaro (11-12 sep 1971), Manifiesto &ldquo;Actual No. 1&rdquo; / Estridentismo (diciembre 1921, sin día confirmado), Luis Barragán (nace 9 mar 1902 / muere 22 nov 1988). Ningún candidato con día exacto cae en mayo — falta decidir acomodo.</p>
+          <p className="mt-1">2. Correcciones de fecha ya aplicadas, pendientes de confirmar: muerte de Hannah Arendt 4 dic 1975 (no 4 nov); fundación de la Bauhaus 1 abril 1919 (no 12 abril).</p>
+          <p className="mt-1">3. Dato con una sola fuente no académica: exposición individual de Frida Kahlo, 13 abr 1953 — publicado con advertencia en su ficha.</p>
+        </div>
+
         {/* ============ FILTROS ============ */}
         <div className="flex flex-col gap-3 mb-8">
           <input
