@@ -369,83 +369,100 @@ export default function AdminCalendarioPage() {
 }
 
 /* ============================================================
-   Cuadritos del mes: una tarjeta por ocasión, en orden de día. Las que ya
-   tienen libros confirmados en catálogo llevan palomita y van primero; las
-   que faltan de verificar (o son hueco) van al final, sin palomita, para
-   que siempre se vea que hay algo que postear. Si el mes tiene pocas
-   ocasiones, cada tarjeta muestra su contenido completo.
+   Calendario del mes: todos los días del mes en grid de semanas y, en cada
+   día, un bannersito por ocasión. Las que ya tienen libros confirmados
+   llevan palomita y van primero dentro del día; las que faltan de
+   verificar se quedan (sin palomita, borde punteado) para que siempre se
+   vea que hay algo que postear. Las fechas sin día fijo van arriba.
    ============================================================ */
+const DIAS_SEMANA = ['lun', 'mar', 'mié', 'jue', 'vie', 'sáb', 'dom']
+
 function terceroJueves(anio: number, mes: number): number {
   const primero = new Date(anio, mes - 1, 1).getDay() // 0 dom .. 6 sab
   const offset = (4 - primero + 7) % 7 // 4 = jueves
   return 1 + offset + 14
 }
 
+function Bannersito({ f }: { f: CalendarioFecha }) {
+  const ok = f.estado_acervo === 'confirmado'
+  const hueco = f.estado_acervo === 'hueco'
+  return (
+    <Link
+      href={`/admin/calendario/${f.id}`}
+      title={`${f.titulo} · ${labelCategoria(f.categoria)}${ok ? ' · libros confirmados' : hueco ? ' · hueco de acervo' : ' · por verificar'}${f.tono === 'requiere_cuidado' ? ' · requiere cuidado' : ''}`}
+      className={`block border px-1.5 py-1 font-mono text-[10px] leading-tight mb-1 hover:border-rule-strong transition-colors ${
+        ok ? 'border-acid/40 bg-bg-soft text-text-bright' : hueco ? 'border-loan/40 border-dashed text-loan' : 'border-rule border-dashed text-text-dim'
+      }`}
+    >
+      {ok && <span className="text-acid mr-1">✓</span>}
+      {f.tono === 'requiere_cuidado' && <span className="text-loan mr-1">!</span>}
+      <span className="line-clamp-2">{f.titulo}</span>
+    </Link>
+  )
+}
+
 function GridMes({ anio, mes, fichas, hoy }: { anio: number; mes: number; fichas: CalendarioFecha[]; hoy: Date }) {
-  const conDia = fichas.map((f) => {
+  const diasEnMes = new Date(anio, mes, 0).getDate()
+  const primerDiaSemana = (new Date(anio, mes - 1, 1).getDay() + 6) % 7 // lunes = 0
+  const porDia = new Map<number, CalendarioFecha[]>()
+  const sinDia: CalendarioFecha[] = []
+  for (const f of fichas) {
     let d = f.dia
     if (d === null && /filosof/i.test(f.titulo) && mes === 11) d = terceroJueves(anio, mes)
-    return { f, d }
-  })
-  const orden = (x: { f: CalendarioFecha; d: number | null }) =>
-    (x.f.estado_acervo === 'confirmado' ? 0 : 1) * 100 + (x.d ?? 99)
-  const lista = [...conDia].sort((a, b) => orden(a) - orden(b))
-  const pocas = lista.length <= 6
-  const yaPaso = (d: number | null) =>
-    d !== null && new Date(anio, mes - 1, d) < new Date(hoy.getFullYear(), hoy.getMonth(), hoy.getDate())
-  const esHoy = (d: number | null) =>
-    d !== null && hoy.getFullYear() === anio && hoy.getMonth() + 1 === mes && hoy.getDate() === d
-  const confirmadas = lista.filter((x) => x.f.estado_acervo === 'confirmado').length
-
-  if (lista.length === 0) {
-    return <p className="font-mono text-sm text-text-dim lowercase">nada en este mes con estos filtros.</p>
+    if (d === null) { sinDia.push(f); continue }
+    if (!porDia.has(d)) porDia.set(d, [])
+    porDia.get(d)!.push(f)
   }
+  const rango = (f: CalendarioFecha) => (f.estado_acervo === 'confirmado' ? 0 : f.estado_acervo === 'verificar' ? 1 : 2)
+  for (const lista of porDia.values()) lista.sort((a, b) => rango(a) - rango(b))
+
+  const celdas: (number | null)[] = []
+  for (let i = 0; i < primerDiaSemana; i++) celdas.push(null)
+  for (let d = 1; d <= diasEnMes; d++) celdas.push(d)
+  while (celdas.length % 7 !== 0) celdas.push(null)
+  const esHoy = (d: number) => hoy.getFullYear() === anio && hoy.getMonth() + 1 === mes && hoy.getDate() === d
+  const yaPaso = (d: number) => new Date(anio, mes - 1, d) < new Date(hoy.getFullYear(), hoy.getMonth(), hoy.getDate())
+  const total = fichas.length
+  const confirmadas = fichas.filter((f) => f.estado_acervo === 'confirmado').length
 
   return (
     <div>
       <p className="font-mono text-[11px] text-text-dim mb-3">
-        {lista.length} ocasiones · {confirmadas} con libros ya confirmados en catálogo
-        {lista.length - confirmadas > 0 ? ` · ${lista.length - confirmadas} por verificar (al final, sin palomita)` : ''}
+        {total} ocasiones este mes · {confirmadas} con libros ya confirmados
+        {total - confirmadas > 0 ? ` · ${total - confirmadas} por verificar (sin palomita)` : ''}
       </p>
-      <div className={`grid gap-3 ${pocas ? 'grid-cols-2 max-md:grid-cols-1' : 'grid-cols-3 max-lg:grid-cols-2 max-md:grid-cols-1'}`}>
-        {lista.map(({ f, d }) => {
-          const ok = f.estado_acervo === 'confirmado'
-          return (
-            <Link
-              key={f.id}
-              href={`/admin/calendario/${f.id}`}
-              className={`border p-4 flex flex-col gap-2 hover:border-rule-strong transition-colors ${
-                ok ? 'border-rule bg-bg-soft' : 'border-dashed border-rule bg-transparent'
-              } ${yaPaso(d) ? 'opacity-50' : ''}`}
-            >
-              <div className="flex items-start justify-between gap-2">
-                <p className={`font-mono text-[11px] uppercase tracking-wider ${esHoy(d) ? 'text-acid' : 'text-text-dim'}`}>
-                  {d !== null ? `${d} de ${MESES[mes - 1]}` : `${MESES[mes - 1]} · sin día fijo`}
-                  {esHoy(d) ? ' · hoy' : ''}
-                </p>
-                {ok && <span className="font-mono text-acid text-[13px] leading-none" title="libros confirmados en catálogo">✓</span>}
-                {f.estado_acervo === 'hueco' && <span className="font-micro text-[9px] uppercase tracking-wider text-loan">hueco</span>}
-              </div>
-              <p className="font-mono text-[10px] uppercase tracking-wider text-text-dim">{labelCategoria(f.categoria)}</p>
-              <p className="text-text-bright text-[15px] leading-snug">
-                {f.tono === 'requiere_cuidado' && <span className="text-loan mr-1" title="requiere cuidado">!</span>}
-                {f.titulo}
-              </p>
-              {pocas ? (
-                <div className="font-mono text-[12px] text-text-dim leading-relaxed flex flex-col gap-2 mt-1">
-                  <p><span className="text-text-bright">Qué se conmemora · </span>{f.contexto}</p>
-                  <p><span className="text-text-bright">Por qué interesa · </span>{f.gancho}</p>
-                  <p><span className="text-text-bright">Qué libros buscar · </span>{f.plan_de_libros}</p>
-                </div>
-              ) : (
-                <p className="font-mono text-[12px] text-text-dim leading-relaxed line-clamp-3">{f.gancho}</p>
-              )}
-            </Link>
-          )
-        })}
+      {sinDia.length > 0 && (
+        <div className="border border-rule bg-bg-soft p-3 mb-3">
+          <p className="font-micro text-[10px] uppercase tracking-wider text-text-dim mb-1">este mes, sin día fijo</p>
+          {sinDia.map((f) => <Bannersito key={f.id} f={f} />)}
+        </div>
+      )}
+      <div className="grid grid-cols-7 gap-px bg-rule border border-rule max-md:hidden">
+        {DIAS_SEMANA.map((d) => (
+          <div key={d} className="bg-bg px-2 py-1 font-micro text-[10px] uppercase tracking-wider text-text-dim">{d}</div>
+        ))}
+        {celdas.map((d, i) => (
+          <div key={i} className={`bg-bg min-h-[120px] p-1.5 ${d === null ? 'opacity-30' : ''} ${d !== null && yaPaso(d) ? 'opacity-50' : ''}`}>
+            {d !== null && (
+              <>
+                <p className={`font-mono text-[11px] mb-1 px-0.5 ${esHoy(d) ? 'text-acid' : 'text-text-dim'}`}>{d}{esHoy(d) ? ' · hoy' : ''}</p>
+                {(porDia.get(d) ?? []).map((f) => <Bannersito key={f.id} f={f} />)}
+              </>
+            )}
+          </div>
+        ))}
+      </div>
+      {/* móvil: día por día */}
+      <div className="md:hidden flex flex-col gap-2">
+        {Array.from({ length: diasEnMes }, (_, k) => k + 1).map((d) => (
+          <div key={d} className={`border border-rule p-2 ${yaPaso(d) ? 'opacity-50' : ''} ${(porDia.get(d) ?? []).length === 0 ? 'py-1' : 'bg-bg-soft'}`}>
+            <p className={`font-mono text-[11px] mb-1 ${esHoy(d) ? 'text-acid' : 'text-text-dim'}`}>{d} de {MESES[mes - 1]}{esHoy(d) ? ' · hoy' : ''}</p>
+            {(porDia.get(d) ?? []).map((f) => <Bannersito key={f.id} f={f} />)}
+          </div>
+        ))}
       </div>
       <p className="font-mono text-[10px] text-text-dim mt-3">
-        ✓ = libros ya confirmados en catálogo · borde punteado = falta verificar · ! = requiere cuidado
+        ✓ = libros ya confirmados en catálogo · borde punteado = falta verificar · naranja = hueco de acervo · ! = requiere cuidado · pasa el cursor para ver la categoría
       </p>
     </div>
   )
