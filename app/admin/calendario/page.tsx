@@ -34,6 +34,17 @@ export default function AdminCalendarioPage() {
   const [busqueda, setBusqueda] = useState('')
   const router = useRouter()
 
+  // Vista por mes: de hoy a enero 2028, las fechas se repiten cada año
+  const hoy = new Date()
+  const INICIO = { anio: hoy.getFullYear(), mes: hoy.getMonth() + 1 }
+  const FIN = { anio: 2028, mes: 1 }
+  const [modo, setModo] = useState<'mes' | 'lista'>('mes')
+  const [cursor, setCursor] = useState(INICIO)
+  const esInicio = cursor.anio === INICIO.anio && cursor.mes === INICIO.mes
+  const esFin = cursor.anio === FIN.anio && cursor.mes === FIN.mes
+  const mesAnterior = () => { if (!esInicio) setCursor(cursor.mes === 1 ? { anio: cursor.anio - 1, mes: 12 } : { anio: cursor.anio, mes: cursor.mes - 1 }) }
+  const mesSiguiente = () => { if (!esFin) setCursor(cursor.mes === 12 ? { anio: cursor.anio + 1, mes: 1 } : { anio: cursor.anio, mes: cursor.mes + 1 }) }
+
   // Form de nueva ficha
   const [mostrarNueva, setMostrarNueva] = useState(false)
   const [nDia, setNDia] = useState('')
@@ -98,7 +109,8 @@ export default function AdminCalendarioPage() {
   const filtradas = useMemo(() => {
     const b = busqueda.trim().toLowerCase()
     return fechas.filter((f) => {
-      if (mes !== null && f.mes !== mes) return false
+      if (modo === 'lista' && mes !== null && f.mes !== mes) return false
+      if (modo === 'mes' && f.mes !== cursor.mes) return false
       if (categoria !== null && f.categoria !== categoria) return false
       if (b) {
         const hay = `${f.titulo} ${f.contexto} ${f.gancho}`.toLowerCase()
@@ -106,7 +118,7 @@ export default function AdminCalendarioPage() {
       }
       return true
     })
-  }, [fechas, mes, categoria, busqueda])
+  }, [fechas, mes, categoria, busqueda, modo, cursor])
 
   if (loading || !isEditor) {
     return (
@@ -226,6 +238,26 @@ export default function AdminCalendarioPage() {
             className="bg-transparent border-b border-rule font-mono text-sm py-2 outline-none focus:border-text"
           />
 
+          <div className="flex flex-wrap items-center gap-1.5">
+            <button
+              onClick={() => setModo('mes')}
+              className={`font-micro text-[10px] uppercase tracking-[0.08em] px-2.5 py-1 border transition-colors ${
+                modo === 'mes' ? 'border-rule-strong text-text-bright' : 'border-rule text-text-dim hover:text-text-bright'
+              }`}
+            >
+              vista por mes
+            </button>
+            <button
+              onClick={() => setModo('lista')}
+              className={`font-micro text-[10px] uppercase tracking-[0.08em] px-2.5 py-1 border transition-colors ${
+                modo === 'lista' ? 'border-rule-strong text-text-bright' : 'border-rule text-text-dim hover:text-text-bright'
+              }`}
+            >
+              lista completa
+            </button>
+          </div>
+
+          {modo === 'lista' && (
           <div className="flex flex-wrap gap-1.5">
             <button
               onClick={() => setMes(null)}
@@ -247,6 +279,7 @@ export default function AdminCalendarioPage() {
               </button>
             ))}
           </div>
+          )}
 
           <div className="flex flex-wrap gap-1.5">
             <button
@@ -271,8 +304,28 @@ export default function AdminCalendarioPage() {
           </div>
         </div>
 
+        {/* ============ VISTA POR MES ============ */}
+        {modo === 'mes' && !cargando && fechas.length > 0 && (
+          <div className="mb-10">
+            <div className="flex items-center justify-between mb-4">
+              <button onClick={mesAnterior} disabled={esInicio}
+                className="font-micro text-[11px] uppercase tracking-[0.08em] px-3 py-1.5 border border-rule text-text-dim hover:text-text-bright disabled:opacity-30">
+                ← anterior
+              </button>
+              <p className="font-sans font-light text-[clamp(22px,2.6vw,32px)] text-text-bright capitalize">
+                {MESES[cursor.mes - 1]} {cursor.anio}
+              </p>
+              <button onClick={mesSiguiente} disabled={esFin}
+                className="font-micro text-[11px] uppercase tracking-[0.08em] px-3 py-1.5 border border-rule text-text-dim hover:text-text-bright disabled:opacity-30">
+                siguiente →
+              </button>
+            </div>
+            <GridMes anio={cursor.anio} mes={cursor.mes} fichas={filtradas} hoy={hoy} />
+          </div>
+        )}
+
         {/* ============ LISTA ============ */}
-        {cargando ? (
+        {modo === 'mes' ? null : cargando ? (
           <p className="font-mono text-sm text-text-dim">cargando...</p>
         ) : fechas.length === 0 ? (
           <p className="font-mono text-sm text-text-dim lowercase">
@@ -312,5 +365,94 @@ export default function AdminCalendarioPage() {
         )}
       </section>
     </TecaLayout>
+  )
+}
+
+/* ============================================================
+   Grid del mes: las fichas (día/mes, sin año) proyectadas sobre
+   el mes real que se está viendo. Las fechas sin día (móviles o
+   solo-mes) van en una fila aparte arriba del grid.
+   ============================================================ */
+const DIAS_SEMANA = ['lun', 'mar', 'mié', 'jue', 'vie', 'sáb', 'dom']
+
+function terceroJueves(anio: number, mes: number): number {
+  // mes 1-12; devuelve el día del tercer jueves
+  const primero = new Date(anio, mes - 1, 1).getDay() // 0 dom .. 6 sab
+  const offset = (4 - primero + 7) % 7 // 4 = jueves
+  return 1 + offset + 14
+}
+
+function GridMes({ anio, mes, fichas, hoy }: { anio: number; mes: number; fichas: CalendarioFecha[]; hoy: Date }) {
+  const diasEnMes = new Date(anio, mes, 0).getDate()
+  const primerDiaSemana = (new Date(anio, mes - 1, 1).getDay() + 6) % 7 // lunes = 0
+  const porDia = new Map<number, CalendarioFecha[]>()
+  const sinDia: CalendarioFecha[] = []
+  for (const f of fichas) {
+    let d = f.dia
+    if (d === null && /filosof/i.test(f.titulo) && mes === 11) d = terceroJueves(anio, mes)
+    if (d === null) { sinDia.push(f); continue }
+    if (!porDia.has(d)) porDia.set(d, [])
+    porDia.get(d)!.push(f)
+  }
+  const celdas: (number | null)[] = []
+  for (let i = 0; i < primerDiaSemana; i++) celdas.push(null)
+  for (let d = 1; d <= diasEnMes; d++) celdas.push(d)
+  while (celdas.length % 7 !== 0) celdas.push(null)
+  const esHoy = (d: number) => hoy.getFullYear() === anio && hoy.getMonth() + 1 === mes && hoy.getDate() === d
+  const yaPaso = (d: number) => new Date(anio, mes - 1, d) < new Date(hoy.getFullYear(), hoy.getMonth(), hoy.getDate())
+
+  return (
+    <div>
+      {sinDia.length > 0 && (
+        <div className="border border-rule bg-bg-soft p-3 mb-3 font-mono text-xs">
+          <p className="text-[10px] uppercase tracking-wider text-text-dim mb-1">este mes, sin día fijo</p>
+          {sinDia.map((f) => (
+            <Link key={f.id} href={`/admin/calendario/${f.id}`} className="block text-text-bright hover:text-acid truncate">
+              {f.titulo}
+            </Link>
+          ))}
+        </div>
+      )}
+      <div className="grid grid-cols-7 gap-px bg-rule border border-rule max-md:hidden">
+        {DIAS_SEMANA.map((d) => (
+          <div key={d} className="bg-bg px-2 py-1 font-micro text-[10px] uppercase tracking-wider text-text-dim">{d}</div>
+        ))}
+        {celdas.map((d, i) => (
+          <div key={i} className={`bg-bg min-h-[110px] p-2 ${d === null ? 'opacity-30' : ''} ${d !== null && yaPaso(d) ? 'opacity-50' : ''}`}>
+            {d !== null && (
+              <>
+                <p className={`font-mono text-[11px] mb-1 ${esHoy(d) ? 'text-acid' : 'text-text-dim'}`}>{d}{esHoy(d) ? ' · hoy' : ''}</p>
+                {(porDia.get(d) ?? []).map((f) => (
+                  <Link key={f.id} href={`/admin/calendario/${f.id}`}
+                    className={`block font-mono text-[11px] leading-tight mb-1 truncate hover:text-acid ${
+                      f.estado_acervo === 'hueco' ? 'text-loan' : f.estado_acervo === 'confirmado' ? 'text-text-bright' : 'text-text-dim'
+                    }`}
+                    title={`${f.titulo} · ${labelCategoria(f.categoria)}${f.tono === 'requiere_cuidado' ? ' · requiere cuidado' : ''}`}
+                  >
+                    {f.tono === 'requiere_cuidado' ? '! ' : ''}{f.titulo}
+                  </Link>
+                ))}
+              </>
+            )}
+          </div>
+        ))}
+      </div>
+      {/* movil: lista del mes */}
+      <div className="md:hidden flex flex-col gap-2">
+        {Array.from(porDia.keys()).sort((a, b) => a - b).map((d) => (
+          <div key={d} className="border border-rule bg-bg-soft p-3">
+            <p className={`font-mono text-[11px] mb-1 ${esHoy(d) ? 'text-acid' : 'text-text-dim'}`}>{d} de {MESES[mes - 1]}</p>
+            {porDia.get(d)!.map((f) => (
+              <Link key={f.id} href={`/admin/calendario/${f.id}`} className="block font-mono text-[12px] text-text-bright hover:text-acid">
+                {f.tono === 'requiere_cuidado' ? '! ' : ''}{f.titulo}
+              </Link>
+            ))}
+          </div>
+        ))}
+      </div>
+      <p className="font-mono text-[10px] text-text-dim mt-3">
+        claro = confirmado en catálogo · gris = verificar · naranja = hueco de acervo · ! = requiere cuidado
+      </p>
+    </div>
   )
 }
