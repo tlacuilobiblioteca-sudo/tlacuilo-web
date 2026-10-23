@@ -1,6 +1,6 @@
 import Link from 'next/link'
 import TecaLayout from '@/components/TecaLayout'
-import { HORARIO_TEXTO, DIRECCION } from '@/lib/horarios'
+import { HORARIO_TEXTO } from '@/lib/horarios'
 
 export const metadata = {
   title: 'Preguntas · Tlacuilo',
@@ -27,7 +27,7 @@ const PREGUNTAS = [
   },
   {
     q: '¿dónde están?',
-    a: `en ${DIRECCION}. la dirección completa va en el correo de tu reserva confirmada.`,
+    a: `en Coyoacán, CDMX. la dirección completa va en el correo de tu reserva confirmada.`,
   },
   {
     q: 'no voy a poder ir, ¿qué hago?',
