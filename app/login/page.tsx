@@ -67,7 +67,10 @@ export default function LoginPage() {
         <div className="border-b border-[#9091c4]/30 mb-14" />
 
         <p className="mb-10 text-[clamp(13px,1vw,16px)]">
-          &gt; identifícate.
+          &gt;{' '}
+          <a href="/registro" className="underline hover:no-underline">
+            crea tu cuenta
+          </a>
         </p>
 
         {aviso && (
@@ -146,13 +149,6 @@ export default function LoginPage() {
           &gt; olvidaste tu contraseña?{' '}
           <a href="/recuperar" className="underline hover:no-underline">
             recupérala
-          </a>
-        </div>
-
-        <div className="mt-6 pt-6 border-t border-[#9091c4]/20 opacity-70 text-[clamp(11px,0.85vw,13px)]">
-          &gt; primera vez aquí?{' '}
-          <a href="/registro" className="underline hover:no-underline">
-            solicita acceso
           </a>
         </div>
       </section>
