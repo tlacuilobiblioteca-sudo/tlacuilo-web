@@ -6,6 +6,7 @@ import { useRouter } from 'next/navigation'
 import { supabase } from '@/lib/supabase'
 import type { User } from '@supabase/supabase-js'
 import MorralHeader from './MorralHeader'
+import ThemeToggle from './ThemeToggle'
 
 type HeaderProps = {
   /** Si true, oculta la banda de 6 categorías. Útil para páginas interiores
@@ -19,10 +20,9 @@ type HeaderProps = {
 /**
  * Header de Tlacuilo · 2 bandas (sticky)
  *
- * BANDA 1 (top): logo + search bar input + morral + MI TLACUILO
- *   (2026-07-17: se retiraron el ThemeToggle —Tlacuilo es dark-only por
- *    diseño; el light mode morado queda dormido en globals.css— y el icono
- *    de calendario, que ahora vive como link en la banda de tecas)
+ * BANDA 1 (top): logo + search bar input + morral + ThemeToggle + MI TLACUILO
+ *   (2026-07-17 se retiró el ThemeToggle y el icono de calendario, que ahora
+ *    vive como link en la banda de tecas. 2026-10-23 regresó el ThemeToggle)
  * BANDA 2 (nav): categorías centradas
  *   BIBLIOTECA / ARTOTECA / FONOTECA / VIDEOTECA / MANIFIESTO / EDITORIAL
  *
@@ -127,6 +127,7 @@ export default function Header({ slim = false, sticky = true }: HeaderProps) {
 
         <div className="flex items-center gap-5 shrink-0">
           <MorralHeader />
+          <ThemeToggle />
           {/* La puerta a la zona de trabajo. Separada de MI TLACUILO a
               propósito: el perfil es tuyo, admin es la biblioteca. */}
           {esEditor && (
